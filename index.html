@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorMap – Maps for Developers</title>
+  <meta name="description" content="Erstelle und teile interaktive Vektorkarten mit VectorMap. Moderne APIs, flexible Styles und einfache Integration.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" type="image/png" href="assets/images/logo.png">
+  <style>
+  html, body {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f8f9fa;
+    color: #264653;
+    margin: 0;
+  }
+  .site-header {
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    padding: 0.5rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+  }
+  .logo { height: 40px; }
+  .main-nav ul {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
+  }
+  .main-nav a {
+    text-decoration: none;
+    color: #264653;
+    font-weight: 600;
+    transition: color 0.2s;
+  }
+  .main-nav a:hover { color: #2a9d8f; }
+  /* Hero */
+  .hero {
+    background: #fff;
+    text-align: center;
+    padding: 4rem 0 2rem 0;
+    position: relative;
+  }
+  .hero h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #264653;
+  }
+  .hero p {
+    font-size: 1.25rem;
+    color: #5a6a7a;
+    margin-bottom: 2rem;
+  }
+  .hero .btn-primary {
+    font-size: 1.1rem;
+    padding: 0.7rem 2rem;
+  }
+  .hero-shapes {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero-shapes span {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.7;
+  }
+  .hero-shapes .red { background: #ff595e; width: 18px; height: 18px; top: 30%; left: 12%; }
+  .hero-shapes .blue { background: #3a86ff; width: 14px; height: 14px; top: 60%; left: 80%; }
+  .hero-shapes .yellow { background: #ffbe0b; width: 12px; height: 12px; top: 70%; left: 20%; }
+  .hero-shapes .purple { background: #8338ec; width: 10px; height: 10px; top: 10%; left: 70%; }
+  /* Card Grid */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.2rem;
+    margin: 2.5rem auto;
+    padding: 0 1vw;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(60,60,60,0.06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 320px;
+    transition: transform 0.15s;
+  }
+  .card:hover { transform: translateY(-4px) scale(1.02);}
+  .card img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    background: #e0e0e0;
+  }
+  .card-content {
+    padding: 1.2rem 1.2rem 1.5rem 1.2rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .card-content h3 {
+    font-size: 1.2rem;
+    margin: 0 0 0.5rem 0;
+    color: #264653;
+  }
+  .card-content p {
+    color: #5a6a7a;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+  .card-content a {
+    color: #2a9d8f;
+    font-weight: 600;
+    text-decoration: none;
+    margin-top: auto;
+    transition: color 0.2s;
+  }
+  .card-content a:hover { color: #21867a; }
+  /* Footer */
+  .site-footer {
+    background: #264653;
+    color: #fff;
+    padding: 2rem 0 1rem 0;
+    text-align: center;
+    margin-top: 3rem;
+  }
+  .footer-links {
+    margin-bottom: 0.5rem;
+  }
+  .footer-links a {
+    color: #fff;
+    margin: 0 0.7rem;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: #2a9d8f; }
+  /* Main Layout */
+  .main-layout {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    min-height: 70vh;
+  }
+  .sidebar {
+    flex: 0 0 320px;
+    max-width: 340px;
+    min-width: 220px;
+    background: #fff;
+    padding: 2.5rem 2rem 2rem 2rem;
+    box-sizing: border-box;
+    border-right: 1px solid #f0f0f0;
+    position: relative;
+    z-index: 1;
+  }
+  .main-content {
+    flex: 1 1 0%;
+    padding: 2rem 0;
+    background: #f8f9fa;
+    min-width: 0;
+  }
+  /* Responsive */
+  @media (max-width: 900px) {
+    .card-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      padding: 0 2vw;
+    }
+    .main-layout {
+      flex-direction: column;
+    }
+    .sidebar {
+      width: 100%;
+      max-width: 100vw;
+      border-right: none;
+      border-bottom: 1px solid #f0f0f0;
+      text-align: center;
+      padding: 2rem 1rem 1.5rem 1rem;
+    }
+    .main-content {
+      padding: 1.5rem 0 0 0;
+    }
+  }
+  @media (max-width: 600px) {
+    .card-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      padding: 0 2vw;
+    }
+  }
+  @media (max-width: 700px) {
+    html, body {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+    .header-inner { flex-direction: column; align-items: flex-start; gap: 0.5rem; padding: 0 1rem;}
+    .main-nav ul { flex-direction: column; gap: 0.5rem; background: #fff; position: absolute; top: 60px; left: 0; right: 0; display: none; padding: 1rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.07);}
+    .main-nav.open ul { display: flex; }
+    .main-nav { position: relative; }
+    .nav-toggle { display: block; }
+    .cta-buttons { flex-direction: column; gap: 0.3rem; }
+    .card-grid {
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+      padding: 0 0.5rem;
+    }
+  }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#home" class="logo-link" aria-label="Startseite">
+        <img src="assets/images/logo.png" alt="Vectormap Logo" class="logo" id="logo">
+      </a>
+      <nav class="main-nav" aria-label="Hauptnavigation">
+        <ul>
+          <li><a href="#home">Home</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#pricing">Preise</a></li>
+          <li><a href="#contact">Kontakt</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content (zentriert, einspaltig) -->
+  <main class="main-content single-column">
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+      <div class="hero-shapes">
+        <span class="red"></span>
+        <span class="blue"></span>
+        <span class="yellow"></span>
+        <span class="purple"></span>
+      </div>
+      <div class="container hero-content">
+        <h1>Maps for developers</h1>
+        <p>Easy to use maps, documentation, code samples, and developer tools<br>für Web & Mobile.</p>
+        <a href="#get-started" class="btn btn-primary">Kostenlos starten</a>
+      </div>
+    </section>
+
+    <!-- Card Grid Section -->
+    <section class="card-grid">
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80" alt="SDK Docs">
+        <div class="card-content">
+          <h3>Dokumentation & SDKs</h3>
+          <p>Lesen Sie die Dokumentation zu unseren Web- und Mobile-SDKs für eine schnelle Integration.</p>
+          <a href="#">Mehr erfahren &rarr;</a>
+        </div>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=600&q=80" alt="Beautiful Maps">
+        <div class="card-content">
+          <h3>Entdecke unsere Karten</h3>
+          <p>Stöbern Sie in einer Vielzahl von schönen, anpassbaren Kartenstilen für jeden Anwendungsfall.</p>
+          <a href="#">Karten ansehen &rarr;</a>
+        </div>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=600&q=80" alt="Datasets">
+        <div class="card-content">
+          <h3>Globale Datensätze</h3>
+          <p>Greifen Sie auf umfangreiche, aktuelle Geodaten für Ihre Projekte zu.</p>
+          <a href="#">Daten entdecken &rarr;</a>
+        </div>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=600&q=80" alt="Industrie">
+        <div class="card-content">
+          <h3>Branchenlösungen</h3>
+          <p>Erfahren Sie, wie Karten in verschiedenen Branchen eingesetzt werden können.</p>
+          <a href="#">Mehr erfahren &rarr;</a>
+        </div>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1465101178521-c1a9136a3c8a?auto=format&fit=crop&w=600&q=80" alt="Partner">
+        <div class="card-content">
+          <h3>Partner werden</h3>
+          <p>Kooperieren Sie mit VectorMap und profitieren Sie von gemeinsamen Lösungen.</p>
+          <a href="#">Partner werden &rarr;</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Preise</a>
+      <a href="#contact">Kontakt</a>
+      <a href="https://github.com/fabia/vectormap" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <p>&copy; 2025 VectorMap. Alle Rechte vorbehalten.</p>
+  </footer>
+
+  <!-- JavaScript -->
+  <script src="js/main.js"></script>
+</body>
+</html>
