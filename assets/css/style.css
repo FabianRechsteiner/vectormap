@@ -158,7 +158,7 @@ header.site-header {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 320px;
+  min-height: 160px;
   transition: transform 0.15s;
 }
 .card:hover { transform: translateY(-4px) scale(1.02);}
@@ -176,23 +176,174 @@ header.site-header {
   justify-content: space-between;
 }
 .card-content h3 {
-  font-size: 1.2rem;
-  margin: 0 0 0.5rem 0;
+  font-size: 1.15rem;
+  margin-bottom: 0.5rem;
   color: #264653;
 }
 .card-content p {
-  color: #5a6a7a;
   font-size: 1rem;
-  margin-bottom: 1rem;
+  color: #4a5a6a;
+  margin-bottom: 1.2rem;
 }
 .card-content a {
   color: #2a9d8f;
   font-weight: 600;
   text-decoration: none;
-  margin-top: auto;
   transition: color 0.2s;
 }
 .card-content a:hover { color: #21867a; }
+
+/* Kachelübersicht-Grid */
+#overview.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 2.5rem auto 3rem auto;
+  padding: 0 1vw;
+  width: 100%;
+  box-sizing: border-box;
+}
+#overview .card {
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+#overview .card-content h3 {
+  font-size: 1.15rem;
+  margin-bottom: 0.5rem;
+}
+#overview .card-content p {
+  font-size: 1rem;
+  color: #4a5a6a;
+  margin-bottom: 1.2rem;
+}
+#overview .card-content a {
+  color: #2a9d8f;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+#overview .card-content a:hover {
+  color: #21867a;
+}
+
+/* Detailbereiche */
+.main-content section {
+  max-width: 900px;
+  margin: 3rem auto 0 auto;
+  padding: 0 1vw;
+  background: none;
+  box-shadow: none;
+  display: block;
+}
+
+/* Map-Wrapper für responsives Verhalten */
+.map-wrapper {
+  width: 100%;
+  max-width: 1100px; /* gleiche max-width wie #overview.card-grid */
+  margin: 2rem auto 1rem auto;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #e0e0e0;
+  box-shadow: 0 2px 12px rgba(60,60,60,0.06);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#map {
+  width: 100%;
+  aspect-ratio: 16/9;
+  min-height: 260px;
+  max-width: 700px; /* gleiche max-width wie eine Kachelreihe */
+  height: auto;
+  border-radius: 16px;
+  background: #e0e0e0;
+}
+
+/* Karte mittig und responsiv im Grid */
+#mapinfo.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 3rem auto;
+  padding: 0 1vw;
+}
+
+#mapinfo .card {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(60,60,60,0.06);
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Entferne Hover-Effekt NUR für die Karten-Kachel im mapinfo-Grid */
+#mapinfo .card:hover {
+  transform: none;
+  box-shadow: 0 2px 12px rgba(60,60,60,0.06);
+}
+
+/* Karte und Wrapper mittig und responsiv */
+#mapinfo .card {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#mapinfo .map-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 2rem auto 1rem auto;
+  width: 100%;
+  max-width: 650px;
+}
+
+#mapinfo #map {
+  width: 100%;
+  max-width: 650px;
+  aspect-ratio: 16/9;
+  min-height: 220px;
+  border-radius: 16px;
+  background: #e0e0e0;
+}
+
+/* Legende */
+.map-legend {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+.legend-green {
+  display: inline-block;
+  width: 16px; height: 16px;
+  background: #4caf50;
+  border-radius: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.legend-red {
+  display: inline-block;
+  width: 16px; height: 16px;
+  background: #e57373;
+  border-radius: 3px;
+  margin: 0 6px 0 18px;
+  vertical-align: middle;
+}
+
+/* QR-Code Bild */
+.twint-qr {
+  display: block;
+  margin: 2rem auto;
+  max-width: 200px;
+  width: 60vw;
+}
 
 /* Footer */
 .site-footer {
@@ -241,6 +392,33 @@ header.site-header {
   }
   .hero p {
     font-size: 1rem;
+  }
+}
+@media (max-width: 1000px) {
+  #overview.card-grid {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+  }
+  .main-content section {
+    max-width: 100vw;
+    padding: 0 2vw;
+  }
+  .map-wrapper {
+    max-width: 100vw;
+  }
+  #map {
+    max-width: 100vw;
+    height: 48vw;
+    min-height: 180px;
+  }
+}
+@media (max-width: 600px) {
+  #map {
+    height: 220px;
+    aspect-ratio: unset;
+  }
+  .main-content section {
+    margin-top: 2rem;
   }
 }
 
