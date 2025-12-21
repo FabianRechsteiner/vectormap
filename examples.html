@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beispiele – Vectormap</title>
+  <meta name="description" content="Modulare MapLibre-Beispiele, die zeigen, wie eine Vectormap-Karte Schritt für Schritt aufgebaut wird.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" type="image/png" href="assets/images/logo.png">
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-container header-inner">
+      <a class="brand" href="index.html">
+        <img class="brand-logo" src="assets/images/logo.png" alt="Vectormap Logo">
+        <span>Vectormap</span>
+      </a>
+      <nav class="main-nav">
+        <a href="index.html">Start</a>
+        <a href="dataset.html">Datensatz</a>
+        <a href="styles.html">Styles</a>
+        <a href="examples.html" aria-current="page">Beispiele</a>
+        <a href="about.html">Über</a>
+        <a href="support.html">Unterstützung</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero hero--compact">
+      <div class="site-container hero-grid">
+        <div class="reveal">
+          <p class="eyebrow">Beispiele</p>
+          <h1 class="hero-title">So baust du dir deine eigene Karte – Modul für Modul.</h1>
+          <p class="hero-lead">Die folgenden Beispiele zeigen, wie eine MapLibre-Karte aus einzelnen Modulen aufgebaut wird. Die Basiskarte funktioniert eigenständig, zusätzliche Funktionen lassen sich später ergänzen.</p>
+        </div>
+        <div class="hero-card reveal" style="--delay: 0.1s">
+          <ul>
+            <li><strong>Basismodul:</strong> Karte, Stil und PMTiles-Quelle</li>
+            <li><strong>Erweiterbar:</strong> Zusätze als eigene JS-Dateien</li>
+            <li><strong>Ziel:</strong> Nachvollziehbare Architektur</li>
+            <li><strong>Fokus:</strong> Anpassbar statt fertig</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">Basismodul</h2>
+          <p class="section-lead">Das Basismodul initialisiert eine MapLibre-Karte mit den wichtigsten Bausteinen.</p>
+        </div>
+        <div class="feature-grid stagger">
+          <article class="feature-card">
+            <h3 class="card-title">Frei wählbarer Stil</h3>
+            <p class="card-text">Der Style kann pro Projekt angepasst oder ausgetauscht werden.</p>
+          </article>
+          <article class="feature-card">
+            <h3 class="card-title">PMTiles-Quelle</h3>
+            <p class="card-text">Die Daten liegen in einer Datei vor und werden effizient geladen.</p>
+          </article>
+          <article class="feature-card">
+            <h3 class="card-title">Zoom-Steuerung</h3>
+            <p class="card-text">Standard-Controls bleiben aktiv, damit Nutzerinnen und Nutzer die Karte bedienen können.</p>
+          </article>
+          <article class="feature-card">
+            <h3 class="card-title">Nordpfeil</h3>
+            <p class="card-text">Eine klare Orientierung, vor allem bei schräger oder gedrehter Ansicht.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">Zusatzmodule</h2>
+          <p class="section-lead">Erweiterungen werden als separate Dateien eingebunden und können unabhängig gepflegt werden.</p>
+        </div>
+        <div class="card-grid stagger">
+          <article class="card">
+            <h3 class="card-title">Adresssuche</h3>
+            <p class="card-text">Ermöglicht das Suchen und Anspringen von Adressen. Aktivierung durch Einbinden der entsprechenden JavaScript-Datei.</p>
+          </article>
+          <article class="card">
+            <h3 class="card-title">3D-Ansicht</h3>
+            <p class="card-text">Schaltet die Karte in eine perspektivische Darstellung um, sofern technisch möglich.</p>
+          </article>
+          <article class="card">
+            <h3 class="card-title">Relief / Schattierung</h3>
+            <p class="card-text">Blendet eine Reliefdarstellung ein oder aus, um Geländeformen sichtbar zu machen.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">Modulare Einbindung</h2>
+          <p class="section-lead">Ein mögliches HTML-Grundgerüst mit separaten Modulen.</p>
+        </div>
+        <pre class="code-block"><code>&lt;script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"&gt;&lt;/script&gt;
+&lt;script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"&gt;&lt;/script&gt;
+&lt;script src="assets/js/modules/baseMap.js"&gt;&lt;/script&gt;
+&lt;script src="assets/js/modules/addressSearch.js"&gt;&lt;/script&gt;
+&lt;script src="assets/js/modules/relief.js"&gt;&lt;/script&gt;</code></pre>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="site-container">
+        <div class="callout">
+          <h3>Didaktischer Hinweis</h3>
+          <p>Ziel dieser Beispiele ist nicht ein fertiges Produkt, sondern eine nachvollziehbare Architektur, die sich leicht an eigene Projekte anpassen lässt.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-container footer-grid">
+      <div class="footer-links">
+        <a href="dataset.html">Datensatz</a>
+        <a href="styles.html">Styles</a>
+        <a href="examples.html" aria-current="page">Beispiele</a>
+        <a href="about.html">Über</a>
+        <a href="support.html">Unterstützung</a>
+        <a href="https://github.com/fabia/vectormap" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <p class="footer-note">Daten basieren auf offenen Geodaten der Schweiz.</p>
+      <p class="footer-note">© Vectormap – Open Data, Open Maps</p>
+    </div>
+  </footer>
+</body>
+</html>
+
