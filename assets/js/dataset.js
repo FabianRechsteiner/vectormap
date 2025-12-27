@@ -125,9 +125,13 @@ if (listEl && countEl && searchInput) {
       return response.json();
     })
     .then((data) => {
-      const entries = Object.entries(data).filter(
-        ([key, layer]) => key !== "_collection" && layer?.visible !== false
-      );
+      const entries = Object.entries(data)
+        .filter(([key, layer]) => key !== "_collection" && layer?.visible !== false)
+        .sort((a, b) => {
+          const aName = (a[1]?.target_name || a[0] || "").toString();
+          const bName = (b[1]?.target_name || b[0] || "").toString();
+          return aName.localeCompare(bName, "de", { sensitivity: "base" });
+        });
       state.total = entries.length;
 
       const fragment = document.createDocumentFragment();
