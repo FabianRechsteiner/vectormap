@@ -34,6 +34,7 @@ body {
   font-family: var(--font-body);
   color: var(--color-ink);
   line-height: 1.6;
+  overflow-y: scroll;
   background: radial-gradient(circle at 15% 20%, rgba(214, 175, 107, 0.2), transparent 45%),
     radial-gradient(circle at 80% 10%, rgba(35, 93, 70, 0.15), transparent 40%),
     linear-gradient(160deg, #f8f4ea 0%, #f0ede2 35%, #e9efe8 100%);
