@@ -29,7 +29,7 @@ if (listEl && countEl && searchInput) {
 
   const updateCount = () => {
     const visible = Array.from(listEl.children).filter((item) => !item.hidden).length;
-    countEl.textContent = `${visible} von ${state.total} Layern`;
+    countEl.textContent = `Layer: ${visible}/${state.total}`;
   };
 
   const applyFilter = () => {
@@ -57,12 +57,17 @@ if (listEl && countEl && searchInput) {
     layerId.textContent = id;
     title.append(name, layerId);
 
+    const rawAttributes = Array.isArray(layer.attributes) ? layer.attributes : [];
+    const normalizedAttributes = rawAttributes
+      .map(normalizeAttribute)
+      .filter((attribute) => attribute.name.trim().toLowerCase() !== "wkb_geometry");
+
     const meta = document.createElement("div");
     meta.className = "layer-meta";
     meta.append(
-      buildMetaLine("Kategorie", layer.category || "–"),
-      buildMetaLine("Zoom", `${layer.minzoom ?? "–"}–${layer.maxzoom ?? "–"}`),
-      buildMetaLine("Sichtbar", layer.visible === false ? "nein" : "ja")
+      buildMetaLine("Kategorie", layer.category || "-"),
+      buildMetaLine("Zoom", `${layer.minzoom ?? "-"}-${layer.maxzoom ?? "-"}`),
+      buildMetaLine("Attribute", normalizedAttributes.length)
     );
 
     summary.append(title, meta);
@@ -76,25 +81,15 @@ if (listEl && countEl && searchInput) {
       body.append(desc);
     }
 
-    const attributes = Array.isArray(layer.attributes) ? layer.attributes : [];
-    if (attributes.length > 0) {
+    if (normalizedAttributes.length > 0) {
       const attributeList = document.createElement("div");
       attributeList.className = "attribute-list";
 
-      attributes.forEach((attribute) => {
-        const normalized = normalizeAttribute(attribute);
-        const row = document.createElement("div");
-        row.className = "attribute-item";
-
-        const nameEl = document.createElement("span");
-        nameEl.textContent = normalized.name;
-
-        const typeEl = document.createElement("span");
-        typeEl.className = "attribute-type";
-        typeEl.textContent = normalized.type ? normalized.type : "–";
-
-        row.append(nameEl, typeEl);
-        attributeList.appendChild(row);
+      normalizedAttributes.forEach((attribute) => {
+        const item = document.createElement("span");
+        item.className = "attribute-item";
+        item.textContent = attribute.type ? `${attribute.name} (${attribute.type})` : attribute.name;
+        attributeList.appendChild(item);
       });
 
       body.append(attributeList);
@@ -111,7 +106,7 @@ if (listEl && countEl && searchInput) {
       layer.target_name,
       layer.description,
       layer.category,
-      ...(attributes.map((attribute) => normalizeAttribute(attribute).name)),
+      ...(normalizedAttributes.flatMap((attribute) => [attribute.name, attribute.type])),
     ]
       .filter(Boolean)
       .join(" ")
@@ -130,7 +125,9 @@ if (listEl && countEl && searchInput) {
       return response.json();
     })
     .then((data) => {
-      const entries = Object.entries(data).filter(([key]) => key !== "_collection");
+      const entries = Object.entries(data).filter(
+        ([key, layer]) => key !== "_collection" && layer?.visible !== false
+      );
       state.total = entries.length;
 
       const fragment = document.createDocumentFragment();
