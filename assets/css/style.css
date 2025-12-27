@@ -356,7 +356,7 @@ input:focus-visible {
 }
 
 .bullet-list li::before {
-  content: "\u2022";
+  content: "\2022";
   position: absolute;
   left: 0;
   color: var(--color-accent-strong);
