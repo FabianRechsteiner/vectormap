@@ -12,10 +12,12 @@
     return;
   }
 
-  if (!maplibregl.__pmtilesProtocolAdded) {
+  window.vectormapModules = window.vectormapModules || {};
+
+  if (!window.vectormapModules.pmtilesProtocol) {
     const protocol = new pmtiles.Protocol();
     maplibregl.addProtocol("pmtiles", protocol.tile);
-    maplibregl.__pmtilesProtocolAdded = true;
+    window.vectormapModules.pmtilesProtocol = protocol;
   }
 
   const map = new maplibregl.Map({
@@ -29,6 +31,5 @@
 
   map.addControl(new maplibregl.NavigationControl(), "top-right");
 
-  window.vectormapModules = window.vectormapModules || {};
   window.vectormapModules.map = map;
 })();

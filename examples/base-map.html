@@ -3,183 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Basismodul: MapLibre + PMTiles – Vectormap</title>
+  <title>Basismodul – Vectormap</title>
   <meta name="description" content="Basismodul mit MapLibre GL JS und PMTiles, nutzt den Style ch.vectormap.lightbasemap.json.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&family=Space+Grotesk:wght@600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css">
   <style>
-    :root {
-      --color-ink: #1b2a23;
-      --color-muted: #4b5a51;
-      --color-accent: #b7521e;
-      --color-panel: #ffffff;
-      --color-bg: #f5f1e6;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
     html,
-    body {
+    body,
+    #map {
       height: 100%;
+      width: 100%;
       margin: 0;
     }
 
     body {
-      font-family: "Source Sans 3", "Segoe UI", sans-serif;
-      color: var(--color-ink);
-      background: var(--color-bg);
-    }
-
-    .example-shell {
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: minmax(280px, 360px) 1fr;
-    }
-
-    .example-panel {
-      padding: 2rem;
-      background: rgba(255, 255, 255, 0.96);
-      border-right: 1px solid rgba(27, 42, 35, 0.12);
-      display: grid;
-      gap: 1.2rem;
-      align-content: start;
-    }
-
-    .example-panel h1,
-    .example-panel h2 {
-      font-family: "Space Grotesk", "Segoe UI", sans-serif;
-      margin: 0;
-    }
-
-    .example-panel h1 {
-      font-size: 1.6rem;
-    }
-
-    .example-panel h2 {
-      font-size: 1rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--color-muted);
-    }
-
-    .example-panel p {
-      margin: 0;
-      color: var(--color-muted);
-    }
-
-    .example-section {
-      display: grid;
-      gap: 0.6rem;
-    }
-
-    .example-section ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: grid;
-      gap: 0.4rem;
-      color: var(--color-muted);
-      font-size: 0.95rem;
-    }
-
-    .example-section strong {
-      color: var(--color-ink);
-    }
-
-    .example-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.8rem;
-      font-weight: 600;
-    }
-
-    .example-links a {
-      color: var(--color-accent);
-      text-decoration: none;
-    }
-
-    .example-map {
-      min-height: 100vh;
-    }
-
-    .eyebrow {
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--color-muted);
-    }
-
-    @media (max-width: 900px) {
-      .example-shell {
-        grid-template-columns: 1fr;
-      }
-
-      .example-map {
-        min-height: 60vh;
-      }
-    }
-
-    body.preview .example-panel {
-      display: none;
-    }
-
-    body.preview .example-shell {
-      grid-template-columns: 1fr;
-    }
-
-    body.preview .example-map {
-      min-height: 100vh;
+      font-family: "Segoe UI", sans-serif;
     }
   </style>
 </head>
 <body>
-  <main class="example-shell">
-    <section class="example-panel">
-      <p class="eyebrow">Beispiel 01</p>
-      <h1>Basismodul: MapLibre + PMTiles</h1>
-      <p>Minimaler Einstieg mit MapLibre GL JS, PMTiles und dem Style <strong>ch.vectormap.lightbasemap.json</strong>.</p>
-      <div class="example-section">
-        <h2>Versionen</h2>
-        <ul>
-          <li><strong>MapLibre GL JS:</strong> 4.1.2</li>
-          <li><strong>PMTiles:</strong> 2.11.0</li>
-          <li><strong>Style:</strong> ch.vectormap.lightbasemap.json</li>
-        </ul>
-      </div>
-      <div class="example-section">
-        <h2>Module</h2>
-        <ul>
-          <li><strong>base-map.js:</strong> Initialisiert Karte und PMTiles-Protokoll.</li>
-        </ul>
-      </div>
-      <div class="example-links">
-        <a href="../examples.html">Zurück zur Übersicht</a>
-        <a href="https://maplibre.org/maplibre-gl-js/docs/" target="_blank" rel="noopener">MapLibre GL JS Doku</a>
-      </div>
-    </section>
-    <div id="map" class="example-map" aria-label="Kartenansicht"></div>
-  </main>
+  <div id="map" aria-label="Kartenansicht"></div>
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("preview") === "1") {
-      document.body.classList.add("preview");
-    }
-
-    window.vectormapExampleConfig = {
-      container: "map",
-      style: "../styles/ch.vectormap.lightbasemap.json",
-      center: [8.7241, 47.4987],
-      zoom: 15,
-      bearing: 0,
-      pitch: 0
-    };
-  </script>
   <script src="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js"></script>
   <script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"></script>
   <script src="../assets/js/modules/base-map.js"></script>
