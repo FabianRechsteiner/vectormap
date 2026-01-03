@@ -111,7 +111,7 @@
       return;
     }
 
-    const controls = { navigation: true, scale: true, fullscreen: false };
+    const controls = { navigation: true, scale: false, fullscreen: false };
 
     const beforeMap = await baseMap.createMap({
       container: "before",
