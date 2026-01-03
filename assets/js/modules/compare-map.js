@@ -9,11 +9,15 @@
 
   const rootId = config.containerId || "compare-root";
   const compareCss =
-    config.compareCss ||
-    "https://unpkg.com/maplibre-gl-compare@0.4.0/dist/maplibre-gl-compare.css";
+    config.compareCss || [
+      "https://cdn.jsdelivr.net/npm/maplibre-gl-compare@0.4.0/dist/maplibre-gl-compare.css",
+      "https://unpkg.com/maplibre-gl-compare@0.4.0/dist/maplibre-gl-compare.css"
+    ];
   const compareJs =
-    config.compareJs ||
-    "https://unpkg.com/maplibre-gl-compare@0.4.0/dist/maplibre-gl-compare.js";
+    config.compareJs || [
+      "https://cdn.jsdelivr.net/npm/maplibre-gl-compare@0.4.0/dist/maplibre-gl-compare.js",
+      "https://unpkg.com/maplibre-gl-compare@0.4.0/dist/maplibre-gl-compare.js"
+    ];
   const styleLeft =
     config.styleLeft ||
     "https://vectortiles.geo.admin.ch/styles/ch.swisstopo.leichte-basiskarte.vt/style.json";
@@ -94,11 +98,20 @@
       return;
     }
 
-    baseMap.loadCss(compareCss);
-    try {
-      await baseMap.loadScript(compareJs);
-    } catch (error) {
-      console.error(error);
+    const asArray = (value) => (Array.isArray(value) ? value : [value]);
+    asArray(compareCss).forEach((href) => baseMap.loadCss(href));
+    let loaded = false;
+    for (const src of asArray(compareJs)) {
+      try {
+        await baseMap.loadScript(src);
+        loaded = true;
+        break;
+      } catch (error) {
+        console.warn(error);
+      }
+    }
+    if (!loaded) {
+      console.error("MapLibre Compare konnte nicht geladen werden.");
       return;
     }
 
