@@ -317,7 +317,7 @@ input:focus-visible {
 }
 
 .dataset-map-preview {
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 2 / 1;
 }
 
 .example-preview iframe {
@@ -442,7 +442,9 @@ input:focus-visible {
 .dataset-map-legend {
   display: grid;
   gap: 0.7rem;
-  align-content: start;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
 }
 
 .dataset-map-legend h3 {
@@ -456,8 +458,10 @@ input:focus-visible {
 }
 
 .dataset-legend-items {
-  display: grid;
-  gap: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.9rem;
 }
 
 .dataset-legend-item {

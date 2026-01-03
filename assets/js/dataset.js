@@ -164,12 +164,6 @@ if (mapContainer) {
         styleUrl: "styles/ch.vectormap.lightbasemap.json",
         center: [8.23, 46.82],
         zoom: 7.0,
-        minZoom: 6,
-        maxZoom: 12,
-        maxBounds: [
-          [5.7, 45.7],
-          [10.8, 47.95]
-        ],
         controls: { navigation: true, fullscreen: false, scale: false }
       })
       .then((map) => {
