@@ -149,6 +149,9 @@
     });
 
     map.addControl(new maplibregl.NavigationControl(), "top-right");
+    if (maplibregl.FullscreenControl) {
+      map.addControl(new maplibregl.FullscreenControl(), "top-right");
+    }
 
     window.vectormapModules.map = map;
   };
