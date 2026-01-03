@@ -7,6 +7,7 @@
     zoom: 15,
     bearing: 0,
     pitch: 0,
+    attributionControl: true,
     maplibreCss: "https://unpkg.com/maplibre-gl@5.14.0/dist/maplibre-gl.css",
     maplibreJs: "https://unpkg.com/maplibre-gl@5.14.0/dist/maplibre-gl.js",
     pmtilesJs: "https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js"
@@ -207,6 +208,8 @@
       zoom: options.zoom ?? resolved.zoom,
       bearing: options.bearing ?? resolved.bearing,
       pitch: options.pitch ?? resolved.pitch,
+      attributionControl:
+        options.attributionControl ?? resolved.attributionControl,
       hash: options.hash ?? resolved.hash,
       pitchWithRotate: options.pitchWithRotate ?? resolved.pitchWithRotate
     });

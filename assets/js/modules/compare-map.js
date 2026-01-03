@@ -118,12 +118,14 @@
     const beforeMap = await baseMap.createMap({
       container: "before",
       styleUrl: styleLeft,
+      attributionControl: false,
       controls,
       ...view
     });
     const afterMap = await baseMap.createMap({
       container: "after",
       styleUrl: styleRight,
+      attributionControl: false,
       controls,
       ...view
     });
@@ -131,6 +133,15 @@
     if (!beforeMap || !afterMap) {
       return;
     }
+
+    beforeMap.addControl(
+      new maplibregl.AttributionControl({ compact: true }),
+      "bottom-left"
+    );
+    afterMap.addControl(
+      new maplibregl.AttributionControl({ compact: true }),
+      "bottom-right"
+    );
 
     if (maplibregl.FullscreenControl) {
       afterMap.addControl(new maplibregl.FullscreenControl({ container: rootEl }));
@@ -142,15 +153,31 @@
       "#splitContainer"
     );
 
+    const stopDragging = () => {
+      if (splitCompare && typeof splitCompare._onMouseUp === "function") {
+        splitCompare._onMouseUp();
+      }
+      if (splitCompare && typeof splitCompare._onTouchEnd === "function") {
+        splitCompare._onTouchEnd();
+      }
+    };
+
+    document.addEventListener("mouseup", stopDragging);
+    document.addEventListener("touchend", stopDragging);
+    document.addEventListener("touchcancel", stopDragging);
+    window.addEventListener("blur", stopDragging);
+
     const cmpLeft = await baseMap.createMap({
       container: "cmpMapLeft",
       styleUrl: styleLeft,
+      attributionControl: false,
       controls,
       ...view
     });
     const cmpRight = await baseMap.createMap({
       container: "cmpMapRight",
       styleUrl: styleRight,
+      attributionControl: false,
       controls,
       ...view
     });
@@ -158,6 +185,15 @@
     if (!cmpLeft || !cmpRight) {
       return;
     }
+
+    cmpLeft.addControl(
+      new maplibregl.AttributionControl({ compact: true }),
+      "bottom-left"
+    );
+    cmpRight.addControl(
+      new maplibregl.AttributionControl({ compact: true }),
+      "bottom-right"
+    );
 
     if (maplibregl.FullscreenControl) {
       cmpRight.addControl(new maplibregl.FullscreenControl({ container: rootEl }));
