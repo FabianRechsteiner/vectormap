@@ -8,16 +8,8 @@
   }
 
   const rootId = config.containerId || "compare-root";
-  const compareCss =
-    config.compareCss || [
-      "https://cdn.jsdelivr.net/npm/maplibre-gl-compare@0.4.0/dist/maplibre-gl-compare.css",
-      "https://unpkg.com/maplibre-gl-compare@0.4.0/dist/maplibre-gl-compare.css"
-    ];
-  const compareJs =
-    config.compareJs || [
-      "https://cdn.jsdelivr.net/npm/maplibre-gl-compare@0.4.0/dist/maplibre-gl-compare.js",
-      "https://unpkg.com/maplibre-gl-compare@0.4.0/dist/maplibre-gl-compare.js"
-    ];
+  const compareCss = config.compareCss || "css/maplibre-gl-compare.css";
+  const compareJs = config.compareJs || "js/maplibre-gl-compare.js";
   const styleLeft =
     config.styleLeft ||
     "https://vectortiles.geo.admin.ch/styles/ch.swisstopo.leichte-basiskarte.vt/style.json";
@@ -137,6 +129,10 @@
 
     if (!beforeMap || !afterMap) {
       return;
+    }
+
+    if (maplibregl.FullscreenControl) {
+      afterMap.addControl(new maplibregl.FullscreenControl());
     }
 
     const splitCompare = new maplibregl.Compare(
