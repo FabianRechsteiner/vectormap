@@ -96,8 +96,14 @@
       return [parts[0], parts[1]];
     };
 
-    const compareCss = readValue("compareCss", "css/maplibre-gl-compare.css");
-    const compareJs = readValue("compareJs", "js/maplibre-gl-compare.js");
+    const compareCss = readValue(
+      "compareCss",
+      "../assets/css/maplibre-gl-compare.css"
+    );
+    const compareJs = readValue(
+      "compareJs",
+      "../assets/js/maplibre-gl-compare.js"
+    );
     const styleLeft = readValue(
       "styleLeft",
       "https://vectortiles.geo.admin.ch/styles/ch.swisstopo.leichte-basiskarte.vt/style.json"
