@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "av_vectormap_swisstopo",
+  "name": "ch.vectormap.lightbasemap",
   "metadata": {
     "maputnik:renderer": "mbgljs",
     "openmaptiles:version": "3.x",
