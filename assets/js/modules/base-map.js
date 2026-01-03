@@ -1,6 +1,8 @@
 (() => {
   const config = window.vectormapExampleConfig || {};
   const container = config.container || "map";
+  const pmtilesUrl =
+    config.pmtilesUrl || "https://vectormap.ch/pmtiles/av/av.pmtiles";
 
   if (!window.maplibregl) {
     console.error("MapLibre GL JS is missing.");
@@ -18,6 +20,13 @@
     const protocol = new pmtiles.Protocol();
     maplibregl.addProtocol("pmtiles", protocol.tile);
     window.vectormapModules.pmtilesProtocol = protocol;
+  }
+
+  if (!window.vectormapModules.pmtilesArchive) {
+    window.vectormapModules.pmtilesArchive = new pmtiles.PMTiles(pmtilesUrl);
+    window.vectormapModules.pmtilesProtocol.add(
+      window.vectormapModules.pmtilesArchive
+    );
   }
 
   const map = new maplibregl.Map({

@@ -7,16 +7,16 @@
   <meta name="description" content="Basismodul mit MapLibre GL JS und PMTiles, nutzt den Style ch.vectormap.lightbasemap.json.">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css">
   <style>
-    html,
-    body,
-    #map {
-      height: 100%;
-      width: 100%;
+    body {
       margin: 0;
+      padding: 0;
     }
 
-    body {
-      font-family: "Segoe UI", sans-serif;
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
     }
   </style>
 </head>
