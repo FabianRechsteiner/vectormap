@@ -152,3 +152,83 @@ if (listEl && countEl && searchInput) {
   searchInput.addEventListener("input", applyFilter);
 }
 
+const mapContainer = document.getElementById("dataset-map");
+if (mapContainer) {
+  const baseMap = window.vectormapModules && window.vectormapModules.baseMap;
+  if (!baseMap || !baseMap.createMap) {
+    console.error("Base map module fehlt.");
+  } else {
+    baseMap
+      .createMap({
+        container: mapContainer,
+        styleUrl: "styles/ch.vectormap.lightbasemap.json",
+        center: [8.23, 46.82],
+        zoom: 7.4,
+        minZoom: 6,
+        maxZoom: 12,
+        maxBounds: [
+          [5.7, 45.7],
+          [10.8, 47.95]
+        ],
+        controls: { navigation: true, fullscreen: false, scale: false }
+      })
+      .then((map) => {
+        if (!map) {
+          return;
+        }
+
+        const addKantonLayers = () => {
+          const sourceId = "kantonsgrenzen";
+          if (!map.getSource(sourceId)) {
+            map.addSource(sourceId, {
+              type: "geojson",
+              data: "assets/data/kantonsgrenzen.geojson"
+            });
+          }
+
+          const style = map.getStyle();
+          const firstSymbolId = style?.layers?.find((layer) => layer.type === "symbol")?.id;
+          const fillLayer = {
+            id: "kantonsgrenzen-fill",
+            type: "fill",
+            source: sourceId,
+            paint: {
+              "fill-color": [
+                "case",
+                ["==", ["get", "opendata"], true],
+                "#4caf50",
+                "#e57373"
+              ],
+              "fill-opacity": 0.5
+            },
+            maxzoom: 10
+          };
+          const lineLayer = {
+            id: "kantonsgrenzen-outline",
+            type: "line",
+            source: sourceId,
+            paint: {
+              "line-color": "#333",
+              "line-width": 1
+            },
+            maxzoom: 10
+          };
+
+          if (firstSymbolId) {
+            map.addLayer(fillLayer, firstSymbolId);
+            map.addLayer(lineLayer, firstSymbolId);
+          } else {
+            map.addLayer(fillLayer);
+            map.addLayer(lineLayer);
+          }
+        };
+
+        if (map.isStyleLoaded()) {
+          addKantonLayers();
+        } else {
+          map.once("load", addKantonLayers);
+        }
+      });
+  }
+}
+

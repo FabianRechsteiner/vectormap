@@ -211,7 +211,10 @@
       attributionControl:
         options.attributionControl ?? resolved.attributionControl,
       hash: options.hash ?? resolved.hash,
-      pitchWithRotate: options.pitchWithRotate ?? resolved.pitchWithRotate
+      pitchWithRotate: options.pitchWithRotate ?? resolved.pitchWithRotate,
+      minZoom: options.minZoom ?? resolved.minZoom,
+      maxZoom: options.maxZoom ?? resolved.maxZoom,
+      maxBounds: options.maxBounds ?? resolved.maxBounds
     });
 
     applyControls(map, options.controls || resolved.controls);
