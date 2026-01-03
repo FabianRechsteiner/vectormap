@@ -11,7 +11,7 @@ Quelle: Amtliche Vermessung (AV) - kantonale Geoinformationsstellen, bezogen via
 ## Metadaten
 
 - Zeitpunkt der Aufbereitung: 12.12.2025 08:12
-- Bezugsrahmen: LV95
+- Bezugsrahmen: Ausgangsdaten LV95, transformiert nach EPSG:4326 (PMTiles in EPSG:4326)
 - Ausgangsformat: GeoPackage
 - Kantone enthalten: AG, AI, AR, BE, BL, BS, FR, GE, GL, GR, SG, SH, SO, SZ, TG, TI, UR, VS, ZG, ZH
 - Aktuell nicht enthalten (Schweiz hat 26 Kantone): JU, LU, NE, NW, OW, VD
