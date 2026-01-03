@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Styles – Vectormap</title>
-  <meta name="description" content="Beispiele für unterschiedliche Kartenstile auf Basis des AV-Datensatzes von Vectormap.">
+  <meta name="description" content="Styles nach Datengrundlage, aktuell ch.vectormap.lightbasemap (swisstopo + Vectormap).">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -33,15 +33,16 @@
       <div class="site-container hero-grid">
         <div class="reveal">
           <p class="eyebrow">Styles</p>
-          <h1 class="hero-title">Ein Datensatz, viele Darstellungen.</h1>
-          <p class="hero-lead">Vectormap trennt bewusst Daten und Darstellung. Auf Basis desselben AV-Datensatzes lassen sich unterschiedliche Kartenstile erstellen – je nach Anwendungsfall.</p>
+          <h1 class="hero-title">Styles nach Datengrundlage.</h1>
+          <p class="hero-lead">Die Styles sind nach Datenquellen gegliedert, damit neue Kombinationen schnell ergänzt werden können.</p>
+          <p class="hero-lead">Aktuell verfügbar: ch.vectormap.lightbasemap, inspiriert von der Light Base Map von swisstopo.</p>
         </div>
         <div class="hero-card reveal" style="--delay: 0.1s">
           <ul>
-            <li><strong>Neutral:</strong> Für Overlays und Anwendungen</li>
-            <li><strong>Kontrastreich:</strong> Für Analysen und Fachanwendungen</li>
-            <li><strong>Topografisch:</strong> An klassische Schweizer Karten angelehnt</li>
-            <li><strong>Offen:</strong> Styles bleiben anpassbar</li>
+            <li><strong>Gruppierung:</strong> Nach Datengrundlage</li>
+            <li><strong>Kategorien:</strong> Vectormap + swisstopo, Vectormap + OpenStreetMap</li>
+            <li><strong>Status:</strong> 1 Style verfügbar</li>
+            <li><strong>Mitmachen:</strong> Neue Styles willkommen</li>
           </ul>
         </div>
       </div>
@@ -50,34 +51,46 @@
     <section class="section">
       <div class="site-container">
         <div class="section-heading">
-          <h2 class="section-title">Stil-Kategorien</h2>
-          <p class="section-lead">Jeder Stil basiert auf denselben Daten, aber erzählt eine andere Geschichte.</p>
+          <h2 class="section-title">Kategorien nach Datengrundlage</h2>
+          <p class="section-lead">Neue Styles lassen sich hier einfach ergänzen: Style-JSON im Ordner <code>styles/</code> ablegen und in der passenden Kategorie verlinken.</p>
         </div>
-        <div class="style-grid stagger">
-          <article class="style-card">
-            <div class="style-preview style-preview--neutral" aria-hidden="true"></div>
-            <div>
-              <h3 class="card-title">Neutral / Minimal</h3>
-              <p class="card-text">Ruhige Farbpalette, klare Linien. Ideal für Anwendungen mit eigenen Overlays.</p>
+        <div class="style-categories">
+          <div class="style-category">
+            <div class="style-category-heading">
+              <h3 class="style-category-title">Vectormap + swisstopo</h3>
+              <p class="style-category-lead">Basemap-Styles auf Basis der <a href="https://www.geo.admin.ch/en/vector-tiles-service-available-services-and-data" target="_blank" rel="noopener">swisstopo Vector-Tiles</a>, ergänzt durch AV-Daten von Vectormap in großen Maßstäben.</p>
             </div>
-            <a class="card-link" href="styles/style1.json">Style-JSON ansehen <span>?</span></a>
-          </article>
-          <article class="style-card">
-            <div class="style-preview style-preview--contrast" aria-hidden="true"></div>
-            <div>
-              <h3 class="card-title">Kontrastreich</h3>
-              <p class="card-text">Deutliche Kontraste für Fachanwendungen und Analysen mit hoher Lesbarkeit.</p>
+            <div class="style-grid stagger">
+              <article class="style-card">
+                <div class="style-preview style-preview--neutral" aria-hidden="true"></div>
+                <div>
+                  <h3 class="card-title">Light Base Map inspiriert</h3>
+                  <p class="card-text">Heller Basemap-Stil mit Fokus auf Lesbarkeit. Kombiniert swisstopo Vector-Tiles mit AV-Daten von Vectormap in großen Maßstäben.</p>
+                </div>
+                <a class="card-link" href="styles/ch.vectormap.lightbasemap.json">Style-JSON ansehen <span>?</span></a>
+              </article>
             </div>
-            <span class="card-link is-disabled">Style-JSON (Platzhalter)</span>
-          </article>
-          <article class="style-card">
-            <div class="style-preview style-preview--topo" aria-hidden="true"></div>
-            <div>
-              <h3 class="card-title">Topografisch inspiriert</h3>
-              <p class="card-text">Angelehnt an klassische Schweizer Karten, mit mehr Kontext und Raumgefühl.</p>
+          </div>
+          <div class="style-category">
+            <div class="style-category-heading">
+              <h3 class="style-category-title">Vectormap + OpenStreetMap</h3>
+              <p class="style-category-lead">Kombination aus OSM-Daten und den AV-Vektoren von Vectormap. Aktuell noch ohne Beispiel.</p>
             </div>
-            <span class="card-link is-disabled">Style-JSON (Platzhalter)</span>
-          </article>
+            <div class="style-grid stagger">
+              <article class="style-card">
+                <div class="style-preview style-preview--contrast" aria-hidden="true"></div>
+                <div>
+                  <h3 class="card-title">Platzhalter</h3>
+                  <p class="card-text">Hier können neue Styles auf Basis von OpenStreetMap ergänzt werden.</p>
+                </div>
+                <span class="card-link is-disabled">Style-JSON folgt</span>
+              </article>
+            </div>
+          </div>
+        </div>
+        <div class="callout">
+          <h3>Neue Styles ergänzen</h3>
+          <p>Lege die Style-JSON im Ordner <code>styles/</code> ab und verlinke sie in der passenden Kategorie. So bleiben die Datenquellen klar sichtbar.</p>
         </div>
       </div>
     </section>

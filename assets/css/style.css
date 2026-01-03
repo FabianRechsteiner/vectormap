@@ -597,6 +597,31 @@ input:focus-visible {
     linear-gradient(160deg, #f5f0e5 0%, #dce6d6 100%);
 }
 
+.style-categories {
+  display: grid;
+  gap: 2.6rem;
+}
+
+.style-category-heading {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 1.2rem;
+  max-width: 680px;
+}
+
+.style-category-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+}
+
+.style-category-lead {
+  color: var(--color-muted);
+}
+
+.style-categories + .callout {
+  margin-top: 2.4rem;
+}
+
 .profile-card {
   display: grid;
   gap: 1rem;
