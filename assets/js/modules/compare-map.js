@@ -182,6 +182,10 @@
           map.jumpTo(cam);
           map.resize();
         });
+        if (splitCompare && typeof splitCompare.setSlider === "function") {
+          const bounds = afterMap.getContainer().getBoundingClientRect();
+          splitCompare.setSlider(bounds.width / 2);
+        }
         if (splitCompare && typeof splitCompare._onResize === "function") {
           splitCompare._onResize();
         }
