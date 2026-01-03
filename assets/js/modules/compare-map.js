@@ -35,7 +35,6 @@
     }
 
     root.innerHTML = `
-      <button id="modeBtn" type="button">${labelSplit}</button>
       <div id="splitContainer" class="mode-container">
         <div id="before"></div>
         <div id="after"></div>
@@ -57,24 +56,23 @@
     style.textContent = `
       html, body { height: 100%; margin: 0; overflow: hidden; }
       #${rootId} { position: absolute; inset: 0; }
-      #modeBtn {
-        position: absolute;
-        bottom: 10px;
-        left: 10px;
-        z-index: 10;
-        padding: 8px 14px;
-        border: none;
-        border-radius: 5px;
-        background: #fff;
-        font-weight: 600;
-        cursor: pointer;
-      }
       .mode-container { position: absolute; inset: 0; display: none; }
       #splitContainer { display: block; }
       #before, #after { position: absolute; top: 0; bottom: 0; width: 100%; }
       #cmpMapLeft, #cmpMapRight { position: absolute; top: 0; bottom: 0; width: 50%; }
       #cmpMapLeft { left: 0; }
       #cmpMapRight { right: 0; }
+      .vectormap-compare-toggle {
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 16px 16px;
+      }
+      .vectormap-compare-toggle.is-compare {
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%231b2a23' stroke-width='1.6'><rect x='2' y='3' width='7' height='14' rx='1.5'/><rect x='11' y='3' width='7' height='14' rx='1.5'/></svg>");
+      }
+      .vectormap-compare-toggle.is-split {
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%231b2a23' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><line x1='10' y1='3' x2='10' y2='17'/><polyline points='6,7 3,10 6,13'/><polyline points='14,7 17,10 14,13'/></svg>");
+      }
     `;
     document.head.appendChild(style);
   };
@@ -143,11 +141,75 @@
       "bottom-right"
     );
 
-    if (maplibregl.FullscreenControl) {
-      afterMap.addControl(new maplibregl.FullscreenControl({ container: rootEl }));
-    }
+    let splitMode = true;
+    let cmpLeft;
+    let cmpRight;
+    let splitCompare;
+    const toggleButtons = [];
 
-    const splitCompare = new maplibregl.Compare(
+    const updateToggleButtons = () => {
+      const label = splitMode ? labelSplit : labelCompare;
+      const nextClass = splitMode ? "is-compare" : "is-split";
+      const removeClass = splitMode ? "is-split" : "is-compare";
+      toggleButtons.forEach((button) => {
+        button.classList.remove(removeClass);
+        button.classList.add(nextClass);
+        button.title = label;
+        button.setAttribute("aria-label", label);
+      });
+    };
+
+    const toggleMode = () => {
+      const active = splitMode ? beforeMap : cmpLeft;
+      const cam = {
+        center: active.getCenter(),
+        zoom: active.getZoom(),
+        bearing: active.getBearing(),
+        pitch: active.getPitch()
+      };
+
+      document.getElementById("splitContainer").style.display = splitMode
+        ? "none"
+        : "block";
+      document.getElementById("cmpContainer").style.display = splitMode
+        ? "block"
+        : "none";
+      splitMode = !splitMode;
+      updateToggleButtons();
+
+      if (splitMode) {
+        [beforeMap, afterMap].forEach((map) => {
+          map.jumpTo(cam);
+          map.resize();
+        });
+        if (splitCompare && typeof splitCompare._onResize === "function") {
+          splitCompare._onResize();
+        }
+      } else {
+        [cmpLeft, cmpRight].forEach((map) => {
+          map.jumpTo(cam);
+          map.resize();
+        });
+      }
+    };
+
+    const createToggleControl = () => ({
+      onAdd() {
+        const container = document.createElement("div");
+        container.className = "maplibregl-ctrl maplibregl-ctrl-group";
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "maplibregl-ctrl-icon vectormap-compare-toggle";
+        button.addEventListener("click", toggleMode);
+        container.appendChild(button);
+        toggleButtons.push(button);
+        updateToggleButtons();
+        return container;
+      },
+      onRemove() {}
+    });
+
+    splitCompare = new maplibregl.Compare(
       beforeMap,
       afterMap,
       "#splitContainer"
@@ -167,14 +229,14 @@
     document.addEventListener("touchcancel", stopDragging);
     window.addEventListener("blur", stopDragging);
 
-    const cmpLeft = await baseMap.createMap({
+    cmpLeft = await baseMap.createMap({
       container: "cmpMapLeft",
       styleUrl: styleLeft,
       attributionControl: false,
       controls,
       ...view
     });
-    const cmpRight = await baseMap.createMap({
+    cmpRight = await baseMap.createMap({
       container: "cmpMapRight",
       styleUrl: styleRight,
       attributionControl: false,
@@ -196,8 +258,12 @@
     );
 
     if (maplibregl.FullscreenControl) {
+      afterMap.addControl(new maplibregl.FullscreenControl({ container: rootEl }));
       cmpRight.addControl(new maplibregl.FullscreenControl({ container: rootEl }));
     }
+
+    afterMap.addControl(createToggleControl(), "top-right");
+    cmpRight.addControl(createToggleControl(), "top-right");
 
     let syncing = false;
     const sync = (src) => {
@@ -218,44 +284,7 @@
     cmpLeft.on("move", () => sync(cmpLeft));
     cmpRight.on("move", () => sync(cmpRight));
 
-    let splitMode = true;
-    const button = document.getElementById("modeBtn");
-
-    const toggleMode = () => {
-      const active = splitMode ? beforeMap : cmpLeft;
-      const cam = {
-        center: active.getCenter(),
-        zoom: active.getZoom(),
-        bearing: active.getBearing(),
-        pitch: active.getPitch()
-      };
-
-      document.getElementById("splitContainer").style.display = splitMode
-        ? "none"
-        : "block";
-      document.getElementById("cmpContainer").style.display = splitMode
-        ? "block"
-        : "none";
-      splitMode = !splitMode;
-      button.textContent = splitMode ? labelSplit : labelCompare;
-
-      if (splitMode) {
-        [beforeMap, afterMap].forEach((map) => {
-          map.jumpTo(cam);
-          map.resize();
-        });
-        if (splitCompare && typeof splitCompare._onResize === "function") {
-          splitCompare._onResize();
-        }
-      } else {
-        [cmpLeft, cmpRight].forEach((map) => {
-          map.jumpTo(cam);
-          map.resize();
-        });
-      }
-    };
-
-    button.addEventListener("click", toggleMode);
+    updateToggleButtons();
 
   };
 
