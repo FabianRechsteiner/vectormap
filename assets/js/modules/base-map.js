@@ -21,8 +21,8 @@
   const map = new maplibregl.Map({
     container,
     style: config.style || "../styles/ch.vectormap.lightbasemap.json",
-    center: config.center || [8.375, 46.744],
-    zoom: config.zoom ?? 8,
+    center: config.center || [8.7241, 47.4987],
+    zoom: config.zoom ?? 15,
     bearing: config.bearing ?? 0,
     pitch: config.pitch ?? 0
   });
