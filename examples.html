@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Beispiele – Vectormap</title>
-  <meta name="description" content="Modulare MapLibre-Beispiele, die zeigen, wie eine Vectormap-Karte Schritt für Schritt aufgebaut wird.">
+  <meta name="description" content="Modulare MapLibre-Beispiele mit Live-Vorschau, Versionen und eigenständigen HTML-Dateien pro Modul.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -33,15 +33,16 @@
       <div class="site-container hero-grid">
         <div class="reveal">
           <p class="eyebrow">Beispiele</p>
-          <h1 class="hero-title">So baust du dir deine eigene Karte – Modul für Modul.</h1>
-          <p class="hero-lead">Die folgenden Beispiele zeigen, wie eine MapLibre-Karte aus einzelnen Modulen aufgebaut wird. Die Basiskarte funktioniert eigenständig, zusätzliche Funktionen lassen sich später ergänzen.</p>
+          <h1 class="hero-title">Modulare MapLibre-Webkarten.</h1>
+          <p class="hero-lead">Jedes Beispiel ist eine eigene HTML-Datei und bindet nur die Module ein, die es wirklich braucht. So wächst die Karte Schritt für Schritt.</p>
+          <p class="hero-lead">Referenz: <a href="https://maplibre.org/maplibre-gl-js/docs/" target="_blank" rel="noopener">MapLibre GL JS Doku</a>.</p>
         </div>
         <div class="hero-card reveal" style="--delay: 0.1s">
           <ul>
-            <li><strong>Basismodul:</strong> Karte, Stil und PMTiles-Quelle</li>
-            <li><strong>Erweiterbar:</strong> Zusätze als eigene JS-Dateien</li>
-            <li><strong>Ziel:</strong> Nachvollziehbare Architektur</li>
-            <li><strong>Fokus:</strong> Anpassbar statt fertig</li>
+            <li><strong>Basismodul:</strong> MapLibre + PMTiles + Style</li>
+            <li><strong>Module:</strong> Jede Funktion als eigene JS-Datei</li>
+            <li><strong>Vorschau:</strong> Live-Karte pro Kachel</li>
+            <li><strong>Versionen:</strong> Klar dokumentiert je Beispiel</li>
           </ul>
         </div>
       </div>
@@ -50,48 +51,26 @@
     <section class="section">
       <div class="site-container">
         <div class="section-heading">
-          <h2 class="section-title">Basismodul</h2>
-          <p class="section-lead">Das Basismodul initialisiert eine MapLibre-Karte mit den wichtigsten Bausteinen.</p>
+          <h2 class="section-title">Beispiele</h2>
+          <p class="section-lead">Klicke auf eine Kachel, um das Beispiel in einem neuen Fenster zu öffnen.</p>
         </div>
-        <div class="feature-grid stagger">
-          <article class="feature-card">
-            <h3 class="card-title">Frei wählbarer Stil</h3>
-            <p class="card-text">Der Style kann pro Projekt angepasst oder ausgetauscht werden.</p>
-          </article>
-          <article class="feature-card">
-            <h3 class="card-title">PMTiles-Quelle</h3>
-            <p class="card-text">Die Daten liegen in einer Datei vor und werden effizient geladen.</p>
-          </article>
-          <article class="feature-card">
-            <h3 class="card-title">Zoom-Steuerung</h3>
-            <p class="card-text">Standard-Controls bleiben aktiv, damit Nutzerinnen und Nutzer die Karte bedienen können.</p>
-          </article>
-          <article class="feature-card">
-            <h3 class="card-title">Nordpfeil</h3>
-            <p class="card-text">Eine klare Orientierung, vor allem bei schräger oder gedrehter Ansicht.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="site-container">
-        <div class="section-heading">
-          <h2 class="section-title">Zusatzmodule</h2>
-          <p class="section-lead">Erweiterungen werden als separate Dateien eingebunden und können unabhängig gepflegt werden.</p>
-        </div>
-        <div class="card-grid stagger">
-          <article class="card">
-            <h3 class="card-title">Adresssuche</h3>
-            <p class="card-text">Ermöglicht das Suchen und Anspringen von Adressen. Aktivierung durch Einbinden der entsprechenden JavaScript-Datei.</p>
-          </article>
-          <article class="card">
-            <h3 class="card-title">3D-Ansicht</h3>
-            <p class="card-text">Schaltet die Karte in eine perspektivische Darstellung um, sofern technisch möglich.</p>
-          </article>
-          <article class="card">
-            <h3 class="card-title">Relief / Schattierung</h3>
-            <p class="card-text">Blendet eine Reliefdarstellung ein oder aus, um Geländeformen sichtbar zu machen.</p>
+        <div class="example-grid stagger">
+          <article class="example-card">
+            <a class="example-link" href="examples/base-map.html" target="_blank" rel="noopener" aria-label="Basismodul in neuem Fenster öffnen">
+              <div class="example-preview" aria-hidden="true">
+                <iframe title="Basismodul Vorschau" loading="lazy" src="examples/base-map.html?preview=1"></iframe>
+              </div>
+              <div class="example-content">
+                <h3 class="card-title">Basismodul: MapLibre + PMTiles</h3>
+                <p class="card-text">Minimaler Einstieg mit dem Style <code>ch.vectormap.lightbasemap.json</code> und PMTiles-Quelle.</p>
+                <ul class="example-meta">
+                  <li><strong>MapLibre GL JS:</strong> 4.1.2</li>
+                  <li><strong>PMTiles:</strong> 2.11.0</li>
+                  <li><strong>Style:</strong> ch.vectormap.lightbasemap.json</li>
+                </ul>
+                <span class="card-link">Beispiel öffnen <span>→</span></span>
+              </div>
+            </a>
           </article>
         </div>
       </div>
@@ -100,22 +79,21 @@
     <section class="section">
       <div class="site-container">
         <div class="section-heading">
-          <h2 class="section-title">Modulare Einbindung</h2>
-          <p class="section-lead">Ein mögliches HTML-Grundgerüst mit separaten Modulen.</p>
+          <h2 class="section-title">Struktur der Module</h2>
+          <p class="section-lead">Jedes Beispiel hat eine eigene HTML-Datei im Ordner <code>examples/</code> und bindet Module aus <code>assets/js/modules/</code> ein.</p>
         </div>
-        <pre class="code-block"><code>&lt;script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"&gt;&lt;/script&gt;
+        <pre class="code-block"><code>&lt;link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css"&gt;
+&lt;script src="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js"&gt;&lt;/script&gt;
 &lt;script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"&gt;&lt;/script&gt;
-&lt;script src="assets/js/modules/baseMap.js"&gt;&lt;/script&gt;
-&lt;script src="assets/js/modules/addressSearch.js"&gt;&lt;/script&gt;
-&lt;script src="assets/js/modules/relief.js"&gt;&lt;/script&gt;</code></pre>
+&lt;script src="../assets/js/modules/base-map.js"&gt;&lt;/script&gt;</code></pre>
       </div>
     </section>
 
     <section class="section">
       <div class="site-container">
         <div class="callout">
-          <h3>Didaktischer Hinweis</h3>
-          <p>Ziel dieser Beispiele ist nicht ein fertiges Produkt, sondern eine nachvollziehbare Architektur, die sich leicht an eigene Projekte anpassen lässt.</p>
+          <h3>Nächste Module</h3>
+          <p>Lege eine neue HTML-Datei in <code>examples/</code> an und binde die gewünschten Module aus <code>assets/js/modules/</code> ein. Die Übersicht lässt sich dann um eine weitere Kachel ergänzen.</p>
         </div>
       </div>
     </section>

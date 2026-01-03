@@ -294,6 +294,61 @@ input:focus-visible {
   min-height: 180px;
 }
 
+.example-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.6rem;
+}
+
+.example-card {
+  background: var(--color-panel);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(27, 42, 35, 0.08);
+  box-shadow: 0 12px 30px rgba(24, 34, 27, 0.08);
+  overflow: hidden;
+}
+
+.example-link {
+  display: grid;
+  gap: 1rem;
+  color: inherit;
+  height: 100%;
+}
+
+.example-preview {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-bottom: 1px solid rgba(27, 42, 35, 0.08);
+  background: linear-gradient(140deg, #f3efe6 0%, #e6ede6 40%, #f7f4ec 100%);
+}
+
+.example-preview iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none;
+}
+
+.example-content {
+  padding: 1.2rem 1.4rem 1.5rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.example-meta {
+  list-style: none;
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.example-meta strong {
+  color: var(--color-ink);
+}
+
 .card p,
 .feature-card p,
 .support-card p,
