@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Beispiele – Vectormap</title>
-  <meta name="description" content="Modulare MapLibre-Beispiele mit Live-Vorschau, Versionen und eigenständigen HTML-Dateien pro Modul.">
+  <title>Karten – Vectormap</title>
+  <meta name="description" content="Modulare MapLibre-Karten mit Live-Vorschau, Versionen und eigenständigen HTML-Dateien pro Modul.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -21,9 +21,10 @@
         <a href="index.html">Start</a>
         <a href="dataset.html">Datensatz</a>
         <a href="styles.html">Styles</a>
-        <a href="examples.html" aria-current="page">Beispiele</a>
-        <a href="about.html">Über</a>
-        <a href="support.html">Unterstützung</a>
+        <a href="examples.html" aria-current="page">Karten</a>
+        <a href="lizenzen.html">Lizenzen &amp; Quellen</a>
+        <a href="about.html">Über Vectormap</a>
+        <a href="support.html">Kontakt</a>
       </nav>
     </div>
   </header>
@@ -32,9 +33,9 @@
     <section class="hero hero--compact">
       <div class="site-container hero-grid">
         <div class="reveal">
-          <p class="eyebrow">Beispiele</p>
-          <h1 class="hero-title">Modulare MapLibre-Webkarten.</h1>
-          <p class="hero-lead">Jedes Beispiel ist eine eigene HTML-Datei und bindet nur die Module ein, die es wirklich braucht. So wächst die Karte Schritt für Schritt.</p>
+          <p class="eyebrow">Karten</p>
+          <h1 class="hero-title">Modulare Webkarten mit MapLibre.</h1>
+          <p class="hero-lead">Jede Karte ist eine eigene HTML-Datei und bindet nur die Module ein, die sie wirklich braucht. So wächst die Karte Schritt für Schritt.</p>
           <p class="hero-lead">Referenz: <a href="https://maplibre.org/maplibre-gl-js/docs/" target="_blank" rel="noopener">MapLibre GL JS Doku</a>.</p>
         </div>
         <div class="hero-card reveal" style="--delay: 0.1s">
@@ -42,7 +43,7 @@
             <li><strong>Basismodul:</strong> MapLibre + PMTiles + Style</li>
             <li><strong>Module:</strong> Jede Funktion als eigene JS-Datei</li>
             <li><strong>Vorschau:</strong> Live-Karte pro Kachel</li>
-            <li><strong>Versionen:</strong> Klar dokumentiert je Beispiel</li>
+            <li><strong>Versionen:</strong> Klar dokumentiert je Karte</li>
           </ul>
         </div>
       </div>
@@ -51,8 +52,8 @@
     <section class="section">
       <div class="site-container">
         <div class="section-heading">
-          <h2 class="section-title">Beispiele</h2>
-          <p class="section-lead">Die Vorschau ist interaktiv und unterstützt den Vollbildmodus direkt in der Karte.</p>
+          <h2 class="section-title">Karten</h2>
+          <p class="section-lead">Die Vorschau ist interaktiv und unterstützt den Vollbildmodus direkt in jeder Karte.</p>
         </div>
         <div class="example-grid stagger">
           <article class="example-card">
@@ -91,7 +92,7 @@
       <div class="site-container">
         <div class="section-heading">
           <h2 class="section-title">Struktur der Module</h2>
-          <p class="section-lead">Jedes Beispiel hat eine eigene HTML-Datei im Ordner <code>examples/</code> und bindet Module aus <code>assets/js/modules/</code> ein.</p>
+          <p class="section-lead">Jede Karte hat eine eigene HTML-Datei im Ordner <code>examples/</code> und bindet Module aus <code>assets/js/modules/</code> ein.</p>
         </div>
         <pre class="code-block"><code>&lt;script&gt;
 window.vectormapExampleConfig = { autoInit: true };
@@ -110,8 +111,8 @@ window.vectormapCompareConfig = { ... };
     <section class="section">
       <div class="site-container">
         <div class="callout">
-          <h3>Nächste Module</h3>
-          <p>Lege eine neue HTML-Datei in <code>examples/</code> an und binde die gewünschten Module aus <code>assets/js/modules/</code> ein. Die Übersicht lässt sich dann um eine weitere Kachel ergänzen.</p>
+          <h3>Neue Karten hinzufügen</h3>
+          <p>Lege eine neue HTML-Datei in <code>examples/</code> an und binde die gewünschten Module aus <code>assets/js/modules/</code> ein. Die Übersicht lässt sich dann um eine weitere Karte ergänzen.</p>
         </div>
       </div>
     </section>
@@ -122,9 +123,10 @@ window.vectormapCompareConfig = { ... };
       <div class="footer-links">
         <a href="dataset.html">Datensatz</a>
         <a href="styles.html">Styles</a>
-        <a href="examples.html" aria-current="page">Beispiele</a>
-        <a href="about.html">Über</a>
-        <a href="support.html">Unterstützung</a>
+        <a href="examples.html" aria-current="page">Karten</a>
+        <a href="lizenzen.html">Lizenzen &amp; Quellen</a>
+        <a href="about.html">Über Vectormap</a>
+        <a href="support.html">Kontakt</a>
         <a href="https://github.com/FabianRechsteiner" target="_blank" rel="noopener">GitHub</a>
       </div>
       <p class="footer-note">Daten basieren auf offenen Geodaten der Schweiz.</p>

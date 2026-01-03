@@ -21,9 +21,10 @@
         <a href="index.html">Start</a>
         <a href="dataset.html" aria-current="page">Datensatz</a>
         <a href="styles.html">Styles</a>
-        <a href="examples.html">Beispiele</a>
-        <a href="about.html">Über</a>
-        <a href="support.html">Unterstützung</a>
+        <a href="examples.html">Karten</a>
+        <a href="lizenzen.html">Lizenzen &amp; Quellen</a>
+        <a href="about.html">Über Vectormap</a>
+        <a href="support.html">Kontakt</a>
       </nav>
     </div>
   </header>
@@ -34,13 +35,13 @@
         <div class="reveal">
           <p class="eyebrow">Datensatz</p>
           <h1 class="hero-title">Amtliche Vermessung als Vektorkacheln.</h1>
-          <p class="hero-lead">Die amtliche Vermessung (AV) bildet die detaillierteste öffentlich verfügbare Geodatengrundlage der Schweiz. Sie enthält unter anderem Gebäude, Parzellen, Strassen, Gewässer und viele weitere Objekte.</p>
-          <p class="hero-lead">Vectormap stellt die AV als performante Vektordatensätze bereit, optimiert für große Maßstäbe und moderne Webkarten. Zusätzlich sind Hausnummern sowie projektierte Gebäude und projektierte Liegenschaften verfügbar und darstellbar.</p>
+          <p class="hero-lead">Die amtliche Vermessung (AV) ist die detaillierteste öffentlich verfügbare Geodatengrundlage der Schweiz. Sie enthält unter anderem Gebäude, Parzellen, Strassen, Gewässer und viele weitere Objekte.</p>
+          <p class="hero-lead">Vectormap stellt die AV als performante Vektordatensätze bereit, optimiert für grosse Massstäbe und moderne Webkarten. Zusätzlich sind Hausnummern sowie projektierte Gebäude und Liegenschaften verfügbar und darstellbar.</p>
         </div>
         <div class="hero-card reveal" style="--delay: 0.1s">
           <ul>
             <li><strong>Aufbereitung:</strong> AV-Daten als PMTiles</li>
-            <li><strong>Maßstäbe:</strong> Nur große Zoomstufen</li>
+            <li><strong>Massstäbe:</strong> Nur grosse Zoomstufen</li>
             <li><strong>Nutzung:</strong> MapLibre, eigene Styles, volle Kontrolle</li>
             <li><strong>Dokumentation:</strong> Layer-Übersicht aus av.json</li>
           </ul>
@@ -51,8 +52,8 @@
     <section class="section">
       <div class="site-container">
         <div class="section-heading">
-          <h2 class="section-title">Lizenzen &amp; Quellen</h2>
-          <p class="section-lead">Die PMTiles basieren auf offenen AV-Daten von geodienste.ch; fuer die Nutzung gelten die kantonalen Nutzungsbedingungen.</p>
+          <h2 class="section-title">Datenstand &amp; Abdeckung</h2>
+          <p class="section-lead">Aktueller Stand der PMTiles und abgedeckte Kantone.</p>
         </div>
         <ul class="bullet-list">
           <li><strong>Aufbereitung:</strong> 12.12.2025 08:12</li>
@@ -60,11 +61,11 @@
           <li><strong>Ausgangsformat:</strong> GeoPackage</li>
           <li><strong>Kantone enthalten:</strong> AG, AI, AR, BE, BL, BS, FR, GE, GL, GR, SG, SH, SO, SZ, TG, TI, UR, VS, ZG, ZH</li>
           <li><strong>Aktuell nicht enthalten:</strong> JU, LU, NE, NW, OW, VD</li>
-          <li><strong>Datenlizenz:</strong> <a href="DATA_LICENSE.md">DATA_LICENSE.md</a></li>
         </ul>
         <div class="callout">
-          <h3>Attributionsvorlage</h3>
-          <pre class="code-block"><code>Quelle: Amtliche Vermessung (AV) - kantonale Geoinformationsstellen, bezogen via geodienste.ch. Verarbeitung/PMTiles: vectormap.ch.</code></pre>
+          <h3>Lizenzen &amp; Quellen</h3>
+          <p>Alle Lizenztexte, Attribution und kantonalen Bedingungen findest du gesammelt auf der Lizenzseite.</p>
+          <p><a class="card-link" href="lizenzen.html">Zu Lizenzen &amp; Quellen <span>→</span></a></p>
         </div>
       </div>
     </section>
@@ -72,17 +73,17 @@
     <section class="section">
       <div class="site-container">
         <div class="section-heading">
-          <h2 class="section-title">Warum nur große Maßstäbe?</h2>
-          <p class="section-lead">Die AV ist extrem detailliert. Für kleine Maßstäbe wäre sie weder sinnvoll noch performant.</p>
+          <h2 class="section-title">Warum nur grosse Massstäbe?</h2>
+          <p class="section-lead">Die AV ist extrem detailliert. Für kleine Massstäbe wäre sie weder sinnvoll noch performant.</p>
         </div>
         <div class="feature-grid stagger">
           <article class="feature-card">
             <h3 class="card-title">Hohe Detailtiefe</h3>
-            <p class="card-text">Die AV enthält sehr präzise Geometrien und Attribute. Diese Detailfülle entfaltet ihren Nutzen erst bei großen Maßstäben.</p>
+            <p class="card-text">Die AV enthält sehr präzise Geometrien und Attribute. Diese Detailfülle entfaltet ihren Nutzen erst bei grossen Massstäben.</p>
           </article>
           <article class="feature-card">
             <h3 class="card-title">Performance und Klarheit</h3>
-            <p class="card-text">Bei kleinen Maßstäben würden die Daten Karten überladen und unnötig viele Ressourcen verbrauchen.</p>
+            <p class="card-text">Bei kleinen Massstäben würden die Daten Karten überladen und unnötig viele Ressourcen verbrauchen.</p>
           </article>
           <article class="feature-card">
             <h3 class="card-title">Ergänzbar mit anderen Daten</h3>
@@ -120,23 +121,23 @@
         <ul class="bullet-list">
           <li><strong>Standardquelle:</strong> av.pmtiles ist immer der aktuellste Stand.</li>
           <li><strong>Historie:</strong> ältere Stände werden als eigene Dateien geführt, z. B. av_20260101.pmtiles.</li>
-          <li><strong>Offene Daten:</strong> es werden ausschließlich kostenlose, offene Geodaten von <a href="https://geodienste.ch" target="_blank" rel="noopener">geodienste.ch</a> verarbeitet.</li>
+          <li><strong>Offene Daten:</strong> Es werden ausschliesslich kostenlose, offene Geodaten von <a href="https://geodienste.ch" target="_blank" rel="noopener">geodienste.ch</a> verarbeitet.</li>
           <li><strong>Einschränkungen:</strong> Kantone ohne freie AV-Daten können derzeit nicht als PMTiles bereitgestellt werden.</li>
         </ul>
-        <p class="section-lead">Die Karte zeigt, in welchen Kantonen offene AV-Daten verfuegbar sind.</p>
+        <p class="section-lead">Die Karte zeigt, in welchen Kantonen offene AV-Daten verfügbar sind.</p>
         <div class="dataset-map-panel example-card">
           <div class="example-preview dataset-map-preview">
-            <div class="dataset-map" id="dataset-map" aria-label="Kartenansicht zur AV-Datenverfuegbarkeit"></div>
+            <div class="dataset-map" id="dataset-map" aria-label="Kartenansicht zur AV-Datenverfügbarkeit"></div>
           </div>
           <div class="example-content dataset-map-legend">
             <div class="dataset-legend-items">
               <div class="dataset-legend-item">
                 <span class="dataset-legend-swatch dataset-legend-swatch--available"></span>
-                Offene AV-Daten verfuegbar
+                Offene AV-Daten verfügbar
               </div>
               <div class="dataset-legend-item">
                 <span class="dataset-legend-swatch dataset-legend-swatch--missing"></span>
-                Keine offenen AV-Daten verfuegbar
+                Keine offenen AV-Daten verfügbar
               </div>
             </div>
           </div>
@@ -182,9 +183,10 @@
       <div class="footer-links">
         <a href="dataset.html" aria-current="page">Datensatz</a>
         <a href="styles.html">Styles</a>
-        <a href="examples.html">Beispiele</a>
-        <a href="about.html">Über</a>
-        <a href="support.html">Unterstützung</a>
+        <a href="examples.html">Karten</a>
+        <a href="lizenzen.html">Lizenzen &amp; Quellen</a>
+        <a href="about.html">Über Vectormap</a>
+        <a href="support.html">Kontakt</a>
         <a href="https://github.com/FabianRechsteiner" target="_blank" rel="noopener">GitHub</a>
       </div>
       <p class="footer-note">Daten basieren auf offenen Geodaten der Schweiz.</p>
