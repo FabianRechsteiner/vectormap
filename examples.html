@@ -69,6 +69,20 @@
               </ul>
             </div>
           </article>
+          <article class="example-card">
+            <div class="example-preview">
+              <iframe title="Style-Vergleich Vorschau" loading="lazy" src="examples/compare-map.html" allowfullscreen></iframe>
+            </div>
+            <div class="example-content">
+              <h3 class="card-title">Vergleich: Vectormap vs swisstopo</h3>
+              <p class="card-text">Zwei Styles im Split- und Comparison-Modus, inklusive Slider-Vergleich.</p>
+              <ul class="example-meta">
+                <li><strong>MapLibre GL JS:</strong> 5.14.0</li>
+                <li><strong>PMTiles:</strong> 4.3.0</li>
+                <li><strong>Module:</strong> base-map.js + compare-map.js</li>
+              </ul>
+            </div>
+          </article>
         </div>
       </div>
     </section>
@@ -79,10 +93,17 @@
           <h2 class="section-title">Struktur der Module</h2>
           <p class="section-lead">Jedes Beispiel hat eine eigene HTML-Datei im Ordner <code>examples/</code> und bindet Module aus <code>assets/js/modules/</code> ein.</p>
         </div>
-        <pre class="code-block"><code>&lt;link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.14.0/dist/maplibre-gl.css"&gt;
-&lt;script src="https://unpkg.com/maplibre-gl@5.14.0/dist/maplibre-gl.js"&gt;&lt;/script&gt;
-&lt;script src="https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js"&gt;&lt;/script&gt;
-&lt;script src="../assets/js/modules/base-map.js"&gt;&lt;/script&gt;</code></pre>
+        <pre class="code-block"><code>&lt;script&gt;
+window.vectormapExampleConfig = { autoInit: true };
+&lt;/script&gt;
+&lt;script src="../assets/js/modules/base-map.js"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+window.vectormapExampleConfig = { autoInit: false };
+window.vectormapCompareConfig = { ... };
+&lt;/script&gt;
+&lt;script src="../assets/js/modules/base-map.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/compare-map.js"&gt;&lt;/script&gt;</code></pre>
       </div>
     </section>
 

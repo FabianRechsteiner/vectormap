@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Style-Vergleich – Vectormap</title>
+  <meta name="description" content="Vergleich von swisstopo Light Base Map und Vectormap im Split- und Comparison-Modus.">
+</head>
+<body>
+  <div id="compare-root" aria-label="Kartenvergleich"></div>
+
+  <script>
+    window.vectormapExampleConfig = {
+      autoInit: false,
+      maplibreCss: "https://unpkg.com/maplibre-gl@5.14.0/dist/maplibre-gl.css",
+      maplibreJs: "https://unpkg.com/maplibre-gl@5.14.0/dist/maplibre-gl.js",
+      pmtilesJs: "https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js"
+    };
+
+    window.vectormapCompareConfig = {
+      containerId: "compare-root",
+      styleLeft:
+        "https://vectortiles.geo.admin.ch/styles/ch.swisstopo.leichte-basiskarte.vt/style.json",
+      styleRight: "../styles/ch.vectormap.lightbasemap.json",
+      center: [8.7241, 47.4987],
+      zoom: 15,
+      bearing: 0,
+      pitch: 0,
+      hash: true,
+      pitchWithRotate: true
+    };
+  </script>
+  <script src="../assets/js/modules/base-map.js"></script>
+  <script src="../assets/js/modules/compare-map.js"></script>
+</body>
+</html>
