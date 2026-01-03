@@ -58,7 +58,7 @@
         <div class="example-grid stagger">
           <article class="example-card">
             <div class="example-preview">
-              <iframe title="Basismodul Vorschau" loading="lazy" src="examples/base-map.html" allowfullscreen></iframe>
+              <iframe title="Basismodul Vorschau" loading="lazy" src="maps/base-map.html" allowfullscreen></iframe>
             </div>
             <div class="example-content">
               <h3 class="card-title">Basismodul: MapLibre + PMTiles</h3>
@@ -67,14 +67,14 @@
                 <li><strong>MapLibre GL JS:</strong> 5.14.0</li>
                 <li><strong>PMTiles:</strong> 4.3.0</li>
                 <li><strong>Style:</strong> <a href="styles/ch.vectormap.lightbasemap.json" target="_blank" rel="noopener">ch.vectormap.lightbasemap.json</a></li>
+                <li><strong>URL:</strong> <a href="maps/base-map.html" target="_blank" rel="noopener">maps/base-map.html</a></li>
                 <li><strong>Module:</strong> base-map.js</li>
-                <li><strong>URL:</strong> <a href="examples/base-map.html" target="_blank" rel="noopener">examples/base-map.html</a></li>
               </ul>
             </div>
           </article>
           <article class="example-card">
             <div class="example-preview">
-              <iframe title="Style-Vergleich Vorschau" loading="lazy" src="examples/compare-map.html" allowfullscreen></iframe>
+              <iframe title="Style-Vergleich Vorschau" loading="lazy" src="maps/compare-map.html" allowfullscreen></iframe>
             </div>
             <div class="example-content">
               <h3 class="card-title">Vergleich: Swisstopo vs Vectormap</h3>
@@ -83,8 +83,8 @@
                 <li><strong>MapLibre GL JS:</strong> 5.14.0</li>
                 <li><strong>PMTiles:</strong> 4.3.0</li>
                 <li><strong>Style:</strong> <a href="https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/style.json" target="_blank" rel="noopener">ch.swisstopo.lightbasemap.json</a> / <a href="styles/ch.vectormap.lightbasemap.json" target="_blank" rel="noopener">ch.vectormap.lightbasemap.json</a></li>
+                <li><strong>URL:</strong> <a href="maps/compare-map.html" target="_blank" rel="noopener">maps/compare-map.html</a></li>
                 <li><strong>Module:</strong> base-map.js + compare-map.js</li>
-                <li><strong>URL:</strong> <a href="examples/compare-map.html" target="_blank" rel="noopener">examples/compare-map.html</a></li>
               </ul>
             </div>
           </article>
@@ -96,7 +96,7 @@
       <div class="site-container">
         <div class="section-heading">
           <h2 class="section-title">Struktur der Module</h2>
-          <p class="section-lead">Jede Karte hat eine eigene HTML-Datei im Ordner <code>examples/</code> und bindet Module aus <code>assets/js/modules/</code> ein.</p>
+          <p class="section-lead">Jede Karte hat eine eigene HTML-Datei im Ordner <code>maps/</code> und bindet Module aus <code>assets/js/modules/</code> ein.</p>
         </div>
         <pre class="code-block"><code>&lt;script&gt;
 window.vectormapExampleConfig = { autoInit: true };
@@ -116,7 +116,7 @@ window.vectormapCompareConfig = { ... };
       <div class="site-container">
         <div class="callout">
           <h3>Neue Karten hinzufügen</h3>
-          <p>Lege eine neue HTML-Datei in <code>examples/</code> an und binde die gewünschten Module aus <code>assets/js/modules/</code> ein. Die Übersicht lässt sich dann um eine weitere Karte ergänzen.</p>
+          <p>Lege eine neue HTML-Datei in <code>maps/</code> an und binde die gewünschten Module aus <code>assets/js/modules/</code> ein. Die Übersicht lässt sich dann um eine weitere Karte ergänzen.</p>
         </div>
       </div>
     </section>
