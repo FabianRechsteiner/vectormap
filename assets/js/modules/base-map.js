@@ -1,17 +1,15 @@
 (() => {
   const config = window.vectormapExampleConfig || {};
   const container = config.container || "map";
-  const pmtilesUrl =
-    config.pmtilesUrl || "https://vectormap.ch/pmtiles/av/av.pmtiles";
   const styleUrl = config.style || "../styles/ch.vectormap.lightbasemap.json";
   const maplibreCss =
     config.maplibreCss ||
-    "https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css";
+    "https://unpkg.com/maplibre-gl@5.14.0/dist/maplibre-gl.css";
   const maplibreJs =
     config.maplibreJs ||
-    "https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js";
+    "https://unpkg.com/maplibre-gl@5.14.0/dist/maplibre-gl.js";
   const pmtilesJs =
-    config.pmtilesJs || "https://unpkg.com/pmtiles@2.11.0/dist/index.js";
+    config.pmtilesJs || "https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js";
 
   const loadCss = (href) => {
     if (document.querySelector(`link[href="${href}"]`)) {
@@ -129,16 +127,6 @@
       const protocol = new pmtiles.Protocol();
       maplibregl.addProtocol("pmtiles", protocol.tile);
       window.vectormapModules.pmtilesProtocol = protocol;
-    }
-
-    if (!window.vectormapModules.pmtilesArchive) {
-      const resolvedPmtilesUrl = new URL(pmtilesUrl, window.location.href);
-      window.vectormapModules.pmtilesArchive = new pmtiles.PMTiles(
-        resolvedPmtilesUrl.toString()
-      );
-      window.vectormapModules.pmtilesProtocol.add(
-        window.vectormapModules.pmtilesArchive
-      );
     }
 
     let style;
