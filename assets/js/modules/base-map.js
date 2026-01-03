@@ -3,42 +3,167 @@
   const container = config.container || "map";
   const pmtilesUrl =
     config.pmtilesUrl || "https://vectormap.ch/pmtiles/av/av.pmtiles";
+  const styleUrl = config.style || "../styles/ch.vectormap.lightbasemap.json";
+  const maplibreCss =
+    config.maplibreCss ||
+    "https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css";
+  const maplibreJs =
+    config.maplibreJs ||
+    "https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js";
+  const pmtilesJs =
+    config.pmtilesJs || "https://unpkg.com/pmtiles@2.11.0/dist/index.js";
 
-  if (!window.maplibregl) {
-    console.error("MapLibre GL JS is missing.");
-    return;
-  }
+  const loadCss = (href) => {
+    if (document.querySelector(`link[href="${href}"]`)) {
+      return;
+    }
 
-  if (!window.pmtiles) {
-    console.error("PMTiles is missing.");
-    return;
-  }
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+    document.head.appendChild(link);
+  };
 
-  window.vectormapModules = window.vectormapModules || {};
+  const loadScript = (src) =>
+    new Promise((resolve, reject) => {
+      if (document.querySelector(`script[src="${src}"]`)) {
+        resolve();
+        return;
+      }
 
-  if (!window.vectormapModules.pmtilesProtocol) {
-    const protocol = new pmtiles.Protocol();
-    maplibregl.addProtocol("pmtiles", protocol.tile);
-    window.vectormapModules.pmtilesProtocol = protocol;
-  }
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = true;
+      script.onload = resolve;
+      script.onerror = () =>
+        reject(new Error(`Script konnte nicht geladen werden: ${src}`));
+      document.head.appendChild(script);
+    });
 
-  if (!window.vectormapModules.pmtilesArchive) {
-    window.vectormapModules.pmtilesArchive = new pmtiles.PMTiles(pmtilesUrl);
-    window.vectormapModules.pmtilesProtocol.add(
-      window.vectormapModules.pmtilesArchive
-    );
-  }
+  const hasDataExpression = (value) => {
+    if (!Array.isArray(value)) {
+      return false;
+    }
 
-  const map = new maplibregl.Map({
-    container,
-    style: config.style || "../styles/ch.vectormap.lightbasemap.json",
-    center: config.center || [8.7241, 47.4987],
-    zoom: config.zoom ?? 15,
-    bearing: config.bearing ?? 0,
-    pitch: config.pitch ?? 0
-  });
+    const op = value[0];
+    if (typeof op === "string") {
+      if (op === "literal" || op === "zoom") {
+        return false;
+      }
+      if (
+        [
+          "get",
+          "has",
+          "in",
+          "match",
+          "case",
+          "coalesce",
+          "feature-state",
+          "properties",
+          "geometry-type",
+          "id"
+        ].includes(op)
+      ) {
+        return true;
+      }
+    }
 
-  map.addControl(new maplibregl.NavigationControl(), "top-right");
+    return value.some(hasDataExpression);
+  };
 
-  window.vectormapModules.map = map;
+  const sanitizeStyle = (style) => {
+    if (!style || !Array.isArray(style.layers)) {
+      return style;
+    }
+
+    style.layers.forEach((layer) => {
+      if (!layer.paint || !layer.paint["line-dasharray"]) {
+        return;
+      }
+
+      if (hasDataExpression(layer.paint["line-dasharray"])) {
+        delete layer.paint["line-dasharray"];
+      }
+    });
+
+    return style;
+  };
+
+  const ensureLibraries = async () => {
+    loadCss(maplibreCss);
+
+    const tasks = [];
+    if (!window.maplibregl) {
+      tasks.push(loadScript(maplibreJs));
+    }
+    if (!window.pmtiles) {
+      tasks.push(loadScript(pmtilesJs));
+    }
+
+    if (tasks.length) {
+      await Promise.all(tasks);
+    }
+  };
+
+  const initMap = async () => {
+    try {
+      await ensureLibraries();
+    } catch (error) {
+      console.error(error);
+      return;
+    }
+
+    if (!window.maplibregl) {
+      console.error("MapLibre GL JS is missing.");
+      return;
+    }
+
+    if (!window.pmtiles) {
+      console.error("PMTiles is missing.");
+      return;
+    }
+
+    window.vectormapModules = window.vectormapModules || {};
+
+    if (!window.vectormapModules.pmtilesProtocol) {
+      const protocol = new pmtiles.Protocol();
+      maplibregl.addProtocol("pmtiles", protocol.tile);
+      window.vectormapModules.pmtilesProtocol = protocol;
+    }
+
+    if (!window.vectormapModules.pmtilesArchive) {
+      const resolvedPmtilesUrl = new URL(pmtilesUrl, window.location.href);
+      window.vectormapModules.pmtilesArchive = new pmtiles.PMTiles(
+        resolvedPmtilesUrl.toString()
+      );
+      window.vectormapModules.pmtilesProtocol.add(
+        window.vectormapModules.pmtilesArchive
+      );
+    }
+
+    let style;
+    try {
+      const resolvedStyleUrl = new URL(styleUrl, window.location.href);
+      const response = await fetch(resolvedStyleUrl.toString());
+      style = sanitizeStyle(await response.json());
+    } catch (error) {
+      console.error("Style konnte nicht geladen werden.", error);
+      return;
+    }
+
+    const map = new maplibregl.Map({
+      container,
+      style,
+      center: config.center || [8.7241, 47.4987],
+      zoom: config.zoom ?? 15,
+      bearing: config.bearing ?? 0,
+      pitch: config.pitch ?? 0
+    });
+
+    map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+    window.vectormapModules.map = map;
+  };
+
+  initMap();
 })();
