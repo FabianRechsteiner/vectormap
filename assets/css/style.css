@@ -317,7 +317,7 @@ input:focus-visible {
 }
 
 .dataset-map-preview {
-  aspect-ratio: 2 / 1;
+  aspect-ratio: 3 / 1;
 }
 
 .example-preview iframe {
@@ -461,6 +461,7 @@ input:focus-visible {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
   gap: 0.9rem;
 }
 

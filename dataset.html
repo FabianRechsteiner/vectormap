@@ -172,7 +172,13 @@
   </footer>
 
   <script>
-    window.vectormapExampleConfig = { autoInit: false };
+    window.vectormapExampleConfig = {
+      autoInit: true,
+      container: "dataset-map",
+      styleUrl: "styles/ch.vectormap.lightbasemap.json",
+      center: [8.23, 46.82],
+      zoom: 7.0
+    };
   </script>
   <script src="assets/js/modules/base-map.js"></script>
   <script src="assets/js/dataset.js"></script>
