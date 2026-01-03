@@ -82,6 +82,7 @@
   const init = async () => {
     ensureLayout();
     ensureStyles();
+    const rootEl = document.getElementById(rootId);
 
     try {
       await baseMap.ensureLibraries(config);
@@ -132,7 +133,7 @@
     }
 
     if (maplibregl.FullscreenControl) {
-      afterMap.addControl(new maplibregl.FullscreenControl());
+      afterMap.addControl(new maplibregl.FullscreenControl({ container: rootEl }));
     }
 
     const splitCompare = new maplibregl.Compare(
@@ -159,7 +160,7 @@
     }
 
     if (maplibregl.FullscreenControl) {
-      cmpRight.addControl(new maplibregl.FullscreenControl());
+      cmpRight.addControl(new maplibregl.FullscreenControl({ container: rootEl }));
     }
 
     let syncing = false;
@@ -220,23 +221,6 @@
 
     button.addEventListener("click", toggleMode);
 
-    const cmpLeftEl = document.getElementById("cmpMapLeft");
-    const cmpRightEl = document.getElementById("cmpMapRight");
-
-    document.addEventListener("fullscreenchange", () => {
-      if (!document.fullscreenElement) {
-        cmpLeftEl.style.display = "";
-        cmpRightEl.style.width = "50%";
-        if (!splitMode) {
-          cmpLeft.resize();
-          cmpRight.resize();
-        }
-      } else if (!splitMode) {
-        cmpLeftEl.style.display = "none";
-        cmpRightEl.style.width = "100%";
-        cmpRight.resize();
-      }
-    });
   };
 
   init();
