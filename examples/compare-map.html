@@ -7,7 +7,20 @@
   <meta name="description" content="Vergleich von swisstopo Light Base Map und Vectormap im Split- und Comparison-Modus.">
 </head>
 <body>
-  <div id="compare-root" aria-label="Kartenvergleich"></div>
+  <div
+    id="compare-root"
+    aria-label="Kartenvergleich"
+    data-style-left="https://vectortiles.geo.admin.ch/styles/ch.swisstopo.leichte-basiskarte.vt/style.json"
+    data-style-right="../styles/ch.vectormap.lightbasemap.json"
+    data-center="8.7241,47.4987"
+    data-zoom="15"
+    data-bearing="0"
+    data-pitch="0"
+    data-hash="true"
+    data-pitch-with-rotate="true"
+    data-label-split="Zum Comparison-Modus"
+    data-label-compare="Zum Split-Modus"
+  ></div>
 
   <script>
     window.vectormapExampleConfig = {
@@ -17,18 +30,7 @@
       pmtilesJs: "https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js"
     };
 
-    window.vectormapCompareConfig = {
-      containerId: "compare-root",
-      styleLeft:
-        "https://vectortiles.geo.admin.ch/styles/ch.swisstopo.leichte-basiskarte.vt/style.json",
-      styleRight: "../styles/ch.vectormap.lightbasemap.json",
-      center: [8.7241, 47.4987],
-      zoom: 15,
-      bearing: 0,
-      pitch: 0,
-      hash: true,
-      pitchWithRotate: true
-    };
+    window.vectormapCompareConfig = { containerId: "compare-root" };
   </script>
   <script src="../assets/js/modules/base-map.js"></script>
   <script src="../assets/js/modules/compare-map.js"></script>

@@ -8,23 +8,6 @@
   }
 
   const rootId = config.containerId || "compare-root";
-  const compareCss = config.compareCss || "css/maplibre-gl-compare.css";
-  const compareJs = config.compareJs || "js/maplibre-gl-compare.js";
-  const styleLeft =
-    config.styleLeft ||
-    "https://vectortiles.geo.admin.ch/styles/ch.swisstopo.leichte-basiskarte.vt/style.json";
-  const styleRight =
-    config.styleRight || "../styles/ch.vectormap.lightbasemap.json";
-  const view = {
-    center: config.center || [8.7241, 47.4987],
-    zoom: config.zoom ?? 15,
-    bearing: config.bearing ?? 0,
-    pitch: config.pitch ?? 0,
-    hash: config.hash ?? true,
-    pitchWithRotate: config.pitchWithRotate ?? true
-  };
-  const labelSplit = config.labelSplit || "Zum Comparison-Modus";
-  const labelCompare = config.labelCompare || "Zum Split-Modus";
 
   const ensureLayout = () => {
     let root = document.getElementById(rootId);
@@ -82,6 +65,58 @@
     ensureStyles();
     const rootEl = document.getElementById(rootId);
     rootEl.style.userSelect = "none";
+    const data = rootEl ? rootEl.dataset : {};
+
+    const readValue = (key, fallback) =>
+      config[key] !== undefined ? config[key] : data[key] ?? fallback;
+    const parseNumber = (value, fallback) => {
+      if (value === undefined || value === null || value === "") {
+        return fallback;
+      }
+      const number = Number(value);
+      return Number.isFinite(number) ? number : fallback;
+    };
+    const parseBoolean = (value, fallback) => {
+      if (value === undefined || value === null || value === "") {
+        return fallback;
+      }
+      if (value === true || value === false) {
+        return value;
+      }
+      return value === "true";
+    };
+    const parseCenter = (value, fallback) => {
+      if (!value) {
+        return fallback;
+      }
+      const parts = value.split(",").map((item) => Number(item.trim()));
+      if (parts.length !== 2 || parts.some((item) => !Number.isFinite(item))) {
+        return fallback;
+      }
+      return [parts[0], parts[1]];
+    };
+
+    const compareCss = readValue("compareCss", "css/maplibre-gl-compare.css");
+    const compareJs = readValue("compareJs", "js/maplibre-gl-compare.js");
+    const styleLeft = readValue(
+      "styleLeft",
+      "https://vectortiles.geo.admin.ch/styles/ch.swisstopo.leichte-basiskarte.vt/style.json"
+    );
+    const styleRight = readValue(
+      "styleRight",
+      "../styles/ch.vectormap.lightbasemap.json"
+    );
+    const labelSplit = readValue("labelSplit", "Zum Comparison-Modus");
+    const labelCompare = readValue("labelCompare", "Zum Split-Modus");
+
+    const view = {
+      center: config.center || parseCenter(data.center, [8.7241, 47.4987]),
+      zoom: parseNumber(readValue("zoom"), 15),
+      bearing: parseNumber(readValue("bearing"), 0),
+      pitch: parseNumber(readValue("pitch"), 0),
+      hash: parseBoolean(readValue("hash"), true),
+      pitchWithRotate: parseBoolean(readValue("pitchWithRotate"), true)
+    };
 
     try {
       await baseMap.ensureLibraries(config);
