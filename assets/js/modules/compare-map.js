@@ -81,6 +81,7 @@
     ensureLayout();
     ensureStyles();
     const rootEl = document.getElementById(rootId);
+    rootEl.style.userSelect = "none";
 
     try {
       await baseMap.ensureLibraries(config);
@@ -219,7 +220,9 @@
       "#splitContainer"
     );
 
+    let isDragging = false;
     const stopDragging = () => {
+      isDragging = false;
       if (splitCompare && typeof splitCompare._onMouseUp === "function") {
         splitCompare._onMouseUp();
       }
@@ -232,6 +235,17 @@
     document.addEventListener("touchend", stopDragging);
     document.addEventListener("touchcancel", stopDragging);
     window.addEventListener("blur", stopDragging);
+    rootEl.addEventListener("mousedown", () => {
+      isDragging = true;
+    });
+    rootEl.addEventListener("touchstart", () => {
+      isDragging = true;
+    });
+    rootEl.addEventListener("selectstart", (event) => {
+      if (isDragging) {
+        event.preventDefault();
+      }
+    });
 
     cmpLeft = await baseMap.createMap({
       container: "cmpMapLeft",
