@@ -52,20 +52,38 @@
     <section class="section">
       <div class="site-container">
         <div class="section-heading">
-          <h2 class="section-title">Datenstand &amp; Abdeckung</h2>
-          <p class="section-lead">Aktueller Stand der PMTiles und abgedeckte Kantone.</p>
+          <h2 class="section-title">Datenstand, Herkunft &amp; Aktualität</h2>
+          <p class="section-lead">AV-Daten von geodienste.ch, monatlich aktualisiert, inklusive Abdeckung und Download.</p>
         </div>
         <ul class="bullet-list">
-          <li><strong>Aufbereitung:</strong> 12.12.2025 08:12</li>
+          <li><strong>Datenquelle:</strong> AV-Daten von <a href="https://geodienste.ch" target="_blank" rel="noopener">geodienste.ch</a>, aktualisiert jeweils am 1. Tag des Monats.</li>
+          <li><strong>Download:</strong> <a href="https://vectormap.ch/pmtiles/av/av.pmtiles">av.pmtiles</a> (ganze Schweiz, aktuell knapp 2.3 GB)</li>
+          <li><strong>Standardquelle:</strong> av.pmtiles ist immer der aktuellste Stand.</li>
+          <li><strong>Historie:</strong> ältere Stände werden als eigene Dateien geführt, z. B. av_20260101.pmtiles.</li>
           <li><strong>Bezugsrahmen:</strong> Ausgangsdaten LV95, transformiert nach EPSG:4326 (PMTiles in EPSG:4326)</li>
           <li><strong>Ausgangsformat:</strong> GeoPackage</li>
           <li><strong>Kantone enthalten:</strong> AG, AI, AR, BE, BL, BS, FR, GE, GL, GR, SG, SH, SO, SZ, TG, TI, UR, VS, ZG, ZH</li>
           <li><strong>Aktuell nicht enthalten:</strong> JU, LU, NE, NW, OW, VD</li>
+          <li><strong>Offene Daten:</strong> Es werden ausschliesslich kostenlose, offene Geodaten von <a href="https://geodienste.ch" target="_blank" rel="noopener">geodienste.ch</a> verarbeitet.</li>
+          <li><strong>Einschränkungen:</strong> Kantone ohne freie AV-Daten können derzeit nicht als PMTiles bereitgestellt werden.</li>
         </ul>
-        <div class="callout">
-          <h3>Lizenzen &amp; Quellen</h3>
-          <p>Alle Lizenztexte, Attribution und kantonalen Bedingungen findest du gesammelt auf der Lizenzseite.</p>
-          <p><a class="card-link" href="lizenzen.html">Zu Lizenzen &amp; Quellen <span>→</span></a></p>
+        <p class="section-lead">Die Karte zeigt, in welchen Kantonen offene AV-Daten verfügbar sind.</p>
+        <div class="dataset-map-panel example-card">
+          <div class="example-preview dataset-map-preview">
+            <div class="dataset-map" id="dataset-map" aria-label="Kartenansicht zur AV-Datenverfügbarkeit"></div>
+          </div>
+          <div class="example-content dataset-map-legend">
+            <div class="dataset-legend-items">
+              <div class="dataset-legend-item">
+                <span class="dataset-legend-swatch dataset-legend-swatch--available"></span>
+                Offene AV-Daten verfügbar
+              </div>
+              <div class="dataset-legend-item">
+                <span class="dataset-legend-swatch dataset-legend-swatch--missing"></span>
+                Keine offenen AV-Daten verfügbar
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -96,7 +114,7 @@
     <section class="section">
       <div class="site-container">
         <div class="section-heading">
-          <h2 class="section-title">Technik: PMTiles</h2>
+          <h2 class="section-title">PMTiles</h2>
           <p class="section-lead">PMTiles bündeln Vektorkacheln in einer einzigen Datei. Das vereinfacht Hosting, Caching und Deployment.</p>
         </div>
         <div class="feature-grid">
@@ -108,38 +126,10 @@
             <h3>Warum MapLibre?</h3>
             <p>MapLibre ist offen, aktiv entwickelt und unterstützt moderne Styles. Damit bleibt die Darstellung unabhängig von proprietären Plattformen.</p>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="site-container">
-        <div class="section-heading">
-          <h2 class="section-title">Datenherkunft &amp; Aktualität</h2>
-          <p class="section-lead">Die AV-Daten werden von <a href="https://geodienste.ch" target="_blank" rel="noopener">geodienste.ch</a> bezogen und jeweils am 1. Tag des Monats aktualisiert.</p>
-        </div>
-        <ul class="bullet-list">
-          <li><strong>Standardquelle:</strong> av.pmtiles ist immer der aktuellste Stand.</li>
-          <li><strong>Historie:</strong> ältere Stände werden als eigene Dateien geführt, z. B. av_20260101.pmtiles.</li>
-          <li><strong>Offene Daten:</strong> Es werden ausschliesslich kostenlose, offene Geodaten von <a href="https://geodienste.ch" target="_blank" rel="noopener">geodienste.ch</a> verarbeitet.</li>
-          <li><strong>Einschränkungen:</strong> Kantone ohne freie AV-Daten können derzeit nicht als PMTiles bereitgestellt werden.</li>
-        </ul>
-        <p class="section-lead">Die Karte zeigt, in welchen Kantonen offene AV-Daten verfügbar sind.</p>
-        <div class="dataset-map-panel example-card">
-          <div class="example-preview dataset-map-preview">
-            <div class="dataset-map" id="dataset-map" aria-label="Kartenansicht zur AV-Datenverfügbarkeit"></div>
-          </div>
-          <div class="example-content dataset-map-legend">
-            <div class="dataset-legend-items">
-              <div class="dataset-legend-item">
-                <span class="dataset-legend-swatch dataset-legend-swatch--available"></span>
-                Offene AV-Daten verfügbar
-              </div>
-              <div class="dataset-legend-item">
-                <span class="dataset-legend-swatch dataset-legend-swatch--missing"></span>
-                Keine offenen AV-Daten verfügbar
-              </div>
-            </div>
+          <div class="callout">
+            <h3>PMTiles Viewer</h3>
+            <p>Im PMTiles Viewer kannst du die Daten direkt im Browser ansehen, inklusive Metadaten und Layer-Attribute.</p>
+            <p><a class="card-link" href="https://pmtiles.io/#url=https%3A%2F%2Fvectormap.ch%2Fpmtiles%2Fav%2Fav.pmtiles&map=7.63/46.825/8.348" target="_blank" rel="noopener">PMTiles im Viewer öffnen <span>→</span></a></p>
           </div>
         </div>
       </div>
