@@ -1,0 +1,131 @@
+{
+  "_collection": {
+    "type": "baselayer",
+    "tippecanoe_flags": [
+      "-Z7",  
+      "-z15",  
+      "-n", "Amtliche Vermessung",  
+      "-N", "Basemap aus den Layern der amtlichen Vermessung",  
+      "-A", "<a href=\"https://www.vectormap.ch\" target=\"_blank\">&copy; Vectormap</a>",  
+      "--simplify-only-low-zooms",
+      "--no-tiny-polygon-reduction",
+      "--detect-shared-borders",
+      "--no-feature-limit",
+      "--no-tile-size-limit",
+      "--coalesce",
+      "--low-detail=13",
+      "--full-detail=15",
+      "--read-parallel",
+      "--force"
+    ]
+  },
+
+  "cppt": {
+    "target_name": "Fixpunkte",
+    "description": "Fixpunkte der Kategorie 1, 2 und 3",
+    "minzoom": 15,
+    "maxzoom": 15,
+    "category": "Punkte",
+    "visible": true,
+    "attributes": ["wkb_geometry", "Punktzeichen", "Nummer", "Hoehe"]
+  },
+
+  "lcsf": {
+    "target_name": "Bodenbedeckung",
+    "description": "Rechtsgültige Bodenbedeckungsflächen",
+    "minzoom": 13,
+    "maxzoom": 15,
+    "category": "Flächen",
+    "visible": true,
+    "attributes": ["wkb_geometry", "Art"]
+  },
+
+  "lcsfproj": {
+    "target_name": "Bodenbedeckung_projektiert",
+    "description": "Projektierte Bodenbedeckungsflächen",
+    "minzoom": 13,
+    "maxzoom": 15,
+    "category": "Flächen",
+    "visible": true,
+    "attributes": ["wkb_geometry", "Art"]
+  },
+
+  "sosf": {
+    "target_name": "Einzelobjekte_Flaechen",
+    "description": "Einzelobjekte Flächenelemente",
+    "minzoom": 15,
+    "maxzoom": 15,
+    "category": "Einzelobjekte",
+    "visible": true,
+    "attributes": ["wkb_geometry", "Art"]
+  },
+
+  "soli": {
+    "target_name": "Einzelobjekte_Linien",
+    "description": "Einzelobjekte Linienelemente",
+    "minzoom": 15,
+    "maxzoom": 15,
+    "category": "Einzelobjekte",
+    "visible": true,
+    "attributes": ["wkb_geometry", "Art"]
+  },
+
+  "resfproj": {
+    "target_name": "Liegenschaften_projektiert",
+    "description": "Projektierte Liegenschaften",
+    "minzoom": 15,
+    "maxzoom": 15,
+    "category": "Liegenschaften",
+    "visible": true,
+    "attributes": ["wkb_geometry"]
+  },
+
+  "resf": {
+    "target_name": "Liegenschaften",
+    "description": "Rechtsgültige Liegenschaften",
+    "minzoom": 15,
+    "maxzoom": 15,
+    "category": "Liegenschaften",
+    "visible": true,
+    "attributes": ["wkb_geometry", "Nummer", "EGRIS_EGRID"]
+  },
+
+  "osbp": {
+    "target_name": "Grenzpunkte",
+    "description": "Grenzpunkte",
+    "minzoom": 15,
+    "maxzoom": 15,
+    "category": "Grenzen",
+    "visible": true,
+    "attributes": ["wkb_geometry", "Punktzeichen"]
+  },
+
+  "mbsf": {
+    "target_name": "Gemeindegrenzen",
+    "description": "Gemeindegrenzen",
+    "minzoom": 7,
+    "maxzoom": 15,
+    "category": "Grenzen",
+    "visible": true,
+    "attributes": ["wkb_geometry", "Name", "BFSNr", "Kanton"]
+  },
+
+  "locpos": {
+    "target_name": "Lokalisationen",
+    "description": "Strassennamen",
+    "minzoom": 10,
+    "maxzoom": 15,
+    "category": "Beschriftung",
+    "visible": false,
+    "attributes": ["wkb_geometry", "Strassenname", "Ori", "Loc"]
+  },
+  "hadr": {
+    "target_name": "Gebaeudeadressen",
+    "description": "Gebäudeadressen",
+    "minzoom": 13,
+    "maxzoom": 15,
+    "category": "Beschriftung",
+    "visible": true,
+    "attributes": ["wkb_geometry", "Hausnummer", "Strassenname", "Ori", "Loc"]
+  }
+}

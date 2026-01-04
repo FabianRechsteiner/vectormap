@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Datensatz – Vectormap</title>
+  <meta name="description" content="Details zum AV-Datensatz von Vectormap, inklusive PMTiles-Erklärung und Layer-Dokumentation aus av.json.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-container header-inner">
+      <a class="brand" href="index.html">
+        <img class="brand-logo" src="assets/images/logo_vectormap_transparent.png" alt="Vectormap Logo">
+      </a>
+      <nav class="main-nav">
+        <a href="index.html">Start</a>
+        <a href="dataset.html" aria-current="page">Datensatz</a>
+        <a href="styles.html">Styles</a>
+        <a href="maps.html">Karten</a>
+        <a href="lizenzen.html">Lizenzen &amp; Quellen</a>
+        <a href="about.html">Über Vectormap</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero hero--compact">
+      <div class="site-container hero-grid">
+        <div class="reveal">
+          <p class="eyebrow">Datensatz</p>
+          <h1 class="hero-title">Amtliche Vermessung als Vektorkacheln.</h1>
+          <p class="hero-lead">Die amtliche Vermessung (AV) ist die detaillierteste öffentlich verfügbare Geodatengrundlage der Schweiz. Sie enthält unter anderem Gebäude, Parzellen, Strassen, Gewässer und viele weitere Objekte.</p>
+          <p class="hero-lead">Vectormap stellt die AV als performante Vektordatensätze bereit, optimiert für grosse Massstäbe und moderne Webkarten. Zusätzlich sind Hausnummern sowie projektierte Gebäude und Liegenschaften verfügbar und darstellbar.</p>
+        </div>
+        <div class="hero-card reveal" style="--delay: 0.1s">
+          <ul>
+            <li><strong>Aufbereitung:</strong> AV-Daten als PMTiles</li>
+            <li><strong>Massstäbe:</strong> Nur grosse Zoomstufen</li>
+            <li><strong>Nutzung:</strong> MapLibre, eigene Styles, volle Kontrolle</li>
+            <li><strong>Dokumentation:</strong> Layer-Übersicht aus av.json</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">Datenstand, Herkunft &amp; Aktualität</h2>
+          <p class="section-lead">AV-Daten von geodienste.ch, monatlich aktualisiert, inklusive Abdeckung und Download.</p>
+        </div>
+        <ul class="bullet-list">
+          <li><strong>Datenquelle:</strong> AV-Daten von <a href="https://geodienste.ch" target="_blank" rel="noopener">geodienste.ch</a>, aktualisiert jeweils am 1. Tag des Monats.</li>
+          <li><strong>Download:</strong> <a href="https://vectormap.ch/pmtiles/av/av.pmtiles">av.pmtiles</a> (ganze Schweiz, aktuell knapp 2.3 GB)</li>
+          <li><strong>Standardquelle:</strong> av.pmtiles ist immer der aktuellste Stand.</li>
+          <li><strong>Historie:</strong> ältere Stände werden als eigene Dateien geführt, z. B. av_20260101.pmtiles.</li>
+          <li><strong>Bezugsrahmen:</strong> Ausgangsdaten LV95, transformiert nach EPSG:4326 (PMTiles in EPSG:4326)</li>
+          <li><strong>Ausgangsformat:</strong> GeoPackage</li>
+          <li><strong>Kantone enthalten:</strong> AG, AI, AR, BE, BL, BS, FR, GE, GL, GR, SG, SH, SO, SZ, TG, TI, UR, VS, ZG, ZH</li>
+          <li><strong>Aktuell nicht enthalten:</strong> JU, LU, NE, NW, OW, VD</li>
+          <li><strong>Offene Daten:</strong> Es werden ausschliesslich kostenlose, offene Geodaten von <a href="https://geodienste.ch" target="_blank" rel="noopener">geodienste.ch</a> verarbeitet.</li>
+          <li><strong>Einschränkungen:</strong> Kantone ohne freie AV-Daten können derzeit nicht als PMTiles bereitgestellt werden.</li>
+        </ul>
+        <p class="section-lead">Die Karte zeigt, in welchen Kantonen offene AV-Daten verfügbar sind.</p>
+        <div class="dataset-map-panel example-card">
+          <div class="example-preview dataset-map-preview">
+            <div class="dataset-map" id="dataset-map" aria-label="Kartenansicht zur AV-Datenverfügbarkeit"></div>
+          </div>
+          <div class="example-content dataset-map-legend">
+            <div class="dataset-legend-items">
+              <div class="dataset-legend-item">
+                <span class="dataset-legend-swatch dataset-legend-swatch--available"></span>
+                Offene AV-Daten verfügbar
+              </div>
+              <div class="dataset-legend-item">
+                <span class="dataset-legend-swatch dataset-legend-swatch--missing"></span>
+                Keine offenen AV-Daten verfügbar
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">Warum nur grosse Massstäbe?</h2>
+          <p class="section-lead">Die AV ist extrem detailliert. Für kleine Massstäbe wäre sie weder sinnvoll noch performant.</p>
+        </div>
+        <div class="feature-grid stagger">
+          <article class="feature-card">
+            <h3 class="card-title">Hohe Detailtiefe</h3>
+            <p class="card-text">Die AV enthält sehr präzise Geometrien und Attribute. Diese Detailfülle entfaltet ihren Nutzen erst bei grossen Massstäben.</p>
+          </article>
+          <article class="feature-card">
+            <h3 class="card-title">Performance und Klarheit</h3>
+            <p class="card-text">Bei kleinen Massstäben würden die Daten Karten überladen und unnötig viele Ressourcen verbrauchen.</p>
+          </article>
+          <article class="feature-card">
+            <h3 class="card-title">Ergänzbar mit anderen Daten</h3>
+            <p class="card-text">Für Übersichtskarten können andere Datensätze kombiniert werden, ohne die AV zu überstrapazieren.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">PMTiles</h2>
+          <p class="section-lead">PMTiles bündeln Vektorkacheln in einer einzigen Datei. Das vereinfacht Hosting, Caching und Deployment.</p>
+        </div>
+        <div class="feature-grid">
+          <div class="callout">
+            <h3>Warum PMTiles?</h3>
+            <p>Eine Datei statt tausender Requests. Ideal für statische Hosting-Umgebungen, schnelle Übertragung und reproduzierbare Deployments.</p>
+          </div>
+          <div class="callout">
+            <h3>Warum MapLibre?</h3>
+            <p>MapLibre ist offen, aktiv entwickelt und unterstützt moderne Styles. Damit bleibt die Darstellung unabhängig von proprietären Plattformen.</p>
+          </div>
+          <div class="callout">
+            <h3>PMTiles Viewer</h3>
+            <p>Im PMTiles Viewer kannst du die Daten direkt im Browser ansehen, inklusive Metadaten und Layer-Attribute.</p>
+            <p><a class="card-link" href="https://vectormap.ch/pmtiles/av/av.pmtiles" target="_blank" rel="noopener">PMTiles herunterladen (2.3 GB) <span>&rarr;</span></a></p>
+            <p><a class="card-link" href="https://pmtiles.io/#url=https%3A%2F%2Fvectormap.ch%2Fpmtiles%2Fav%2Fav.pmtiles&map=7.63/46.825/8.348" target="_blank" rel="noopener">PMTiles im Viewer öffnen <span>→</span></a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">av.json – interaktive Dokumentation</h2>
+          <p class="section-lead">Die folgende Übersicht wird direkt aus der Datei av.json generiert. Sie zeigt alle sichtbaren Layer, deren Zoomstufen und die enthaltenen Attribute.</p>
+        </div>
+        <div class="layer-tools">
+          <div class="layer-search">
+            <label for="layer-filter">Layer filtern</label>
+            <input id="layer-filter" type="search" placeholder="Name, Kategorie oder Attribut" data-layer-search>
+          </div>
+          <div class="layer-count" data-layer-count>Layer werden geladen…</div>
+        </div>
+        <div class="layer-list" data-layer-list>
+          <noscript>Bitte JavaScript aktivieren, um die Layer-Übersicht zu sehen.</noscript>
+        </div>
+      </div>
+    </section>
+
+    
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-container footer-grid">
+      <div class="footer-links">
+        <a href="dataset.html" aria-current="page">Datensatz</a>
+        <a href="styles.html">Styles</a>
+        <a href="maps.html">Karten</a>
+        <a href="lizenzen.html">Lizenzen &amp; Quellen</a>
+        <a href="about.html">Über Vectormap</a>
+        <a href="https://github.com/FabianRechsteiner" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <p class="footer-note">Daten basieren auf offenen Geodaten der Schweiz.</p>
+      <p class="footer-note"><a href="https://github.com/FabianRechsteiner/vectormap" target="_blank" rel="noopener">© Vectormap</a></p>
+    </div>
+  </footer>
+
+  <script>
+    window.vectormapExampleConfig = {
+      autoInit: true,
+      container: "dataset-map",
+      styleUrl: "styles/ch.vectormap.lightbasemap.json",
+      center: [8.23, 46.82],
+      zoom: 7.0
+    };
+  </script>
+  <script src="assets/js/modules/base-map.js"></script>
+  <script src="assets/js/dataset.js"></script>
+</body>
+</html>
+
+

@@ -3,213 +3,199 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VectorMap – Maps for Developers</title>
-  <meta name="description" content="Erstelle und teile interaktive Vektorkarten mit VectorMap. Moderne APIs, flexible Styles und einfache Integration.">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <title>Vectormap – Schweizer Geodaten als Vektorkarten</title>
+  <meta name="description" content="Vectormap stellt offene Geodaten der Schweiz als performante Vektordatensätze bereit und zeigt ihren Einsatz in modernen Webkarten.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="icon" type="image/png" href="assets/images/logo.png">
-  <!-- MapLibre GL JS -->
-  <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet" />
-  <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
-  <script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"></script>
+  <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
 </head>
 <body>
-  <!-- Einleitung -->
-  <section id="intro" class="hero">
-    <div class="container hero-content">
-      <h1>VectorMap – Moderne Vektorkarten für Entwickler</h1>
-      <p>Erstelle, style und teile interaktive Karten für Web & Mobile.<br>
-      Flexible APIs, offene Daten, einfache Integration.</p>
+  <header class="site-header">
+    <div class="site-container header-inner">
+      <a class="brand" href="index.html">
+        <img class="brand-logo" src="assets/images/logo_vectormap_transparent.png" alt="Vectormap Logo">
+      </a>
+      <nav class="main-nav">
+        <a href="index.html" aria-current="page">Start</a>
+        <a href="dataset.html">Datensatz</a>
+        <a href="styles.html">Styles</a>
+        <a href="maps.html">Karten</a>
+        <a href="lizenzen.html">Lizenzen &amp; Quellen</a>
+        <a href="about.html">Über Vectormap</a>
+      </nav>
     </div>
-  </section>
+  </header>
 
-  <!-- Kachelübersicht -->
-  <section id="overview" class="card-grid">
-    <div class="card">
-      <div class="card-content">
-        <h3>API & SDKs</h3>
-        <p>Einfaches Einbinden in Web- und Mobile-Projekte mit moderner REST-API und Open-Source-SDKs.</p>
-        <a href="#api">Mehr erfahren &rarr;</a>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-content">
-        <h3>Wo gibt es offene Vektordaten?</h3>
-        <p>Entdecke auf der Karte, in welchen Schweizer Kantonen Vektordaten als Open Source verfügbar sind.</p>
-        <a href="#mapinfo">Zur Übersicht &rarr;</a>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-content">
-        <h3>Kartenstile vergleichen</h3>
-        <p>Vergleiche verschiedene Styles direkt im Browser und finde den passenden Look für dein Projekt.</p>
-        <a href="#compare">Vergleich öffnen &rarr;</a>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-content">
-        <h3>Unterstütze VectorMap</h3>
-        <p>Scanne den TWINT-QR-Code und unterstütze die Weiterentwicklung oder kontaktiere uns für Partnerschaften.</p>
-        <a href="#sponsorship">Mehr erfahren &rarr;</a>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-content">
-        <h3>Über das Projekt</h3>
-        <p>Informationen über den Entwickler und Kontaktmöglichkeiten.</p>
-        <a href="#about">Zum Profil &rarr;</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Detailbereiche (nur Text/Karte, keine Kacheln mehr!) -->
-  <main class="main-content single-column">
-
-    <!-- API & SDKs -->
-    <section id="api">
-      <h2>API & SDKs</h2>
-      <p>
-        <strong>Kurzinfo:</strong> Die VectorMap-API und die Open-Source-SDKs ermöglichen eine einfache und flexible Integration von Vektorkarten in eigene Web- und Mobile-Projekte.
-      </p>
-      <div class="card-grid">
-        <div class="card">
-          <div class="card-content">
-            <p>Einfaches Einbinden in Web- und Mobile-Projekte mit moderner REST-API und Open-Source-SDKs.<br>
-            <a href="https://github.com/fabia/vectormap#readme" target="_blank" rel="noopener">Zur Dokumentation</a>
-            </p>
+  <main>
+    <section class="hero">
+      <div class="site-container hero-grid">
+        <div class="reveal">
+          <p class="eyebrow">Offene Vektordaten für die Schweiz</p>
+          <h1 class="hero-title">Vectormap – Schweizer Geodaten als Vektorkarten.</h1>
+          <p class="hero-lead">Vectormap stellt offene Geodaten der Schweiz als performante Vektordatensätze bereit. Fokus ist die amtliche Vermessung (AV), aufbereitet als PMTiles und sofort nutzbar in modernen Webkarten mit MapLibre.</p>
+          <p class="hero-lead">Du behältst die Kontrolle: eigenes Hosting, klare Lizenzen, kein Tracking und keine Plattformbindung.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="dataset.html">Datensatz entdecken</a>
+            <a class="btn btn-secondary" href="styles.html">Kartenstile ansehen</a>
           </div>
+        </div>
+        <div class="hero-card reveal" style="--delay: 0.1s">
+          <ul>
+            <li><strong>Datengrundlage:</strong> Amtliche Vermessung (AV)</li>
+            <li><strong>Format:</strong> Vektorkacheln als PMTiles</li>
+            <li><strong>Darstellung:</strong> MapLibre-Styles nach Bedarf</li>
+            <li><strong>Prinzip:</strong> Offen, nachvollziehbar, kontrollierbar</li>
+          </ul>
         </div>
       </div>
     </section>
 
-    <!-- Mapinfo & Karte -->
-    <section id="mapinfo">
-      <h2>Wo gibt es offene Vektordaten?</h2>
-      <div id="map" style="width:100%;max-width:900px;height:400px;margin:2rem auto 1rem auto;border-radius:16px;overflow:hidden;background:#e0e0e0;"></div>
-      <div style="text-align:center;font-size:0.95rem;color:#666;margin-top:0.5rem;">
-        <span style="display:inline-block;width:16px;height:16px;background:#4caf50;border-radius:3px;margin-right:6px;vertical-align:middle;"></span> Open Data verfügbar
-        <span style="display:inline-block;width:16px;height:16px;background:#e57373;border-radius:3px;margin:0 6px 0 18px;vertical-align:middle;"></span> Keine offenen Vektordaten
-      </div>
-    </section>
-
-    <!-- Vergleich -->
-    <section id="compare">
-      <h2>Kartenstile vergleichen</h2>
-      <p>
-        <strong>Kurzinfo:</strong> Vergleiche verschiedene Kartenstile direkt im Browser und finde so den passenden Look für dein Projekt.
-      </p>
-      <div class="card-grid">
-        <div class="card">
-          <div class="card-content">
-            <a href="https://fabianrechsteiner.github.io/vector-tiles-benchmark" target="_blank" rel="noopener">Vergleich öffnen &rarr;</a>
-          </div>
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">Warum Vectormap?</h2>
+          <p class="section-lead">Klare Technikentscheidungen, transparente Quellen und eine saubere Trennung von Daten und Darstellung.</p>
+        </div>
+        <div class="feature-grid stagger">
+          <article class="feature-card">
+            <span class="tag">Offen</span>
+            <h3 class="card-title">Geodaten ohne Plattformbindung</h3>
+            <p class="card-text">Die Daten bleiben im eigenen Hosting. Quellen und Lizenzen sind nachvollziehbar dokumentiert.</p>
+          </article>
+          <article class="feature-card">
+            <span class="tag">Performant</span>
+            <h3 class="card-title">PMTiles für effiziente Auslieferung</h3>
+            <p class="card-text">Eine Datei, viele Kacheln. Ideal für statisches Hosting, schnelles Caching und stabile Deployments.</p>
+          </article>
+          <article class="feature-card">
+            <span class="tag">Flexibel</span>
+            <h3 class="card-title">Darstellung frei wählbar</h3>
+            <p class="card-text">Ein Datensatz, mehrere Stile. Von neutral bis kontrastreich, ohne Daten zu duplizieren.</p>
+          </article>
         </div>
       </div>
     </section>
 
-    <!-- Sponsoring -->
-    <section id="sponsorship">
-      <h2>Unterstütze VectorMap</h2>
-      <p>
-        <strong>Kurzinfo:</strong> Unterstütze die Weiterentwicklung von VectorMap mit einer Spende via TWINT oder werde Partner.
-      </p>
-      <div class="card-grid">
-        <div class="card">
-          <img src="assets/images/twint-qr.png" alt="TWINT QR Code">
-          <div class="card-content">
-            <a href="mailto:info@vectormap.ch">Kontakt aufnehmen &rarr;</a>
-          </div>
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">Schneller Einstieg</h2>
+          <p class="section-lead">Alle wichtigen Bereiche auf einen Blick.</p>
+        </div>
+        <div class="card-grid stagger">
+          <article class="card">
+            <h3 class="card-title">Datensatz entdecken</h3>
+            <p class="card-text">Hintergrund zur amtlichen Vermessung, Massstäbe und technische Hinweise.</p>
+            <a class="card-link" href="dataset.html">Zu den Daten <span>→</span></a>
+          </article>
+          <article class="card">
+            <h3 class="card-title">Kartenstile ansehen</h3>
+            <p class="card-text">Stile, die den Datensatz unterschiedlich interpretieren.</p>
+            <a class="card-link" href="styles.html">Zu den Styles <span>→</span></a>
+          </article>
+          <article class="card">
+            <h3 class="card-title">Karten entdecken</h3>
+            <p class="card-text">Interaktive Demos und modulare Bausteine für eigene Projekte.</p>
+            <a class="card-link" href="maps.html">Zu den Karten <span>→</span></a>
+          </article>
+          <article class="card">
+            <h3 class="card-title">Lizenzen &amp; Quellen</h3>
+            <p class="card-text">Lizenztexte, Attribution und kantonale Bedingungen.</p>
+            <a class="card-link" href="lizenzen.html">Zu den Lizenzen <span>→</span></a>
+          </article>
+          <article class="card">
+            <h3 class="card-title">Über Vectormap</h3>
+            <p class="card-text">Motivation, Hintergrund und wer dahintersteht.</p>
+            <a class="card-link" href="about.html">Mehr erfahren <span>→</span></a>
+          </article>
         </div>
       </div>
     </section>
 
-    <!-- About -->
-    <section id="about">
-      <h2>Über das Projekt</h2>
-      <p>
-        <strong>Kurzinfo:</strong> Erfahre mehr über den Entwickler von VectorMap und wie du Kontakt aufnehmen kannst.
-      </p>
-      <div class="card-grid">
-        <div class="card">
-          <div class="card-content">
-            <p>Hi, ich bin Fabian Rechsteiner, Entwickler von VectorMap.<br>
-            Kontakt: <a href="mailto:info@vectormap.ch">info@vectormap.ch</a><br>
-            <a href="https://github.com/fabia/vectormap" target="_blank" rel="noopener">GitHub-Projekt</a>
-            </p>
-          </div>
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">Transparenz statt Abhängigkeit</h2>
+          <p class="section-lead">Ein nüchterner Vergleich ohne Marketing-Sprech.</p>
+        </div>
+        <div class="table-wrapper">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Aspekt</th>
+                <th>Proprietäre Plattformen</th>
+                <th>Vectormap</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Lizenzmodell</td>
+                <td>Komplex, oft nutzungsabhängig</td>
+                <td>Klar, offen dokumentiert</td>
+              </tr>
+              <tr>
+                <td>Datenkontrolle</td>
+                <td>Plattform bestimmt Darstellung</td>
+                <td>Volle Kontrolle über Daten &amp; Stil</td>
+              </tr>
+              <tr>
+                <td>Tracking</td>
+                <td>Häufig integriert</td>
+                <td>Keine Vorgaben, keine Pflicht</td>
+              </tr>
+              <tr>
+                <td>Hosting</td>
+                <td>Gebunden an Anbieter</td>
+                <td>Eigener Speicher, eigene Infrastruktur</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
+
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">Worum es hier geht</h2>
+          <p class="section-lead">Vectormap ist Dokumentation, Demonstrator und Einladung zur Mitwirkung. Mehr über das Projekt findest du unter <a href="about.html">Über Vectormap</a>.</p>
+        </div>
+        <div class="feature-grid stagger">
+          <article class="feature-card">
+            <h3 class="card-title">Dokumentation</h3>
+            <p class="card-text">Erklärt Daten, Formate und technische Entscheidungen klar und nachvollziehbar.</p>
+          </article>
+          <article class="feature-card">
+            <h3 class="card-title">Karten</h3>
+            <p class="card-text">Zeigt anhand interaktiver Karten, dass offene Geodaten professionell eingesetzt werden können.</p>
+          </article>
+          <article class="feature-card">
+            <h3 class="card-title">Einladung</h3>
+            <p class="card-text">Richtet sich an alle, die offene Karten mitgestalten, testen oder verbessern möchten.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
   </main>
 
-  <!-- Footer -->
   <footer class="site-footer">
-    <div class="footer-links">
-      <a href="#features">Features</a>
-      <a href="#styles">Styles</a>
-      <a href="#compare">Vergleich</a>
-      <a href="#contact">Kontakt</a>
-      <a href="https://github.com/fabia/vectormap" target="_blank" rel="noopener">GitHub</a>
+    <div class="site-container footer-grid">
+      <div class="footer-links">
+        <a href="dataset.html">Datensatz</a>
+        <a href="styles.html">Styles</a>
+        <a href="maps.html">Karten</a>
+        <a href="lizenzen.html">Lizenzen &amp; Quellen</a>
+        <a href="about.html">Über Vectormap</a>
+        <a href="https://github.com/FabianRechsteiner" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <p class="footer-note">Daten basieren auf offenen Geodaten der Schweiz.</p>
+      <p class="footer-note"><a href="https://github.com/FabianRechsteiner/vectormap" target="_blank" rel="noopener">© Vectormap</a></p>
     </div>
-    <p>&copy; 2025 VectorMap. Alle Rechte vorbehalten.</p>
   </footer>
-
-  <script src="js/main.js"></script>
-  <script>
-    // PMTiles-Protokoll registrieren
-    const protocol = new pmtiles.Protocol();
-    maplibregl.addProtocol("pmtiles", protocol.tile);
-
-    document.addEventListener('DOMContentLoaded', function () {
-      if (document.getElementById('map')) {
-        const styleVector = 'https://raw.githubusercontent.com/FabianRechsteiner/vector-tiles-benchmark/master/nginx/styles/vectormap_pmtiles_av.json';
-        const map = new maplibregl.Map({
-          container: 'map',
-          style: styleVector,
-          center: [8.2275, 46.8182],
-          zoom: 7
-        });
-
-        map.on('load', function () {
-          fetch('assets/data/kantonsgrenzen.geojson')
-            .then(response => response.json())
-            .then(data => {
-              map.addSource('kantonsgrenzen', {
-                type: 'geojson',
-                data: data
-              });
-
-              const firstSymbolId = map.getStyle().layers.find(l => l.type === 'symbol')?.id;
-
-              map.addLayer({
-                id: 'kantonsgrenzen-fill',
-                type: 'fill',
-                source: 'kantonsgrenzen',
-                paint: {
-                  'fill-color': [
-                    'case',
-                    ['==', ['get', 'opendata'], true], '#4caf50',
-                    '#e57373'
-                  ],
-                  'fill-opacity': 0.5
-                },
-                maxzoom: 10
-              }, firstSymbolId);
-
-              map.addLayer({
-                id: 'kantonsgrenzen-outline',
-                type: 'line',
-                source: 'kantonsgrenzen',
-                paint: {
-                  'line-color': '#333',
-                  'line-width': 1
-                },
-                maxzoom: 10
-              }, firstSymbolId);
-            });
-        });
-      }
-    });
-  </script>
 </body>
 </html>
+
+

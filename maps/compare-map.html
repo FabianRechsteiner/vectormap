@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Style-Vergleich – Vectormap</title>
+  <meta name="description" content="Vergleich von swisstopo Light Base Map und Vectormap im Split- und Comparison-Modus.">
+</head>
+<body>
+  <div
+    id="compare-root"
+    aria-label="Kartenvergleich"
+    data-style-left="https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/style.json"
+    data-style-right="../styles/ch.vectormap.lightbasemap.json"
+    data-compare-css="../assets/css/maplibre-gl-compare.css"
+    data-compare-js="../assets/js/maplibre-gl-compare.js"
+    data-center="8.7241,47.4987"
+    data-zoom="15"
+    data-bearing="0"
+    data-pitch="0"
+    data-hash="true"
+    data-pitch-with-rotate="true"
+    data-label-split="Zum Comparison-Modus"
+    data-label-compare="Zum Split-Modus"
+  ></div>
+
+  <script>
+    window.vectormapExampleConfig = {
+      autoInit: false,
+      maplibreCss: "https://unpkg.com/maplibre-gl@5.14.0/dist/maplibre-gl.css",
+      maplibreJs: "https://unpkg.com/maplibre-gl@5.14.0/dist/maplibre-gl.js",
+      pmtilesJs: "https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js"
+    };
+
+    window.vectormapCompareConfig = { containerId: "compare-root" };
+  </script>
+  <script src="../assets/js/modules/base-map.js"></script>
+  <script src="../assets/js/modules/compare-map.js"></script>
+</body>
+</html>

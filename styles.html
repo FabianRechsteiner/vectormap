@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Styles – Vectormap</title>
+  <meta name="description" content="Kartenstile nach Datengrundlage, aktuell ch.vectormap.lightbasemap (swisstopo + Vectormap).">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-container header-inner">
+      <a class="brand" href="index.html">
+        <img class="brand-logo" src="assets/images/logo_vectormap_transparent.png" alt="Vectormap Logo">
+      </a>
+      <nav class="main-nav">
+        <a href="index.html">Start</a>
+        <a href="dataset.html">Datensatz</a>
+        <a href="styles.html" aria-current="page">Styles</a>
+        <a href="maps.html">Karten</a>
+        <a href="lizenzen.html">Lizenzen &amp; Quellen</a>
+        <a href="about.html">Über Vectormap</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero hero--compact">
+      <div class="site-container hero-grid">
+        <div class="reveal">
+          <p class="eyebrow">Styles</p>
+          <h1 class="hero-title">Kartenstile nach Datengrundlage.</h1>
+          <p class="hero-lead">Die Styles sind nach Datengrundlagen gegliedert, damit neue Kombinationen schnell ergänzt werden können.</p>
+          <p class="hero-lead">Aktuell verfügbar: ch.vectormap.lightbasemap, inspiriert von der Light Base Map von swisstopo.</p>
+        </div>
+        <div class="hero-card reveal" style="--delay: 0.1s">
+          <ul>
+            <li><strong>Gruppierung:</strong> Nach Datengrundlage</li>
+            <li><strong>Kategorien:</strong> Vectormap + swisstopo, Vectormap + OpenStreetMap</li>
+            <li><strong>Status:</strong> 1 Style verfügbar</li>
+            <li><strong>Mitmachen:</strong> Neue Styles willkommen</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">Kategorien nach Datengrundlage</h2>
+        </div>
+        
+        <div class="style-categories">
+          <div class="style-category">
+            <div class="style-category-heading">
+              <h3 class="style-category-title">Vectormap + swisstopo</h3>
+              <p class="style-category-lead">Basemap-Styles auf Basis der <a href="https://www.geo.admin.ch/en/vector-tiles-service-available-services-and-data" target="_blank" rel="noopener">swisstopo Vector-Tiles</a>, ergänzt durch AV-Daten von Vectormap in grossen Massstäben.</p>
+            </div>
+            <div class="style-grid stagger">
+              <article class="style-card">
+                <div class="style-preview style-preview--neutral">
+                  <iframe title="Basismodul Vorschau" loading="lazy" src="maps/base-map.html" allowfullscreen></iframe>
+                </div>
+                <div>
+                  <h3 class="card-title">Light Base Map inspiriert</h3>
+                  <p class="card-text">Heller Basemap-Stil mit Fokus auf Lesbarkeit. Kombiniert swisstopo Vector-Tiles mit AV-Daten von Vectormap in grossen Massstäben.</p>
+                </div>
+                <a class="card-link" href="styles/ch.vectormap.lightbasemap.json">Style-JSON ansehen <span>→</span></a>
+              </article>
+            </div>
+          </div>
+          <div class="style-category">
+            <div class="style-category-heading">
+              <h3 class="style-category-title">Vectormap + OpenStreetMap</h3>
+              <p class="style-category-lead">Kombination aus OSM-Daten und den AV-Vektoren von Vectormap. Aktuell noch ohne Style.</p>
+            </div>
+            <div class="style-grid stagger">
+              <article class="style-card">
+                <div class="style-preview style-preview--contrast" aria-hidden="true"></div>
+                <div>
+                  <h3 class="card-title">Platzhalter</h3>
+                  <p class="card-text">Hier können neue Styles auf Basis von OpenStreetMap ergänzt werden.</p>
+                </div>
+                <span class="card-link is-disabled">Style-JSON folgt</span>
+              </article>
+            </div>
+          </div>
+        </div>
+        <div class="section-heading">
+          <h2 class="section-title">Eigene Stile mit Maputnik</h2>
+        </div>
+        <div class="callout">
+          <p>Maputnik ist ein visueller Editor für MapLibre-Styles.</p>
+          <ul class="bullet-list">
+            <li>Maputnik öffnen: <a href="https://maputnik.github.io/" target="_blank" rel="noopener">maputnik.github.io</a>.</li>
+            <li>Unter Open -> Import from URL den aktuellen Stil laden: <code>styles/ch.vectormap.lightbasemap.json</code>.</li>
+            <li>Stil bearbeiten und unter Export -> Download JSON als neue Datei speichern.</li>
+            <li>Die neue Style-JSON in <code>styles/</code> ablegen und in dieser Seite verlinken.</li>
+          </ul>
+          <p>Alle sind herzlich eingeladen, eigene Stile im Repo hochzuladen.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-container footer-grid">
+      <div class="footer-links">
+        <a href="dataset.html">Datensatz</a>
+        <a href="styles.html" aria-current="page">Styles</a>
+        <a href="maps.html">Karten</a>
+        <a href="lizenzen.html">Lizenzen &amp; Quellen</a>
+        <a href="about.html">Über Vectormap</a>
+        <a href="https://github.com/FabianRechsteiner" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <p class="footer-note">Daten basieren auf offenen Geodaten der Schweiz.</p>
+      <p class="footer-note"><a href="https://github.com/FabianRechsteiner/vectormap" target="_blank" rel="noopener">© Vectormap</a></p>
+    </div>
+  </footer>
+</body>
+</html>
+
+
