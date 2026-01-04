@@ -335,6 +335,13 @@ input:focus-visible {
     max-width: 320px;
     margin: 0 auto;
   }
+
+  .style-preview {
+    aspect-ratio: 1 / 1;
+    width: min(100%, 320px);
+    max-width: 320px;
+    margin: 0 auto;
+  }
 }
 
 .example-content {
@@ -708,7 +715,8 @@ input:focus-visible {
 }
 
 .style-preview {
-  height: 160px;
+  width: 100%;
+  aspect-ratio: 2 / 1;
   border-radius: var(--radius-md);
   border: 1px solid rgba(27, 42, 35, 0.12);
   position: relative;
