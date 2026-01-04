@@ -28,13 +28,15 @@ if (listEl && countEl && searchInput) {
   };
 
   const updateCount = () => {
-    const visible = Array.from(listEl.children).filter((item) => !item.hidden).length;
+    const visible = Array.from(listEl.querySelectorAll(".layer-card")).filter(
+      (item) => !item.hidden
+    ).length;
     countEl.textContent = `Layer: ${visible}/${state.total}`;
   };
 
   const applyFilter = () => {
     const query = searchInput.value.trim().toLowerCase();
-    Array.from(listEl.children).forEach((item) => {
+    Array.from(listEl.querySelectorAll(".layer-card")).forEach((item) => {
       const matches = item.dataset.search?.includes(query) ?? false;
       item.hidden = query.length > 0 && !matches;
     });
