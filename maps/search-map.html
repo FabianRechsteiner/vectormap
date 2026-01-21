@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suchmodul - Vectormap</title>
+  <meta name="description" content="Basismodul mit Suchfunktion ueber den GeoAdmin SearchServer." />
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      overflow: hidden;
+    }
+
+    #map {
+      position: absolute;
+      inset: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="map" aria-label="Kartenansicht"></div>
+
+  <script src="../assets/js/modules/base-map.js"></script>
+  <script src="../assets/js/modules/search-map.js"></script>
+</body>
+</html>

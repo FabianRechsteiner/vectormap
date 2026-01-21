@@ -73,6 +73,23 @@
           </article>
           <article class="example-card">
             <div class="example-preview">
+              <iframe title="Suchmodul Vorschau" loading="lazy" src="maps/search-map.html" allowfullscreen></iframe>
+            </div>
+            <div class="example-content">
+              <h3 class="card-title">Suchmodul: SearchServer API</h3>
+              <p class="card-text">Suchfeld fuer Orte, Adressen und PLZ. Baut auf dem Basismodul auf und nutzt den GeoAdmin SearchServer.</p>
+              <ul class="example-meta">
+                <li><strong>MapLibre GL JS:</strong> 5.14.0</li>
+                <li><strong>PMTiles:</strong> 4.3.0</li>
+                <li><strong>Style:</strong> <a href="styles/ch.vectormap.lightbasemap.json" target="_blank" rel="noopener">ch.vectormap.lightbasemap.json</a></li>
+                <li><strong>API:</strong> <a href="https://docs.geo.admin.ch/access-data/search.html" target="_blank" rel="noopener">SearchServer</a></li>
+                <li><strong>URL:</strong> <a href="maps/search-map.html" target="_blank" rel="noopener">maps/search-map.html</a></li>
+                <li><strong>Module:</strong> base-map.js + search-map.js</li>
+              </ul>
+            </div>
+          </article>
+          <article class="example-card">
+            <div class="example-preview">
               <iframe title="Style-Vergleich Vorschau" loading="lazy" src="maps/compare-map.html" allowfullscreen></iframe>
             </div>
             <div class="example-content">
@@ -101,6 +118,9 @@
 window.vectormapExampleConfig = { autoInit: true };
 &lt;/script&gt;
 &lt;script src="../assets/js/modules/base-map.js"&gt;&lt;/script&gt;
+
+&lt;script src="../assets/js/modules/base-map.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/search-map.js"&gt;&lt;/script&gt;
 
 &lt;script&gt;
 window.vectormapExampleConfig = { autoInit: false };
