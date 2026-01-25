@@ -67,7 +67,7 @@
                 <li><strong>PMTiles:</strong> 4.3.0</li>
                 <li><strong>Style:</strong> <a href="styles/ch.vectormap.lightbasemap.json" target="_blank" rel="noopener">ch.vectormap.lightbasemap.json</a></li>
                 <li><strong>URL:</strong> <a href="maps/base-map.html" target="_blank" rel="noopener">maps/base-map.html</a></li>
-                <li><strong>Module:</strong> base-map.js</li>
+                <li><strong>Module:</strong> base-map.js + fullscreen-control.js + navigation-control.js</li>
               </ul>
             </div>
           </article>
@@ -77,14 +77,14 @@
             </div>
             <div class="example-content">
               <h3 class="card-title">Suchmodul: SearchServer API</h3>
-              <p class="card-text">Suchfeld fuer Orte, Adressen und PLZ. Baut auf dem Basismodul auf und nutzt den GeoAdmin SearchServer.</p>
+              <p class="card-text">Die Suche verwendet die <a href="https://docs.geo.admin.ch/access-data/search.html" target="_blank" rel="noopener">Search-API von swisstopo</a>.</p>
               <ul class="example-meta">
                 <li><strong>MapLibre GL JS:</strong> 5.14.0</li>
                 <li><strong>PMTiles:</strong> 4.3.0</li>
                 <li><strong>Style:</strong> <a href="styles/ch.vectormap.lightbasemap.json" target="_blank" rel="noopener">ch.vectormap.lightbasemap.json</a></li>
                 <li><strong>API:</strong> <a href="https://docs.geo.admin.ch/access-data/search.html" target="_blank" rel="noopener">SearchServer</a></li>
                 <li><strong>URL:</strong> <a href="maps/search-map.html" target="_blank" rel="noopener">maps/search-map.html</a></li>
-                <li><strong>Module:</strong> base-map.js + search-map.js</li>
+                <li><strong>Module:</strong> base-map.js + fullscreen-control.js + search-map.js + navigation-control.js</li>
               </ul>
             </div>
           </article>
@@ -100,7 +100,7 @@
                 <li><strong>PMTiles:</strong> 4.3.0</li>
                 <li><strong>Style:</strong> <a href="https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/style.json" target="_blank" rel="noopener">ch.swisstopo.lightbasemap.json</a> / <a href="styles/ch.vectormap.lightbasemap.json" target="_blank" rel="noopener">ch.vectormap.lightbasemap.json</a></li>
                 <li><strong>URL:</strong> <a href="maps/compare-map.html" target="_blank" rel="noopener">maps/compare-map.html</a></li>
-                <li><strong>Module:</strong> base-map.js + compare-map.js</li>
+                <li><strong>Module:</strong> base-map.js + fullscreen-control.js + search-map.js + navigation-control.js + compare-map.js</li>
               </ul>
             </div>
           </article>
@@ -118,15 +118,22 @@
 window.vectormapExampleConfig = { autoInit: true };
 &lt;/script&gt;
 &lt;script src="../assets/js/modules/base-map.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/fullscreen-control.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/navigation-control.js"&gt;&lt;/script&gt;
 
 &lt;script src="../assets/js/modules/base-map.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/fullscreen-control.js"&gt;&lt;/script&gt;
 &lt;script src="../assets/js/modules/search-map.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/navigation-control.js"&gt;&lt;/script&gt;
 
 &lt;script&gt;
 window.vectormapExampleConfig = { autoInit: false };
 window.vectormapCompareConfig = { ... };
 &lt;/script&gt;
 &lt;script src="../assets/js/modules/base-map.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/fullscreen-control.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/search-map.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/navigation-control.js"&gt;&lt;/script&gt;
 &lt;script src="../assets/js/modules/compare-map.js"&gt;&lt;/script&gt;</code></pre>
       </div>
     </section>

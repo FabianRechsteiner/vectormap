@@ -1,5 +1,10 @@
 (() => {
   const config = window.vectormapExampleConfig || {};
+  const defaultControls = {
+    navigation: true,
+    fullscreen: true,
+    scale: false
+  };
   const defaults = {
     container: "map",
     styleUrl: "../styles/ch.vectormap.lightbasemap.json",
@@ -17,12 +22,94 @@
   const moduleState = window.vectormapModules;
   const baseMap = moduleState.baseMap || {};
   moduleState.baseMap = baseMap;
+  moduleState.controlQueue = moduleState.controlQueue || [];
+  moduleState.controlCounter = moduleState.controlCounter || 0;
+  moduleState.maps = moduleState.maps || [];
 
   const resolveConfig = (overrides = {}) => ({
     ...defaults,
     ...config,
     ...overrides
   });
+
+  const resolveControls = (overrides = {}) => ({
+    ...defaultControls,
+    ...(config.controls || {}),
+    ...(overrides || {})
+  });
+
+  const resolveControlOptions = (overrides = {}) => {
+    const merged = { ...(config.controlOptions || {}), ...(overrides || {}) };
+    if (config.controlOptions?.fullscreen || overrides?.fullscreen) {
+      merged.fullscreen = {
+        ...(config.controlOptions?.fullscreen || {}),
+        ...(overrides?.fullscreen || {})
+      };
+    }
+    return merged;
+  };
+
+  const ensureMapControlState = (map) => {
+    if (!map.__vectormapControlIds) {
+      map.__vectormapControlIds = new Set();
+    }
+  };
+
+  const shouldApplyControl = (map, entry) => {
+    if (typeof entry.applyTo === "function" && !entry.applyTo(map)) {
+      return false;
+    }
+    if (entry.key && map.__vectormapControlConfig) {
+      if (
+        Object.prototype.hasOwnProperty.call(
+          map.__vectormapControlConfig,
+          entry.key
+        )
+      ) {
+        return Boolean(map.__vectormapControlConfig[entry.key]);
+      }
+    }
+    return true;
+  };
+
+  const addControlToMap = (map, entry) => {
+    ensureMapControlState(map);
+    if (map.__vectormapControlIds.has(entry.id)) {
+      return;
+    }
+    if (!shouldApplyControl(map, entry)) {
+      return;
+    }
+    const control = entry.create ? entry.create(map) : null;
+    if (!control) {
+      return;
+    }
+    map.addControl(control, entry.position || "top-right");
+    map.__vectormapControlIds.add(entry.id);
+  };
+
+  const applyControlQueue = (map) => {
+    moduleState.controlQueue.forEach((entry) => addControlToMap(map, entry));
+  };
+
+  const registerControl = (entry = {}) => {
+    if (typeof entry.create !== "function") {
+      console.error("Control registration requires a create() function.");
+      return null;
+    }
+    const id =
+      entry.id || `${entry.key || "control"}-${moduleState.controlCounter++}`;
+    const normalized = {
+      id,
+      key: entry.key,
+      position: entry.position || "top-right",
+      create: entry.create,
+      applyTo: entry.applyTo
+    };
+    moduleState.controlQueue.push(normalized);
+    moduleState.maps.forEach((map) => addControlToMap(map, normalized));
+    return id;
+  };
 
   const loadCss =
     baseMap.loadCss ||
@@ -145,23 +232,29 @@
     return style;
   };
 
-  const applyControls = (map, controls = {}) => {
-    const resolved = {
-      navigation: true,
-      fullscreen: false,
-      scale: false,
-      ...controls
-    };
+  const registerMapInstance = (map, controlConfig, controlOptions) => {
+    map.__vectormapControlConfig = controlConfig;
+    map.__vectormapControlOptions = controlOptions;
+    if (!moduleState.maps.includes(map)) {
+      moduleState.maps.push(map);
+    }
+    applyControlQueue(map);
+  };
 
-    if (resolved.navigation) {
-      map.addControl(new maplibregl.NavigationControl(), "top-right");
+  const registerMap = (map, options = {}) => {
+    if (!map) {
+      return null;
     }
-    if (resolved.fullscreen && maplibregl.FullscreenControl) {
-      map.addControl(new maplibregl.FullscreenControl(), "top-right");
+    const controlConfig = resolveControls(options.controls);
+    const controlOptions = resolveControlOptions(options.controlOptions);
+    if (options.fullscreenContainer) {
+      controlOptions.fullscreen = {
+        ...(controlOptions.fullscreen || {}),
+        container: options.fullscreenContainer
+      };
     }
-    if (resolved.scale) {
-      map.addControl(new maplibregl.ScaleControl({ unit: "metric" }));
-    }
+    registerMapInstance(map, controlConfig, controlOptions);
+    return map;
   };
 
   const createMap = async (options = {}) => {
@@ -217,7 +310,7 @@
       maxBounds: options.maxBounds ?? resolved.maxBounds
     });
 
-    applyControls(map, options.controls || resolved.controls);
+    registerMap(map, options);
     return map;
   };
 
@@ -228,10 +321,13 @@
   baseMap.loadStyle = loadStyle;
   baseMap.createMap = createMap;
   baseMap.sanitizeStyle = sanitizeStyle;
+  baseMap.registerControl = registerControl;
+  baseMap.applyControlQueue = applyControlQueue;
+  baseMap.registerMap = registerMap;
 
   if (config.autoInit !== false) {
     createMap({
-      controls: { navigation: true, fullscreen: true, scale: false }
+      controls: resolveControls()
     }).then((map) => {
       if (map) {
         moduleState.map = map;

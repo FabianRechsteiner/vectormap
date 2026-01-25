@@ -1,6 +1,7 @@
 (() => {
   const config = window.vectormapCompareConfig || {};
-  const baseMap = window.vectormapModules && window.vectormapModules.baseMap;
+  const moduleState = window.vectormapModules || {};
+  const baseMap = moduleState.baseMap;
 
   if (!baseMap) {
     console.error("Base map module fehlt.");
@@ -8,6 +9,120 @@
   }
 
   const rootId = config.containerId || "compare-root";
+  const controlsLeft = { navigation: true, scale: false, fullscreen: false };
+  const controlsRight = { navigation: true, scale: false, fullscreen: true };
+  let rootEl = null;
+  let labelSplit = "Zum Comparison-Modus";
+  let labelCompare = "Zum Split-Modus";
+  let splitMode = true;
+  let beforeMap = null;
+  let afterMap = null;
+  let cmpLeft = null;
+  let cmpRight = null;
+  let splitCompare = null;
+  const toggleButtons = [];
+
+  const updateToggleButtons = () => {
+    const label = splitMode ? labelSplit : labelCompare;
+    const nextClass = splitMode ? "is-compare" : "is-split";
+    const removeClass = splitMode ? "is-split" : "is-compare";
+    toggleButtons.forEach((button) => {
+      button.classList.remove(removeClass);
+      button.classList.add(nextClass);
+      button.title = label;
+      button.setAttribute("aria-label", label);
+    });
+  };
+
+  const toggleMode = () => {
+    if (!beforeMap || !afterMap || !rootEl) {
+      return;
+    }
+    if (splitMode && (!cmpLeft || !cmpRight)) {
+      return;
+    }
+    const active = splitMode ? beforeMap : cmpLeft;
+    if (!active) {
+      return;
+    }
+    const cam = {
+      center: active.getCenter(),
+      zoom: active.getZoom(),
+      bearing: active.getBearing(),
+      pitch: active.getPitch()
+    };
+
+    const splitContainer = document.getElementById("splitContainer");
+    const cmpContainer = document.getElementById("cmpContainer");
+    if (!splitContainer || !cmpContainer) {
+      return;
+    }
+
+    splitContainer.style.display = splitMode ? "none" : "block";
+    cmpContainer.style.display = splitMode ? "block" : "none";
+    splitMode = !splitMode;
+    updateToggleButtons();
+
+    if (splitMode) {
+      [beforeMap, afterMap].forEach((map) => {
+        map.jumpTo(cam);
+        map.resize();
+      });
+      if (splitCompare && typeof splitCompare.setSlider === "function") {
+        const bounds = afterMap.getContainer().getBoundingClientRect();
+        splitCompare.setSlider(bounds.width / 2);
+      }
+      if (splitCompare && typeof splitCompare._onResize === "function") {
+        splitCompare._onResize();
+      }
+    } else if (cmpLeft && cmpRight) {
+      [cmpLeft, cmpRight].forEach((map) => {
+        map.jumpTo(cam);
+        map.resize();
+      });
+    }
+  };
+
+  const createToggleControl = () => ({
+    onAdd() {
+      const container = document.createElement("div");
+      container.className = "maplibregl-ctrl maplibregl-ctrl-group";
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "maplibregl-ctrl-icon vectormap-compare-toggle";
+      button.addEventListener("click", toggleMode);
+      container.appendChild(button);
+      toggleButtons.push(button);
+      updateToggleButtons();
+      return container;
+    },
+    onRemove() {}
+  });
+
+  const registerCompareControl = () => {
+    if (typeof baseMap.registerControl !== "function") {
+      console.error("Control registry fehlt.");
+      return;
+    }
+    if (moduleState.compareControlRegistered) {
+      return;
+    }
+    moduleState.compareControlRegistered = true;
+    baseMap.registerControl({
+      key: "compare-toggle",
+      position: "top-right",
+      applyTo: (map) => {
+        const container = map.getContainer();
+        return (
+          container &&
+          (container.id === "after" || container.id === "cmpMapRight")
+        );
+      },
+      create: () => createToggleControl()
+    });
+  };
+
+  registerCompareControl();
 
   const ensureLayout = () => {
     let root = document.getElementById(rootId);
@@ -63,9 +178,12 @@
   const init = async () => {
     ensureLayout();
     ensureStyles();
-    const rootEl = document.getElementById(rootId);
+    rootEl = document.getElementById(rootId);
+    if (!rootEl) {
+      return;
+    }
     rootEl.style.userSelect = "none";
-    const data = rootEl ? rootEl.dataset : {};
+    const data = rootEl.dataset;
 
     const readValue = (key, fallback) =>
       config[key] !== undefined ? config[key] : data[key] ?? fallback;
@@ -112,8 +230,8 @@
       "styleRight",
       "../styles/ch.vectormap.lightbasemap.json"
     );
-    const labelSplit = readValue("labelSplit", "Zum Comparison-Modus");
-    const labelCompare = readValue("labelCompare", "Zum Split-Modus");
+    labelSplit = readValue("labelSplit", "Zum Comparison-Modus");
+    labelCompare = readValue("labelCompare", "Zum Split-Modus");
 
     const view = {
       center: config.center || parseCenter(data.center, [8.7241, 47.4987]),
@@ -153,26 +271,27 @@
       return;
     }
 
-    const controls = { navigation: true, scale: false, fullscreen: false };
-
-    const beforeMap = await baseMap.createMap({
+    beforeMap = await baseMap.createMap({
       container: "before",
       styleUrl: styleLeft,
       attributionControl: false,
-      controls,
+      controls: controlsLeft,
       ...view
     });
-    const afterMap = await baseMap.createMap({
+    afterMap = await baseMap.createMap({
       container: "after",
       styleUrl: styleRight,
       attributionControl: false,
-      controls,
+      controls: controlsRight,
+      fullscreenContainer: rootEl,
       ...view
     });
 
     if (!beforeMap || !afterMap) {
       return;
     }
+
+    splitMode = true;
 
     beforeMap.addControl(
       new maplibregl.AttributionControl({ compact: true }),
@@ -182,78 +301,6 @@
       new maplibregl.AttributionControl({ compact: true }),
       "bottom-right"
     );
-
-    let splitMode = true;
-    let cmpLeft;
-    let cmpRight;
-    let splitCompare;
-    const toggleButtons = [];
-
-    const updateToggleButtons = () => {
-      const label = splitMode ? labelSplit : labelCompare;
-      const nextClass = splitMode ? "is-compare" : "is-split";
-      const removeClass = splitMode ? "is-split" : "is-compare";
-      toggleButtons.forEach((button) => {
-        button.classList.remove(removeClass);
-        button.classList.add(nextClass);
-        button.title = label;
-        button.setAttribute("aria-label", label);
-      });
-    };
-
-    const toggleMode = () => {
-      const active = splitMode ? beforeMap : cmpLeft;
-      const cam = {
-        center: active.getCenter(),
-        zoom: active.getZoom(),
-        bearing: active.getBearing(),
-        pitch: active.getPitch()
-      };
-
-      document.getElementById("splitContainer").style.display = splitMode
-        ? "none"
-        : "block";
-      document.getElementById("cmpContainer").style.display = splitMode
-        ? "block"
-        : "none";
-      splitMode = !splitMode;
-      updateToggleButtons();
-
-      if (splitMode) {
-        [beforeMap, afterMap].forEach((map) => {
-          map.jumpTo(cam);
-          map.resize();
-        });
-        if (splitCompare && typeof splitCompare.setSlider === "function") {
-          const bounds = afterMap.getContainer().getBoundingClientRect();
-          splitCompare.setSlider(bounds.width / 2);
-        }
-        if (splitCompare && typeof splitCompare._onResize === "function") {
-          splitCompare._onResize();
-        }
-      } else {
-        [cmpLeft, cmpRight].forEach((map) => {
-          map.jumpTo(cam);
-          map.resize();
-        });
-      }
-    };
-
-    const createToggleControl = () => ({
-      onAdd() {
-        const container = document.createElement("div");
-        container.className = "maplibregl-ctrl maplibregl-ctrl-group";
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "maplibregl-ctrl-icon vectormap-compare-toggle";
-        button.addEventListener("click", toggleMode);
-        container.appendChild(button);
-        toggleButtons.push(button);
-        updateToggleButtons();
-        return container;
-      },
-      onRemove() {}
-    });
 
     splitCompare = new maplibregl.Compare(
       beforeMap,
@@ -292,14 +339,15 @@
       container: "cmpMapLeft",
       styleUrl: styleLeft,
       attributionControl: false,
-      controls,
+      controls: controlsLeft,
       ...view
     });
     cmpRight = await baseMap.createMap({
       container: "cmpMapRight",
       styleUrl: styleRight,
       attributionControl: false,
-      controls,
+      controls: controlsRight,
+      fullscreenContainer: rootEl,
       ...view
     });
 
@@ -315,14 +363,6 @@
       new maplibregl.AttributionControl({ compact: true }),
       "bottom-right"
     );
-
-    if (maplibregl.FullscreenControl) {
-      afterMap.addControl(new maplibregl.FullscreenControl({ container: rootEl }));
-      cmpRight.addControl(new maplibregl.FullscreenControl({ container: rootEl }));
-    }
-
-    afterMap.addControl(createToggleControl(), "top-right");
-    cmpRight.addControl(createToggleControl(), "top-right");
 
     let syncing = false;
     const sync = (src) => {

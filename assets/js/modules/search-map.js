@@ -37,10 +37,41 @@
 
   const settings = { ...defaults, ...config };
   settings.controls = { ...defaults.controls, ...(config.controls || {}) };
+  const mapContainerIds = Array.isArray(settings.mapContainer)
+    ? settings.mapContainer
+        .filter((item) => typeof item === "string")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : typeof settings.mapContainer === "string"
+      ? [settings.mapContainer]
+      : [];
+  const primaryMapContainer = Array.isArray(settings.mapContainer)
+    ? mapContainerIds[0] || defaults.mapContainer
+    : settings.mapContainer;
   const mapOptions = {
-    container: settings.mapContainer,
+    container: primaryMapContainer,
     controls: settings.controls,
     ...(config.mapOptions || {})
+  };
+
+  const matchesMapContainer = (map) => {
+    const container = map?.getContainer?.();
+    if (!container) {
+      return false;
+    }
+    if (mapContainerIds.length) {
+      return mapContainerIds.includes(container.id);
+    }
+    if (
+      settings.mapContainer &&
+      typeof settings.mapContainer !== "string" &&
+      container === settings.mapContainer
+    ) {
+      return true;
+    }
+    return typeof settings.mapContainer === "string"
+      ? container.id === settings.mapContainer
+      : false;
   };
 
   const ensureStyles = () => {
@@ -202,14 +233,19 @@
     document.head.appendChild(style);
   };
 
-  const buildControl = () => {
-    const existing = document.getElementById(settings.panelId);
-    if (existing) {
-      existing.remove();
+  const buildControl = (panelId) => {
+    const resolvedPanelId = panelId || settings.panelId;
+    if (resolvedPanelId) {
+      const existing = document.getElementById(resolvedPanelId);
+      if (existing) {
+        existing.remove();
+      }
     }
 
     const container = document.createElement("div");
-    container.id = settings.panelId;
+    if (resolvedPanelId) {
+      container.id = resolvedPanelId;
+    }
     container.className =
       "maplibregl-ctrl maplibregl-ctrl-group vectormap-search-ctrl";
 
@@ -654,12 +690,24 @@
     return parts.join(" - ");
   };
 
+  const getKnownMap = () => {
+    if (moduleState.map) {
+      return moduleState.map;
+    }
+    if (Array.isArray(moduleState.maps) && moduleState.maps.length) {
+      return moduleState.maps.find((map) => matchesMapContainer(map)) ||
+        moduleState.maps[0];
+    }
+    return null;
+  };
+
   const waitForMap = (timeoutMs = 6000) =>
     new Promise((resolve) => {
       const start = performance.now();
       const tick = () => {
-        if (moduleState.map) {
-          resolve(moduleState.map);
+        const existingMap = getKnownMap();
+        if (existingMap) {
+          resolve(existingMap);
           return;
         }
         if (performance.now() - start >= timeoutMs) {
@@ -673,10 +721,14 @@
 
   const ensureMap = async () => {
     if (config.map) {
+      if (baseMap && typeof baseMap.registerMap === "function") {
+        baseMap.registerMap(config.map, mapOptions);
+      }
       return config.map;
     }
-    if (moduleState.map) {
-      return moduleState.map;
+    const knownMap = getKnownMap();
+    if (knownMap) {
+      return knownMap;
     }
     if (!baseMap) {
       console.error("Base map module fehlt.");
@@ -707,19 +759,22 @@
     return el;
   };
 
-  const init = async () => {
-    ensureStyles();
-    const map = await ensureMap();
-    if (!map) {
-      return;
+  const getPanelId = (map) => {
+    const mapContainerId = map?.getContainer?.()?.id;
+    if (mapContainerId && mapContainerIds.length > 1) {
+      return `${settings.panelId}-${mapContainerId}`;
     }
+    return settings.panelId;
+  };
 
-    const existingControls = map
-      .getContainer()
-      .querySelectorAll(".vectormap-search-ctrl");
+  const createSearchControl = (map) => {
+    const panelId = getPanelId(map);
+    const existingControls = panelId
+      ? map.getContainer().querySelectorAll(`#${panelId}`)
+      : map.getContainer().querySelectorAll(".vectormap-search-ctrl");
     existingControls.forEach((control) => control.remove());
 
-    const { container, input, button, status, results } = buildControl();
+    const { container, input, button, status, results } = buildControl(panelId);
     const control = {
       onAdd() {
         return container;
@@ -728,14 +783,6 @@
         container.remove();
       }
     };
-    map.addControl(control, "top-right");
-
-    const controlRoot = map
-      .getContainer()
-      .querySelector(".maplibregl-ctrl-top-right");
-    if (controlRoot && container.parentNode === controlRoot) {
-      controlRoot.insertBefore(container, controlRoot.firstChild);
-    }
 
     let marker = null;
     let activeButton = null;
@@ -1027,6 +1074,36 @@
 
     setStatus(settings.idleMessage);
     setOpen(false);
+
+    return control;
+  };
+
+  const registerSearchControl = () => {
+    if (!baseMap || typeof baseMap.registerControl !== "function") {
+      console.error("Base map module fehlt.");
+      return;
+    }
+    if (moduleState.searchControlRegistered) {
+      return;
+    }
+    moduleState.searchControlRegistered = true;
+    baseMap.registerControl({
+      key: "search",
+      position: "top-right",
+      applyTo: (map) => {
+        if (config.map && map === config.map) {
+          return true;
+        }
+        return matchesMapContainer(map);
+      },
+      create: createSearchControl
+    });
+  };
+
+  const init = async () => {
+    ensureStyles();
+    registerSearchControl();
+    await ensureMap();
   };
 
   init();
