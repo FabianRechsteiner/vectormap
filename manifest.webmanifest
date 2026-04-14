@@ -9,22 +9,16 @@
   "description": "Schweizer Geodaten als performante Vektorkarten.",
   "icons": [
     {
-      "src": "assets/pwa/icon-192.svg",
+      "src": "assets/images/logo_v.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/pwa/icon-512.svg",
+      "src": "assets/images/logo_v.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "assets/pwa/icon-maskable.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

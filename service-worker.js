@@ -1,4 +1,4 @@
-const CACHE_VERSION = "vectormap-v1";
+const CACHE_VERSION = "vectormap-v2";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -14,9 +14,7 @@ const PRECACHE_URLS = [
   "./manifest.webmanifest",
   "./assets/css/style.css",
   "./assets/js/pwa-register.js",
-  "./assets/pwa/icon-192.svg",
-  "./assets/pwa/icon-512.svg",
-  "./assets/pwa/icon-maskable.svg"
+  "./assets/images/logo_v.png"
 ];
 
 self.addEventListener("install", (event) => {
