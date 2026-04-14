@@ -34,6 +34,21 @@ Examples:
 - Do not introduce build systems or backend code
 - Use plain HTML, CSS, and JavaScript only
 
+## MapLibre Skills
+
+- For any MapLibre-related task, load and read relevant skill files before implementation.
+- Prefer globally installed skills first, then fall back to project-local copies if needed.
+- Use skill selection by task type:
+  - `maplibre-tile-sources`: source/layer setup, blank map debugging, basemap and labels
+  - `maplibre-pmtiles-patterns`: PMTiles workflows, static/serverless hosting, MBTiles conversion patterns
+  - `maplibre-mapbox-migration`: migration from Mapbox GL JS to MapLibre
+- Apply skill guidance as the primary implementation baseline and only add extra research when required by gaps in the skill content.
+- Make assumptions explicit when skill guidance does not fully cover edge cases.
+- Expected skill file locations:
+  - Global install: use the agent-managed global skills directory for your platform and agent runtime.
+  - Project-local fallback: `.cursor/skills/maplibre-agent-skills/skills/<skill-name>/SKILL.md`
+  - Do not hardcode user-specific absolute paths in repository guidance.
+
 ## Content Rules (VERY IMPORTANT)
 
 ### Target Audience
