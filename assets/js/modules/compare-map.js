@@ -9,8 +9,18 @@
   }
 
   const rootId = config.containerId || "compare-root";
-  const controlsLeft = { navigation: true, scale: false, fullscreen: false };
-  const controlsRight = { navigation: true, scale: false, fullscreen: true };
+  const controlsLeft = {
+    navigation: false,
+    geolocate: false,
+    scale: false,
+    fullscreen: false
+  };
+  const controlsRight = {
+    navigation: true,
+    geolocate: true,
+    scale: false,
+    fullscreen: true
+  };
   let rootEl = null;
   let labelSplit = "Zum Comparison-Modus";
   let labelCompare = "Zum Split-Modus";
@@ -21,6 +31,7 @@
   let cmpRight = null;
   let splitCompare = null;
   const toggleButtons = [];
+  const geolocateMirrorState = new WeakMap();
 
   const updateToggleButtons = () => {
     const label = splitMode ? labelSplit : labelCompare;
@@ -81,6 +92,107 @@
         map.resize();
       });
     }
+  };
+
+  const toLngLat = (position) => {
+    const coords = position?.coords || position;
+    const lng = Number(coords?.longitude);
+    const lat = Number(coords?.latitude);
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
+      return null;
+    }
+    return [lng, lat];
+  };
+
+  const getGeolocateMirror = (map) => {
+    if (!map || !window.maplibregl?.Marker) {
+      return null;
+    }
+    let state = geolocateMirrorState.get(map);
+    if (state) {
+      return state;
+    }
+
+    const dotElement = document.createElement("div");
+    dotElement.className = "maplibregl-user-location-dot";
+    const circleElement = document.createElement("div");
+    circleElement.className = "maplibregl-user-location-accuracy-circle";
+
+    state = {
+      dotElement,
+      circleElement,
+      dotMarker: new maplibregl.Marker({ element: dotElement }),
+      circleMarker: new maplibregl.Marker({
+        element: circleElement,
+        pitchAlignment: "map"
+      }),
+      accuracy: null,
+      updateCircle() {
+        const userLocation = state.dotMarker.getLngLat();
+        if (!Number.isFinite(state.accuracy) || !userLocation) {
+          return;
+        }
+        const screenPosition = map.project(userLocation);
+        const userLocationWith100Px = map.unproject([
+          screenPosition.x + 100,
+          screenPosition.y
+        ]);
+        const pixelsToMeters = userLocation.distanceTo(userLocationWith100Px) / 100;
+        if (!Number.isFinite(pixelsToMeters) || pixelsToMeters <= 0) {
+          return;
+        }
+        const circleDiameter = (2 * state.accuracy) / pixelsToMeters;
+        state.circleElement.style.width = `${circleDiameter.toFixed(2)}px`;
+        state.circleElement.style.height = `${circleDiameter.toFixed(2)}px`;
+      }
+    };
+
+    map.on("zoom", state.updateCircle);
+    map.on("move", state.updateCircle);
+    map.on("rotate", state.updateCircle);
+    map.on("pitch", state.updateCircle);
+    geolocateMirrorState.set(map, state);
+    return state;
+  };
+
+  const clearGeolocateMirror = (map) => {
+    const state = geolocateMirrorState.get(map);
+    if (!state) {
+      return;
+    }
+    state.dotMarker.remove();
+    state.circleMarker.remove();
+    state.accuracy = null;
+  };
+
+  const mirrorGeolocation = (targetMap, position) => {
+    const center = toLngLat(position);
+    if (!targetMap || !center) {
+      return;
+    }
+    const state = getGeolocateMirror(targetMap);
+    if (!state) {
+      return;
+    }
+    const accuracy = Number(position?.coords?.accuracy);
+    state.dotMarker.setLngLat(center).addTo(targetMap);
+    state.circleMarker.setLngLat(center).addTo(targetMap);
+    state.accuracy = Number.isFinite(accuracy) ? accuracy : null;
+    state.updateCircle();
+  };
+
+  const registerGeolocateMirror = (sourceMap, targetMap) => {
+    const control = sourceMap?.__vectormapGeolocateControl;
+    if (!control || typeof control.on !== "function" || !targetMap) {
+      return;
+    }
+
+    control.on("geolocate", (event) => {
+      mirrorGeolocation(targetMap, event);
+    });
+    control.on("outofmaxbounds", () => {
+      clearGeolocateMirror(targetMap);
+    });
   };
 
   const createToggleControl = () => ({
@@ -160,6 +272,13 @@
       #cmpMapLeft, #cmpMapRight { position: absolute; top: 0; bottom: 0; width: 50%; }
       #cmpMapLeft { left: 0; }
       #cmpMapRight { right: 0; }
+      /* Keep the shared control rail visually bound to the right-hand maps only. */
+      #before .maplibregl-ctrl-top-left,
+      #before .maplibregl-ctrl-top-right,
+      #cmpMapLeft .maplibregl-ctrl-top-left,
+      #cmpMapLeft .maplibregl-ctrl-top-right {
+        display: none;
+      }
       .vectormap-compare-toggle {
         background-repeat: no-repeat;
         background-position: center;
@@ -382,6 +501,9 @@
 
     cmpLeft.on("move", () => sync(cmpLeft));
     cmpRight.on("move", () => sync(cmpRight));
+
+    registerGeolocateMirror(afterMap, beforeMap);
+    registerGeolocateMirror(cmpRight, cmpLeft);
 
     updateToggleButtons();
 

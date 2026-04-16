@@ -36,6 +36,7 @@
       });
     },
     onAdd: (map, control) => {
+      map.__vectormapGeolocateControl = control;
       if (
         !control ||
         typeof control.on !== "function" ||
