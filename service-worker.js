@@ -1,4 +1,4 @@
-const CACHE_VERSION = "vectormap-v2";
+const CACHE_VERSION = "vectormap-v3";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -22,10 +22,27 @@ const PRECACHE_URLS = [
   "./assets/js/modules/base-map.js",
   "./assets/js/modules/fullscreen-control.js",
   "./assets/js/modules/navigation-control.js",
+  "./assets/js/modules/geolocate-control.js",
   "./assets/js/modules/search-map.js",
   "./assets/js/modules/compare-map.js",
   "./assets/images/logo_v.png"
 ];
+
+const isAppShellRequest = (request) => {
+  const url = new URL(request.url);
+  if (request.mode === "navigate") {
+    return true;
+  }
+  if (url.origin !== self.location.origin || request.method !== "GET") {
+    return false;
+  }
+  return (
+    url.pathname.endsWith(".html") ||
+    url.pathname.endsWith(".js") ||
+    url.pathname.endsWith(".css") ||
+    url.pathname.endsWith(".webmanifest")
+  );
+};
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -68,6 +85,19 @@ self.addEventListener("fetch", (event) => {
           const cached = await caches.match(request);
           return cached || caches.match("./offline.html");
         })
+    );
+    return;
+  }
+
+  if (isAppShellRequest(request)) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const responseClone = response.clone();
+          caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, responseClone));
+          return response;
+        })
+        .catch(() => caches.match(request))
     );
     return;
   }
