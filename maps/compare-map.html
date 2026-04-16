@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b111c" />
   <title>Style-Vergleich – Vectormap</title>
   <meta name="description" content="Vergleich von swisstopo Light Base Map und Vectormap im Split- und Comparison-Modus.">
 </head>
@@ -25,6 +26,11 @@
   ></div>
 
   <script>
+    window.vectormapMapPwa = {
+      name: "Vectormap Style Vergleich",
+      shortName: "Compare Map"
+    };
+
     window.vectormapExampleConfig = {
       autoInit: false,
       maplibreCss: "https://unpkg.com/maplibre-gl@5.23.0/dist/maplibre-gl.css",
@@ -35,10 +41,12 @@
     window.vectormapCompareConfig = { containerId: "compare-root" };
     window.vectormapSearchConfig = { mapContainer: ["after", "cmpMapRight"] };
   </script>
+  <script src="../assets/js/map-page-pwa.js"></script>
   <script src="../assets/js/modules/base-map.js"></script>
   <script src="../assets/js/modules/fullscreen-control.js"></script>
   <script src="../assets/js/modules/search-map.js"></script>
   <script src="../assets/js/modules/navigation-control.js"></script>
+  <script src="../assets/js/modules/geolocate-control.js"></script>
   <script src="../assets/js/modules/compare-map.js"></script>
 </body>
 </html>

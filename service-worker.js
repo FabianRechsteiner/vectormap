@@ -10,10 +10,20 @@ const PRECACHE_URLS = [
   "./maps.html",
   "./about.html",
   "./lizenzen.html",
+  "./maps/base-map.html",
+  "./maps/search-map.html",
+  "./maps/compare-map.html",
   "./offline.html",
   "./manifest.webmanifest",
   "./assets/css/style.css",
+  "./assets/css/maplibre-gl-compare.css",
   "./assets/js/pwa-register.js",
+  "./assets/js/map-page-pwa.js",
+  "./assets/js/modules/base-map.js",
+  "./assets/js/modules/fullscreen-control.js",
+  "./assets/js/modules/navigation-control.js",
+  "./assets/js/modules/search-map.js",
+  "./assets/js/modules/compare-map.js",
   "./assets/images/logo_v.png"
 ];
 

@@ -3,6 +3,7 @@
   const defaultControls = {
     navigation: true,
     fullscreen: true,
+    geolocate: true,
     scale: false
   };
   const defaults = {
@@ -85,6 +86,9 @@
       return;
     }
     map.addControl(control, entry.position || "top-right");
+    if (typeof entry.onAdd === "function") {
+      entry.onAdd(map, control);
+    }
     map.__vectormapControlIds.add(entry.id);
   };
 
@@ -104,7 +108,8 @@
       key: entry.key,
       position: entry.position || "top-right",
       create: entry.create,
-      applyTo: entry.applyTo
+      applyTo: entry.applyTo,
+      onAdd: entry.onAdd
     };
     moduleState.controlQueue.push(normalized);
     moduleState.maps.forEach((map) => addControlToMap(map, normalized));

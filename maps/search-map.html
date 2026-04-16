@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b111c" />
   <title>Suchmodul - Vectormap</title>
   <meta name="description" content="Basismodul mit Suchfunktion ueber den GeoAdmin SearchServer." />
   <style>
@@ -25,9 +26,17 @@
 <body>
   <div id="map" aria-label="Kartenansicht"></div>
 
+  <script>
+    window.vectormapMapPwa = {
+      name: "Vectormap Suchmodul",
+      shortName: "Search Map"
+    };
+  </script>
+  <script src="../assets/js/map-page-pwa.js"></script>
   <script src="../assets/js/modules/base-map.js"></script>
   <script src="../assets/js/modules/fullscreen-control.js"></script>
   <script src="../assets/js/modules/search-map.js"></script>
   <script src="../assets/js/modules/navigation-control.js"></script>
+  <script src="../assets/js/modules/geolocate-control.js"></script>
 </body>
 </html>
