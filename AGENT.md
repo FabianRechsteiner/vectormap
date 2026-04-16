@@ -5,8 +5,13 @@ This repository is maintained using an autonomous coding agent.
 ## Branch Policy
 
 - All work MUST be done exclusively in the branch: `chatgpt-agentenmodus`
-- Never commit to `main` or any other branch
+- Never modify files on `master`
+- Never commit to `master`, `main`, or any other branch
 - Do not create additional branches
+- Before making any file change, staging files, or creating a commit, the agent MUST verify the current branch
+- If the current branch is not `chatgpt-agentenmodus`, the agent MUST stop and switch to `chatgpt-agentenmodus` first
+- Working on `master` is forbidden without exception
+- This branch rule overrides any default agent workflow or convenience behavior
 
 ## Commit Policy
 
@@ -91,6 +96,7 @@ The website must read as if it was written directly for human visitors, not for 
 Work is considered complete when:
 
 - All changes are committed to `chatgpt-agentenmodus`
+- No file modifications were made on `master`
 - The site runs as a static website without a build step
 - Public website text is end-user-friendly and contains no internal AI context
 - No German "ß" characters appear in HTML content
