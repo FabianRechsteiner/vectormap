@@ -106,6 +106,22 @@
               </ul>
             </div>
           </article>
+          <article class="example-card">
+            <div class="example-preview">
+              <iframe title="AV-WMS Vergleich Vorschau" loading="lazy" src="maps/av-wms.html" allowfullscreen></iframe>
+            </div>
+            <div class="example-content">
+              <h3 class="card-title">Vergleich: AV-WMS in sechs Karten</h3>
+              <p class="card-text">Sechs synchronisierte Karten vergleichen Vectormap, swisstopo und vier AV-WMS-Dienste in einem responsiven Grid.</p>
+              <ul class="example-meta">
+                <li><strong>MapLibre GL JS:</strong> 5.23.0</li>
+                <li><strong>PMTiles:</strong> 4.4.1</li>
+                <li><strong>Quellen:</strong> Vectormap / swisstopo / vier AV-WMS-Dienste</li>
+                <li><strong>URL:</strong> <a href="maps/av-wms.html" target="_blank" rel="noopener">maps/av-wms.html</a></li>
+                <li><strong>Module:</strong> base-map.js + fullscreen-control.js + navigation-control.js + geolocate-control.js + av-wms-map.js + search-map.js</li>
+              </ul>
+            </div>
+          </article>
         </div>
       </div>
     </section>
@@ -139,7 +155,18 @@ window.vectormapCompareConfig = { ... };
 &lt;script src="../assets/js/modules/search-map.js"&gt;&lt;/script&gt;
 &lt;script src="../assets/js/modules/navigation-control.js"&gt;&lt;/script&gt;
 &lt;script src="../assets/js/modules/geolocate-control.js"&gt;&lt;/script&gt;
-&lt;script src="../assets/js/modules/compare-map.js"&gt;&lt;/script&gt;</code></pre>
+&lt;script src="../assets/js/modules/compare-map.js"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+window.vectormapExampleConfig = { autoInit: false };
+window.vectormapAvWmsConfig = { ... };
+&lt;/script&gt;
+&lt;script src="../assets/js/modules/base-map.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/fullscreen-control.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/navigation-control.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/geolocate-control.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/av-wms-map.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/search-map.js"&gt;&lt;/script&gt;</code></pre>
       </div>
     </section>
 

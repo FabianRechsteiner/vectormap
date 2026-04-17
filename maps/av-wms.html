@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b111c" />
+  <title>AV-WMS Vergleich - Vectormap</title>
+  <meta
+    name="description"
+    content="Sechs synchronisierte Karten vergleichen Vectormap, swisstopo und vier AV-WMS-Dienste."
+  />
+</head>
+<body>
+  <div id="av-wms-root" aria-label="AV-WMS Vergleich"></div>
+
+  <script>
+    window.vectormapMapPwa = {
+      name: "Vectormap AV-WMS Vergleich",
+      shortName: "AV-WMS"
+    };
+
+    window.vectormapExampleConfig = {
+      autoInit: false,
+      maplibreCss: "https://unpkg.com/maplibre-gl@5.23.0/dist/maplibre-gl.css",
+      maplibreJs: "https://unpkg.com/maplibre-gl@5.23.0/dist/maplibre-gl.js",
+      pmtilesJs: "https://unpkg.com/pmtiles@4.4.1/dist/pmtiles.js"
+    };
+
+    window.vectormapAvWmsConfig = {
+      containerId: "av-wms-root",
+      center: [6.0686560550293, 46.2287681654191],
+      zoom: 16.5,
+      bearing: 0,
+      pitch: 0,
+      minZoom: 15,
+      maxZoom: 20,
+      pitchWithRotate: false,
+      hash: false
+    };
+
+    window.vectormapSearchConfig = {
+      mapContainer: "av-map-2",
+      resultZoom: 17.5
+    };
+  </script>
+  <script src="../assets/js/map-page-pwa.js"></script>
+  <script src="../assets/js/modules/base-map.js"></script>
+  <script src="../assets/js/modules/fullscreen-control.js"></script>
+  <script src="../assets/js/modules/navigation-control.js"></script>
+  <script src="../assets/js/modules/geolocate-control.js"></script>
+  <script src="../assets/js/modules/av-wms-map.js"></script>
+  <script src="../assets/js/modules/search-map.js"></script>
+</body>
+</html>

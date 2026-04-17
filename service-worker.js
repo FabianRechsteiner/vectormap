@@ -1,4 +1,4 @@
-const CACHE_VERSION = "vectormap-v3";
+const CACHE_VERSION = "vectormap-v4";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -13,6 +13,7 @@ const PRECACHE_URLS = [
   "./maps/base-map.html",
   "./maps/search-map.html",
   "./maps/compare-map.html",
+  "./maps/av-wms.html",
   "./offline.html",
   "./manifest.webmanifest",
   "./assets/css/style.css",
@@ -25,6 +26,7 @@ const PRECACHE_URLS = [
   "./assets/js/modules/geolocate-control.js",
   "./assets/js/modules/search-map.js",
   "./assets/js/modules/compare-map.js",
+  "./assets/js/modules/av-wms-map.js",
   "./assets/images/logo_v.png"
 ];
 
