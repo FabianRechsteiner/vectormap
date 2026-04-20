@@ -9,22 +9,29 @@
   }
 
   const rootId = config.containerId || "compare-root";
+  const modeOrder = ["normal", "split", "compare"];
   const controlsLeft = {
     navigation: false,
     geolocate: false,
     scale: false,
     fullscreen: false
   };
-  const controlsRight = {
+  const controlsInteractive = {
     navigation: true,
     geolocate: true,
     scale: false,
     fullscreen: true
   };
+
   let rootEl = null;
-  let labelSplit = "Zum Comparison-Modus";
-  let labelCompare = "Zum Split-Modus";
-  let splitMode = true;
+  let currentMode = "split";
+  let initialMode = "split";
+  let modeLabels = {
+    normal: "Zum Normalmodus",
+    split: "Zum Split-Modus",
+    compare: "Zum Compare-Modus"
+  };
+  let normalMap = null;
   let beforeMap = null;
   let afterMap = null;
   let cmpLeft = null;
@@ -32,66 +39,155 @@
   let splitCompare = null;
   const toggleButtons = [];
   const geolocateMirrorState = new WeakMap();
+  let hashEnabled = true;
+
+  const normalizeMode = (value, fallback = "split") =>
+    modeOrder.includes(value) ? value : fallback;
+
+  const getNextMode = (mode) => {
+    const currentIndex = modeOrder.indexOf(normalizeMode(mode));
+    return modeOrder[(currentIndex + 1) % modeOrder.length];
+  };
+
+  const getModeMaps = (mode) => {
+    switch (mode) {
+      case "normal":
+        return [normalMap].filter(Boolean);
+      case "compare":
+        return [cmpLeft, cmpRight].filter(Boolean);
+      case "split":
+      default:
+        return [beforeMap, afterMap].filter(Boolean);
+    }
+  };
+
+  const getActiveMap = (mode = currentMode) => {
+    switch (mode) {
+      case "normal":
+        return normalMap;
+      case "compare":
+        return cmpRight || cmpLeft;
+      case "split":
+      default:
+        return afterMap || beforeMap;
+    }
+  };
+
+  const getCamera = (map) => {
+    if (!map) {
+      return null;
+    }
+    return {
+      center: map.getCenter(),
+      zoom: map.getZoom(),
+      bearing: map.getBearing(),
+      pitch: map.getPitch()
+    };
+  };
+
+  const readHashView = () => {
+    const value = window.location.hash.replace(/^#/, "");
+    if (!value) {
+      return null;
+    }
+
+    const parts = value.split("/").map((item) => Number(item));
+    if (parts.length < 3 || parts.some((item) => !Number.isFinite(item))) {
+      return null;
+    }
+
+    const [zoom, lat, lng, bearing = 0, pitch = 0] = parts;
+    return {
+      center: [lng, lat],
+      zoom,
+      bearing,
+      pitch
+    };
+  };
+
+  const formatHashView = (map) => {
+    if (!map) {
+      return "";
+    }
+    const center = map.getCenter();
+    const zoom = map.getZoom();
+    const bearing = map.getBearing();
+    const pitch = map.getPitch();
+    return `#${zoom.toFixed(2)}/${center.lat.toFixed(5)}/${center.lng.toFixed(5)}/${bearing.toFixed(2)}/${pitch.toFixed(2)}`;
+  };
+
+  const updateHash = () => {
+    if (!hashEnabled) {
+      return;
+    }
+    const activeMap = getActiveMap();
+    const nextHash = formatHashView(activeMap);
+    if (!nextHash || window.location.hash === nextHash) {
+      return;
+    }
+    const nextUrl = `${window.location.pathname}${window.location.search}${nextHash}`;
+    window.history.replaceState(null, "", nextUrl);
+  };
+
+  const centerSplitSlider = () => {
+    if (!splitCompare || typeof splitCompare.setSlider !== "function") {
+      return;
+    }
+    const container = document.getElementById("splitContainer");
+    const bounds = container?.getBoundingClientRect?.();
+    if (!bounds || !Number.isFinite(bounds.width) || bounds.width <= 0) {
+      return;
+    }
+    splitCompare.setSlider(bounds.width / 2);
+    if (typeof splitCompare._onResize === "function") {
+      splitCompare._onResize();
+    }
+  };
+
+  const canActivateMode = (mode) => getModeMaps(mode).length > 0;
 
   const updateToggleButtons = () => {
-    const label = splitMode ? labelSplit : labelCompare;
-    const nextClass = splitMode ? "is-compare" : "is-split";
-    const removeClass = splitMode ? "is-split" : "is-compare";
+    const nextMode = getNextMode(currentMode);
+    const label = modeLabels[nextMode] || modeLabels.split;
+    const classes = ["is-normal", "is-split", "is-compare"];
+
     toggleButtons.forEach((button) => {
-      button.classList.remove(removeClass);
-      button.classList.add(nextClass);
+      button.classList.remove(...classes);
+      button.classList.add(`is-${nextMode}`);
       button.title = label;
       button.setAttribute("aria-label", label);
     });
   };
 
-  const toggleMode = () => {
-    if (!beforeMap || !afterMap || !rootEl) {
-      return;
-    }
-    if (splitMode && (!cmpLeft || !cmpRight)) {
-      return;
-    }
-    const active = splitMode ? beforeMap : cmpLeft;
-    if (!active) {
-      return;
-    }
-    const cam = {
-      center: active.getCenter(),
-      zoom: active.getZoom(),
-      bearing: active.getBearing(),
-      pitch: active.getPitch()
-    };
-
-    const splitContainer = document.getElementById("splitContainer");
-    const cmpContainer = document.getElementById("cmpContainer");
-    if (!splitContainer || !cmpContainer) {
+  const applyMode = (mode, { preserveCamera = true } = {}) => {
+    if (!rootEl) {
       return;
     }
 
-    splitContainer.style.display = splitMode ? "none" : "block";
-    cmpContainer.style.display = splitMode ? "block" : "none";
-    splitMode = !splitMode;
+    const nextMode = normalizeMode(mode, initialMode);
+    if (!canActivateMode(nextMode)) {
+      return;
+    }
+
+    const camera = preserveCamera ? getCamera(getActiveMap()) : null;
+    currentMode = nextMode;
+    rootEl.dataset.mode = currentMode;
     updateToggleButtons();
 
-    if (splitMode) {
-      [beforeMap, afterMap].forEach((map) => {
-        map.jumpTo(cam);
-        map.resize();
-      });
-      if (splitCompare && typeof splitCompare.setSlider === "function") {
-        const bounds = afterMap.getContainer().getBoundingClientRect();
-        splitCompare.setSlider(bounds.width / 2);
+    getModeMaps(currentMode).forEach((map) => {
+      if (camera) {
+        map.jumpTo(camera);
       }
-      if (splitCompare && typeof splitCompare._onResize === "function") {
-        splitCompare._onResize();
-      }
-    } else if (cmpLeft && cmpRight) {
-      [cmpLeft, cmpRight].forEach((map) => {
-        map.jumpTo(cam);
-        map.resize();
-      });
+      map.resize();
+    });
+
+    if (currentMode === "split") {
+      centerSplitSlider();
     }
+  };
+
+  const toggleMode = () => {
+    applyMode(getNextMode(currentMode));
   };
 
   const toLngLat = (position) => {
@@ -181,17 +277,20 @@
     state.updateCircle();
   };
 
-  const registerGeolocateMirror = (sourceMap, targetMap) => {
+  const registerGeolocateMirrors = (sourceMap, targetMaps) => {
     const control = sourceMap?.__vectormapGeolocateControl;
-    if (!control || typeof control.on !== "function" || !targetMap) {
+    const targets = (Array.isArray(targetMaps) ? targetMaps : [])
+      .filter((map) => map && map !== sourceMap);
+
+    if (!control || typeof control.on !== "function" || !targets.length) {
       return;
     }
 
     control.on("geolocate", (event) => {
-      mirrorGeolocation(targetMap, event);
+      targets.forEach((targetMap) => mirrorGeolocation(targetMap, event));
     });
     control.on("outofmaxbounds", () => {
-      clearGeolocateMirror(targetMap);
+      targets.forEach((targetMap) => clearGeolocateMirror(targetMap));
     });
   };
 
@@ -227,7 +326,7 @@
         const container = map.getContainer();
         return (
           container &&
-          (container.id === "after" || container.id === "cmpMapRight")
+          ["normalMap", "after", "cmpMapRight"].includes(container.id)
         );
       },
       create: () => createToggleControl()
@@ -245,6 +344,9 @@
     }
 
     root.innerHTML = `
+      <div id="normalContainer" class="mode-container">
+        <div id="normalMap"></div>
+      </div>
       <div id="splitContainer" class="mode-container">
         <div id="before"></div>
         <div id="after"></div>
@@ -267,12 +369,22 @@
       html, body { height: 100%; margin: 0; overflow: hidden; }
       #${rootId} { position: absolute; inset: 0; }
       .mode-container { position: absolute; inset: 0; display: none; }
-      #splitContainer { display: block; }
-      #before, #after { position: absolute; top: 0; bottom: 0; width: 100%; }
-      #cmpMapLeft, #cmpMapRight { position: absolute; top: 0; bottom: 0; width: 50%; }
+      #normalMap,
+      #before,
+      #after,
+      #cmpMapLeft,
+      #cmpMapRight { position: absolute; top: 0; bottom: 0; }
+      #normalMap { left: 0; right: 0; }
+      #before, #after { width: 100%; }
+      #cmpMapLeft, #cmpMapRight { width: 50%; }
       #cmpMapLeft { left: 0; }
       #cmpMapRight { right: 0; }
-      /* Keep the shared control rail visually bound to the right-hand maps only. */
+      #${rootId}[data-mode="normal"] #normalContainer,
+      #${rootId}[data-mode="split"] #splitContainer,
+      #${rootId}[data-mode="compare"] #cmpContainer {
+        display: block;
+      }
+      /* Keep the shared control rail visually bound to the interactive maps only. */
       #before .maplibregl-ctrl-top-left,
       #before .maplibregl-ctrl-top-right,
       #cmpMapLeft .maplibregl-ctrl-top-left,
@@ -284,11 +396,14 @@
         background-position: center;
         background-size: 16px 16px;
       }
-      .vectormap-compare-toggle.is-compare {
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%231b2a23' stroke-width='1.6'><rect x='2' y='3' width='7' height='14' rx='1.5'/><rect x='11' y='3' width='7' height='14' rx='1.5'/></svg>");
+      .vectormap-compare-toggle.is-normal {
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%231b2a23' stroke-width='1.6'><rect x='3' y='3' width='14' height='14' rx='1.8'/></svg>");
       }
       .vectormap-compare-toggle.is-split {
         background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%231b2a23' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><line x1='10' y1='3' x2='10' y2='17'/><polyline points='6,7 3,10 6,13'/><polyline points='14,7 17,10 14,13'/></svg>");
+      }
+      .vectormap-compare-toggle.is-compare {
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%231b2a23' stroke-width='1.6'><rect x='2' y='3' width='7' height='14' rx='1.5'/><rect x='11' y='3' width='7' height='14' rx='1.5'/></svg>");
       }
     `;
     document.head.appendChild(style);
@@ -343,23 +458,34 @@
     );
     const styleLeft = readValue(
       "styleLeft",
-      "https://vectortiles.geo.admin.ch/styles/ch.swisstopo.leichte-basiskarte.vt/style.json"
+      "../styles/ch.vectormap.lightbasemap.json"
     );
     const styleRight = readValue(
       "styleRight",
-      "../styles/ch.vectormap.lightbasemap.json"
+      "https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/style.json"
     );
-    labelSplit = readValue("labelSplit", "Zum Comparison-Modus");
-    labelCompare = readValue("labelCompare", "Zum Split-Modus");
+
+    modeLabels = {
+      normal: readValue("labelNormal", "Zum Normalmodus"),
+      split: readValue("labelSplit", "Zum Split-Modus"),
+      compare: readValue("labelCompare", "Zum Compare-Modus")
+    };
+    initialMode = normalizeMode(readValue("initialMode", "split"));
+    currentMode = initialMode;
+    rootEl.dataset.mode = currentMode;
 
     const view = {
       center: config.center || parseCenter(data.center, [8.7241, 47.4987]),
       zoom: parseNumber(readValue("zoom"), 15),
       bearing: parseNumber(readValue("bearing"), 0),
       pitch: parseNumber(readValue("pitch"), 0),
-      hash: parseBoolean(readValue("hash"), true),
+      hash: false,
       pitchWithRotate: parseBoolean(readValue("pitchWithRotate"), true)
     };
+    hashEnabled = parseBoolean(readValue("hash"), true);
+    if (hashEnabled) {
+      Object.assign(view, readHashView() || {});
+    }
 
     try {
       await baseMap.ensureLibraries(config);
@@ -390,6 +516,14 @@
       return;
     }
 
+    normalMap = await baseMap.createMap({
+      container: "normalMap",
+      styleUrl: styleLeft,
+      attributionControl: false,
+      controls: controlsInteractive,
+      fullscreenContainer: rootEl,
+      ...view
+    });
     beforeMap = await baseMap.createMap({
       container: "before",
       styleUrl: styleLeft,
@@ -401,17 +535,19 @@
       container: "after",
       styleUrl: styleRight,
       attributionControl: false,
-      controls: controlsRight,
+      controls: controlsInteractive,
       fullscreenContainer: rootEl,
       ...view
     });
 
-    if (!beforeMap || !afterMap) {
+    if (!normalMap || !beforeMap || !afterMap) {
       return;
     }
 
-    splitMode = true;
-
+    normalMap.addControl(
+      new maplibregl.AttributionControl({ compact: true }),
+      "bottom-right"
+    );
     beforeMap.addControl(
       new maplibregl.AttributionControl({ compact: true }),
       "bottom-left"
@@ -465,7 +601,7 @@
       container: "cmpMapRight",
       styleUrl: styleRight,
       attributionControl: false,
-      controls: controlsRight,
+      controls: controlsInteractive,
       fullscreenContainer: rootEl,
       ...view
     });
@@ -484,29 +620,54 @@
     );
 
     let syncing = false;
-    const sync = (src) => {
-      if (syncing) {
+    const sync = (src, target) => {
+      if (syncing || !src || !target) {
         return;
       }
       syncing = true;
-      const cfg = {
+      target.jumpTo({
         center: src.getCenter(),
         zoom: src.getZoom(),
         bearing: src.getBearing(),
         pitch: src.getPitch()
-      };
-      (src === cmpLeft ? cmpRight : cmpLeft).jumpTo(cfg);
+      });
       syncing = false;
     };
 
-    cmpLeft.on("move", () => sync(cmpLeft));
-    cmpRight.on("move", () => sync(cmpRight));
+    cmpLeft.on("move", () => sync(cmpLeft, cmpRight));
+    cmpRight.on("move", () => sync(cmpRight, cmpLeft));
 
-    registerGeolocateMirror(afterMap, beforeMap);
-    registerGeolocateMirror(cmpRight, cmpLeft);
+    const allMaps = [normalMap, beforeMap, afterMap, cmpLeft, cmpRight];
+    [normalMap, afterMap, cmpRight].forEach((sourceMap) => {
+      registerGeolocateMirrors(
+        sourceMap,
+        allMaps.filter((map) => map !== sourceMap)
+      );
+    });
+    [normalMap, afterMap, cmpRight].forEach((map) => {
+      map.on("moveend", () => {
+        if (map === getActiveMap()) {
+          updateHash();
+        }
+      });
+    });
+    window.addEventListener("hashchange", () => {
+      if (!hashEnabled) {
+        return;
+      }
+      const hashView = readHashView();
+      if (!hashView) {
+        return;
+      }
+      allMaps.forEach((map) => map.jumpTo(hashView));
+      if (currentMode === "split") {
+        centerSplitSlider();
+      }
+    });
 
+    applyMode(initialMode, { preserveCamera: false });
+    updateHash();
     updateToggleButtons();
-
   };
 
   init();

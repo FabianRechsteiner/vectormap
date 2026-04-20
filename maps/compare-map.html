@@ -4,15 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0b111c" />
-  <title>Style-Vergleich – Vectormap</title>
-  <meta name="description" content="Vergleich von swisstopo Light Base Map und Vectormap im Split- und Comparison-Modus.">
+  <title>Style-Vergleich - Vectormap</title>
+  <meta
+    name="description"
+    content="Vergleich von swisstopo Light Base Map und Vectormap im Normal-, Split- und Compare-Modus."
+  />
 </head>
 <body>
   <div
     id="compare-root"
     aria-label="Kartenvergleich"
-    data-style-left="https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/style.json"
-    data-style-right="../styles/ch.vectormap.lightbasemap.json"
+    data-style-left="../styles/ch.vectormap.lightbasemap.json"
+    data-style-right="https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/style.json"
     data-compare-css="../assets/css/maplibre-gl-compare.css"
     data-compare-js="../assets/js/maplibre-gl-compare.js"
     data-center="8.7241,47.4987"
@@ -21,8 +24,10 @@
     data-pitch="0"
     data-hash="true"
     data-pitch-with-rotate="true"
-    data-label-split="Zum Comparison-Modus"
-    data-label-compare="Zum Split-Modus"
+    data-initial-mode="split"
+    data-label-normal="Zum Normalmodus"
+    data-label-split="Zum Split-Modus"
+    data-label-compare="Zum Compare-Modus"
   ></div>
 
   <script>
@@ -39,7 +44,9 @@
     };
 
     window.vectormapCompareConfig = { containerId: "compare-root" };
-    window.vectormapSearchConfig = { mapContainer: ["after", "cmpMapRight"] };
+    window.vectormapSearchConfig = {
+      mapContainer: ["normalMap", "after", "cmpMapRight"]
+    };
   </script>
   <script src="../assets/js/map-page-pwa.js"></script>
   <script src="../assets/js/modules/base-map.js"></script>
@@ -47,6 +54,6 @@
   <script src="../assets/js/modules/search-map.js"></script>
   <script src="../assets/js/modules/navigation-control.js"></script>
   <script src="../assets/js/modules/geolocate-control.js"></script>
-  <script src="../assets/js/modules/compare-map.js?v=20260416-geolocate-dom-mirror"></script>
+  <script src="../assets/js/modules/compare-map.js?v=20260419-mode-cycle"></script>
 </body>
 </html>
