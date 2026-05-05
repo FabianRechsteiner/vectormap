@@ -14,13 +14,15 @@
     navigation: false,
     geolocate: false,
     scale: false,
-    fullscreen: false
+    fullscreen: false,
+    basemap: false
   };
   const controlsInteractive = {
     navigation: true,
     geolocate: true,
     scale: false,
-    fullscreen: true
+    fullscreen: true,
+    basemap: true
   };
 
   let rootEl = null;
@@ -142,6 +144,36 @@
     if (typeof splitCompare._onResize === "function") {
       splitCompare._onResize();
     }
+    updateSplitPositionVariable();
+  };
+
+  const updateSplitPositionVariable = () => {
+    if (!rootEl || !splitCompare) {
+      return;
+    }
+    const position = Number(splitCompare.currentPosition);
+    if (Number.isFinite(position)) {
+      rootEl.style.setProperty("--vectormap-split-position", `${position}px`);
+    }
+  };
+
+  const bindSplitPositionVariable = () => {
+    if (!splitCompare || typeof splitCompare._setPosition !== "function") {
+      updateSplitPositionVariable();
+      return;
+    }
+    if (splitCompare.__vectormapPositionVariableBound) {
+      updateSplitPositionVariable();
+      return;
+    }
+
+    const originalSetPosition = splitCompare._setPosition.bind(splitCompare);
+    splitCompare._setPosition = (position) => {
+      originalSetPosition(position);
+      updateSplitPositionVariable();
+    };
+    splitCompare.__vectormapPositionVariableBound = true;
+    updateSplitPositionVariable();
   };
 
   const canActivateMode = (mode) => getModeMaps(mode).length > 0;
@@ -384,6 +416,9 @@
       #${rootId}[data-mode="compare"] #cmpContainer {
         display: block;
       }
+      #after .maplibregl-ctrl-bottom-left {
+        left: var(--vectormap-split-position, 50%);
+      }
       /* Keep the shared control rail visually bound to the interactive maps only. */
       #before .maplibregl-ctrl-top-left,
       #before .maplibregl-ctrl-top-right,
@@ -562,6 +597,7 @@
       afterMap,
       "#splitContainer"
     );
+    bindSplitPositionVariable();
 
     let isDragging = false;
     const stopDragging = () => {
