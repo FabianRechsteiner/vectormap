@@ -54,6 +54,14 @@ Examples:
 - Do not assume that a project-local fallback path exists unless it is present in the repository.
 - Do not hardcode user-specific absolute paths in repository guidance.
 
+## Map Demo Structure
+
+- `maps/index.html` is the main Vectormap map and MUST contain the complete current Vectormap feature set.
+- Individual map files in `maps/` should stay focused on one module or one clearly scoped function.
+- When adding a new Vectormap module, update the module-specific map and also integrate the function into `maps/index.html` when it belongs in the complete example.
+- Supplemental or survey-specific maps that are not core Vectormap examples must be kept visibly separate from the regular module examples.
+- The AV-WMS survey map is a supplemental product for the SOGI AV-WMS survey and should not be treated as a regular Vectormap module example.
+
 ## Content Rules (VERY IMPORTANT)
 
 ### Target Audience

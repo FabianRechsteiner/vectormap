@@ -4,16 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0b111c" />
-  <title>Style-Vergleich - Vectormap</title>
+  <title>Hauptkarte - Vectormap</title>
   <meta
     name="description"
-    content="Vergleich von swisstopo Light Base Map und Vectormap im Normal-, Split- und Compare-Modus."
+    content="Vectormap Hauptkarte mit Basemap-Auswahl, Suche, Navigation, Standort, Vollbild und Style-Vergleich."
   />
 </head>
 <body>
   <div
     id="compare-root"
-    aria-label="Kartenvergleich"
+    aria-label="Vectormap Hauptkarte"
     data-style-left="../styles/ch.vectormap.lightbasemap.json"
     data-style-right="https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/style.json"
     data-left-basemap-id="vectormap.light"
@@ -26,16 +26,16 @@
     data-pitch="0"
     data-hash="true"
     data-pitch-with-rotate="true"
-    data-initial-mode="split"
-    data-label-normal="Zum Normalmodus"
-    data-label-split="Zum Split-Modus"
-    data-label-compare="Zum Compare-Modus"
+    data-initial-mode="normal"
+    data-label-normal="Zur Einzelkarte"
+    data-label-split="Zum Split-Vergleich"
+    data-label-compare="Zum Doppelvergleich"
   ></div>
 
   <script>
     window.vectormapMapPwa = {
-      name: "Vectormap Style Vergleich",
-      shortName: "Compare Map"
+      name: "Vectormap Hauptkarte",
+      shortName: "Vectormap"
     };
 
     window.vectormapExampleConfig = {
@@ -46,9 +46,23 @@
     };
 
     window.vectormapCompareConfig = { containerId: "compare-root" };
+    window.vectormapBasemapControlConfig = {
+      initialBasemapId: "vectormap.light",
+      initialNormalBasemapId: "vectormap.light",
+      initialRightBasemapId: "swisstopo.light",
+      position: "bottom-left"
+    };
+    window.vectormapSearchConfig = {
+      mapContainer: ["normalMap", "after", "cmpMapRight"]
+    };
   </script>
   <script src="../assets/js/map-page-pwa.js"></script>
   <script src="../assets/js/modules/base-map.js"></script>
+  <script src="../assets/js/modules/fullscreen-control.js"></script>
+  <script src="../assets/js/modules/navigation-control.js"></script>
+  <script src="../assets/js/modules/geolocate-control.js"></script>
+  <script src="../assets/js/modules/basemap-control.js"></script>
+  <script src="../assets/js/modules/search-map.js"></script>
   <script src="../assets/js/modules/compare-map.js"></script>
 </body>
 </html>

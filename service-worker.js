@@ -1,4 +1,4 @@
-const CACHE_VERSION = "vectormap-v5";
+const CACHE_VERSION = "vectormap-v6";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -10,6 +10,7 @@ const PRECACHE_URLS = [
   "./maps.html",
   "./about.html",
   "./lizenzen.html",
+  "./maps/index.html",
   "./maps/base-map.html",
   "./maps/basemap-control.html",
   "./maps/search-map.html",

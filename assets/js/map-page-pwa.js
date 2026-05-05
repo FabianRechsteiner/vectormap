@@ -8,7 +8,7 @@
   const metadata = window.vectormapMapPwa || {};
   const appName = metadata.name || pageTitle;
   const shortName = metadata.shortName || appName.slice(0, 12);
-  const rootPrefix = path.startsWith("/maps/") ? ".." : ".";
+  const rootPrefix = path.includes("/maps/") ? ".." : ".";
   const iconPath = `${rootPrefix}/assets/images/logo_v.png`;
 
   const manifest = {
