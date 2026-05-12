@@ -82,7 +82,7 @@
     center: Array.isArray(config.center)
       ? config.center
       : [6.0686560550293, 46.2287681654191],
-    zoom: Number.isFinite(config.zoom) ? config.zoom : 16.5,
+    zoom: Number.isFinite(config.zoom) ? config.zoom : 17,
     bearing: Number.isFinite(config.bearing) ? config.bearing : 0,
     pitch: Number.isFinite(config.pitch) ? config.pitch : 0,
     hash: Boolean(config.hash),

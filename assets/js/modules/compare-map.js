@@ -42,6 +42,8 @@
   const toggleButtons = [];
   const geolocateMirrorState = new WeakMap();
   let hashEnabled = true;
+  let splitSyncRafId = 0;
+  let splitDragActive = false;
 
   const normalizeMode = (value, fallback = "split") =>
     modeOrder.includes(value) ? value : fallback;
@@ -141,9 +143,6 @@
       return;
     }
     splitCompare.setSlider(bounds.width / 2);
-    if (typeof splitCompare._onResize === "function") {
-      splitCompare._onResize();
-    }
     updateSplitPositionVariable();
   };
 
@@ -157,22 +156,17 @@
     }
   };
 
-  const bindSplitPositionVariable = () => {
-    if (!splitCompare || typeof splitCompare._setPosition !== "function") {
-      updateSplitPositionVariable();
+  const scheduleSplitPositionSync = () => {
+    if (splitSyncRafId || !window.requestAnimationFrame) {
       return;
     }
-    if (splitCompare.__vectormapPositionVariableBound) {
+    splitSyncRafId = window.requestAnimationFrame(() => {
+      splitSyncRafId = 0;
       updateSplitPositionVariable();
-      return;
-    }
+    });
+  };
 
-    const originalSetPosition = splitCompare._setPosition.bind(splitCompare);
-    splitCompare._setPosition = (position) => {
-      originalSetPosition(position);
-      updateSplitPositionVariable();
-    };
-    splitCompare.__vectormapPositionVariableBound = true;
+  const bindSplitPositionVariable = () => {
     updateSplitPositionVariable();
   };
 
@@ -511,7 +505,7 @@
 
     const view = {
       center: config.center || parseCenter(data.center, [8.7241, 47.4987]),
-      zoom: parseNumber(readValue("zoom"), 15),
+      zoom: parseNumber(readValue("zoom"), 17),
       bearing: parseNumber(readValue("bearing"), 0),
       pitch: parseNumber(readValue("pitch"), 0),
       hash: false,
@@ -598,16 +592,11 @@
       "#splitContainer"
     );
     bindSplitPositionVariable();
+    splitCompare.on("slideend", updateSplitPositionVariable);
 
-    let isDragging = false;
     const stopDragging = () => {
-      isDragging = false;
-      if (splitCompare && typeof splitCompare._onMouseUp === "function") {
-        splitCompare._onMouseUp();
-      }
-      if (splitCompare && typeof splitCompare._onTouchEnd === "function") {
-        splitCompare._onTouchEnd();
-      }
+      splitDragActive = false;
+      updateSplitPositionVariable();
     };
 
     document.addEventListener("mouseup", stopDragging);
@@ -615,14 +604,29 @@
     document.addEventListener("touchcancel", stopDragging);
     window.addEventListener("blur", stopDragging);
     rootEl.addEventListener("mousedown", () => {
-      isDragging = true;
+      splitDragActive = true;
     });
     rootEl.addEventListener("touchstart", () => {
-      isDragging = true;
+      splitDragActive = true;
+    });
+    rootEl.addEventListener("mousemove", () => {
+      if (splitDragActive) {
+        scheduleSplitPositionSync();
+      }
+    });
+    rootEl.addEventListener("touchmove", () => {
+      if (splitDragActive) {
+        scheduleSplitPositionSync();
+      }
     });
     rootEl.addEventListener("selectstart", (event) => {
-      if (isDragging) {
+      if (splitDragActive) {
         event.preventDefault();
+      }
+    });
+    window.addEventListener("resize", () => {
+      if (currentMode === "split") {
+        centerSplitSlider();
       }
     });
 

@@ -10,7 +10,7 @@
     container: "map",
     styleUrl: "../styles/ch.vectormap.lightbasemap.json",
     center: [8.7241, 47.4987],
-    zoom: 15,
+    zoom: 17,
     bearing: 0,
     pitch: 0,
     attributionControl: true,
@@ -229,6 +229,11 @@
     try {
       const resolvedStyleUrl = new URL(styleUrl, window.location.href);
       const response = await fetch(resolvedStyleUrl.toString());
+      if (!response.ok) {
+        throw new Error(
+          `Style request failed (${response.status} ${response.statusText}) for ${resolvedStyleUrl}`
+        );
+      }
       style = sanitizeStyle(await response.json());
     } catch (error) {
       console.error("Style konnte nicht geladen werden.", error);

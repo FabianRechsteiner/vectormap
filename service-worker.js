@@ -1,6 +1,7 @@
 const CACHE_VERSION = "vectormap-v6";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
+const MAX_RUNTIME_ENTRIES = 80;
 
 const PRECACHE_URLS = [
   "./",
@@ -49,6 +50,38 @@ const isAppShellRequest = (request) => {
   );
 };
 
+const shouldCacheRuntime = (request, response, url) => {
+  if (request.method !== "GET" || !response || response.status !== 200) {
+    return false;
+  }
+  if (url.origin !== self.location.origin) {
+    return false;
+  }
+  return (
+    isAppShellRequest(request) ||
+    url.pathname.endsWith(".png") ||
+    url.pathname.endsWith(".jpg") ||
+    url.pathname.endsWith(".jpeg") ||
+    url.pathname.endsWith(".svg") ||
+    url.pathname.endsWith(".webp") ||
+    url.pathname.endsWith(".ico")
+  );
+};
+
+const putRuntimeCache = async (request, response) => {
+  const url = new URL(request.url);
+  if (!shouldCacheRuntime(request, response, url)) {
+    return;
+  }
+  const cache = await caches.open(RUNTIME_CACHE);
+  await cache.put(request, response.clone());
+  const keys = await cache.keys();
+  const overflow = keys.length - MAX_RUNTIME_ENTRIES;
+  if (overflow > 0) {
+    await Promise.all(keys.slice(0, overflow).map((key) => cache.delete(key)));
+  }
+};
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE_URLS))
@@ -82,8 +115,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const responseClone = response.clone();
-          caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, responseClone));
+          event.waitUntil(putRuntimeCache(request, response));
           return response;
         })
         .catch(async () => {
@@ -98,8 +130,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const responseClone = response.clone();
-          caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, responseClone));
+          event.waitUntil(putRuntimeCache(request, response));
           return response;
         })
         .catch(() => caches.match(request))
@@ -114,8 +145,7 @@ self.addEventListener("fetch", (event) => {
           return cached;
         }
         return fetch(request).then((response) => {
-          const responseClone = response.clone();
-          caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, responseClone));
+          event.waitUntil(putRuntimeCache(request, response));
           return response;
         });
       })
