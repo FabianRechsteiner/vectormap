@@ -24,6 +24,7 @@
     geometryFormat: "geojson",
     placeholder: "Adresse oder Ort",
     buttonLabel: "Suche",
+    clearButtonLabel: "Suchmarkierung entfernen",
     labelText: "Suche",
     idleMessage: "Suchbegriff eingeben.",
     loadingMessage: "Suche laeuft...",
@@ -151,6 +152,9 @@
         background-size: 18px 18px;
         background-repeat: no-repeat;
         background-position: center;
+      }
+      .vectormap-search-ctrl.has-selection .vectormap-search-toggle.maplibregl-ctrl-icon {
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f1f1f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='10.5' cy='10.5' r='6.5'/><line x1='18.5' y1='18.5' x2='15.5' y2='15.5'/><circle cx='18.5' cy='6.2' r='3.2' fill='white'/><line x1='16.8' y1='6.2' x2='20.2' y2='6.2' stroke='%23b42318' stroke-width='2.2'/><circle cx='18.5' cy='6.2' r='3.2' stroke='%23b42318' stroke-width='1.2'/></svg>");
       }
       .vectormap-search-dropdown {
         width: min(86vw, 320px);
@@ -792,6 +796,16 @@
     let abortController = null;
     let isOpen = false;
     let lastRendered = [];
+    let hasActiveSelection = false;
+
+    const syncButtonState = () => {
+      container.classList.toggle("has-selection", hasActiveSelection);
+      const label = hasActiveSelection
+        ? settings.clearButtonLabel
+        : settings.buttonLabel;
+      button.setAttribute("aria-label", label);
+      button.setAttribute("title", label);
+    };
 
     const setOpen = (nextOpen) => {
       isOpen = nextOpen;
@@ -807,6 +821,8 @@
         marker.remove();
         marker = null;
       }
+      hasActiveSelection = false;
+      syncButtonState();
     };
 
     const setStatus = (text) => {
@@ -825,6 +841,14 @@
       results.innerHTML = "";
       activeButton = null;
       lastRendered = [];
+    };
+
+    const clearSelectionAndInput = () => {
+      input.value = "";
+      clearResults();
+      clearMarker();
+      setStatus(settings.idleMessage);
+      emitSearchState();
     };
 
     const moveToResult = (result, buttonEl) => {
@@ -910,7 +934,10 @@
 
       if (hasLocation) {
         setStatus(`Auswahl: ${getResultLabel(result)}`);
+        hasActiveSelection = true;
+        syncButtonState();
         emitSearchState();
+        setOpen(false);
       }
     };
 
@@ -1048,10 +1075,11 @@
     button.addEventListener("click", () => {
       if (isOpen) {
         setOpen(false);
-        input.value = "";
-        clearResults();
-        clearMarker();
-        setStatus(settings.idleMessage);
+        clearSelectionAndInput();
+        return;
+      }
+      if (hasActiveSelection) {
+        clearSelectionAndInput();
         return;
       }
       setOpen(true);
@@ -1086,6 +1114,7 @@
 
     setStatus(settings.idleMessage);
     setOpen(false);
+    syncButtonState();
     if (moduleState.searchState.query) {
       input.value = moduleState.searchState.query;
       scheduleSearch(false);
