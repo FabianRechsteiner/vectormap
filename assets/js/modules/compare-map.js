@@ -34,9 +34,9 @@
   let currentMode = "split";
   let initialMode = "split";
   let modeLabels = {
-    normal: "Zum Normalmodus",
-    split: "Zum Split-Modus",
-    compare: "Zum Compare-Modus"
+    normal: "Switch to Normal mode",
+    split: "Switch to Split mode",
+    compare: "Switch to Compare mode"
   };
   let normalMap = null;
   let beforeMap = null;
@@ -498,9 +498,9 @@
     );
 
     modeLabels = {
-      normal: readValue("labelNormal", "Zum Normalmodus"),
-      split: readValue("labelSplit", "Zum Split-Modus"),
-      compare: readValue("labelCompare", "Zum Compare-Modus")
+      normal: readValue("labelNormal", "Switch to Normal mode"),
+      split: readValue("labelSplit", "Switch to Split mode"),
+      compare: readValue("labelCompare", "Switch to Compare mode")
     };
     initialMode = normalizeMode(readValue("initialMode", "split"));
     currentMode = initialMode;

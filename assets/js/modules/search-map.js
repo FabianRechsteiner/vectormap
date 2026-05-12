@@ -22,14 +22,14 @@
     fitDuration: 1200,
     returnGeometry: true,
     geometryFormat: "geojson",
-    placeholder: "Adresse oder Ort",
-    buttonLabel: "Suche",
-    clearButtonLabel: "Suchmarkierung entfernen",
-    labelText: "Suche",
-    idleMessage: "Suchbegriff eingeben.",
-    loadingMessage: "Suche laeuft...",
-    emptyMessage: "Keine Treffer.",
-    errorMessage: "Suche fehlgeschlagen.",
+    placeholder: "Address or place",
+    buttonLabel: "Search",
+    clearButtonLabel: "Remove search marker",
+    labelText: "Search",
+    idleMessage: "Enter a search term.",
+    loadingMessage: "Searching...",
+    emptyMessage: "No results.",
+    errorMessage: "Search failed.",
     markerImage: "../assets/images/logo_v.png",
     markerSize: 34,
     markerAnchor: "bottom",
@@ -283,7 +283,7 @@
     const results = document.createElement("ul");
     results.className = "vectormap-search-results";
     results.setAttribute("role", "listbox");
-    results.setAttribute("aria-label", "Suchergebnisse");
+    results.setAttribute("aria-label", "Search results");
 
     dropdown.append(status, results);
     panel.append(input, dropdown);
@@ -682,8 +682,8 @@
       attrs.label ||
       attrs.name ||
       result?.id ||
-      "Treffer";
-    return normalizeText(label) || "Treffer";
+      "Result";
+    return normalizeText(label) || "Result";
   };
 
   const getResultMeta = (result) => {
@@ -908,7 +908,7 @@
           return;
         }
         clearMarker();
-        setStatus("Keine Koordinaten im Resultat.");
+        setStatus("No coordinates found for this result.");
       };
 
       if (!map.isStyleLoaded()) {
@@ -933,7 +933,7 @@
       }
 
       if (hasLocation) {
-        setStatus(`Auswahl: ${getResultLabel(result)}`);
+        setStatus(`Selected: ${getResultLabel(result)}`);
         hasActiveSelection = true;
         syncButtonState();
         emitSearchState();
@@ -948,7 +948,7 @@
         return [];
       }
       setOpen(true);
-      setStatus(`Treffer: ${items.length}`);
+      setStatus(`Results: ${items.length}`);
       const fragment = document.createDocumentFragment();
       const entries = [];
       items.forEach((item) => {
@@ -1051,7 +1051,7 @@
         if (error.name === "AbortError") {
           return;
         }
-        console.error("Suche fehlgeschlagen.", error);
+        console.error("Search failed.", error);
         lastQuery = "";
         clearResults();
         setStatus(settings.errorMessage);

@@ -17,7 +17,7 @@
     libraryUrl: "https://vectormap.ch/vector-tiles-basemaps/dist/index.js",
     cssUrl: "https://vectormap.ch/vector-tiles-basemaps/dist/style.css",
     position: "bottom-left",
-    label: "Basemap waehlen",
+    label: "Choose basemap",
     groupBy: "provider",
     mapContainerIds: ["map"],
     normalMapContainerIds: ["normalMap"],

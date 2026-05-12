@@ -13,10 +13,10 @@
 
   const settings = {
     position: "top-right",
-    title: "Kartenlink kopieren",
-    copiedTitle: "Link kopiert",
-    sharedTitle: "Teilen geoeffnet",
-    errorTitle: "Kopieren fehlgeschlagen",
+    title: "Copy map link",
+    copiedTitle: "Link copied",
+    sharedTitle: "Share sheet opened",
+    errorTitle: "Copy failed",
     mapContainerIds: ["normalMap", "after", "cmpMapRight"],
     ...(window.vectormapShareControlConfig || {})
   };
@@ -89,7 +89,7 @@
           setFeedback(settings.copiedTitle, "is-success");
           setTimeout(() => button.setAttribute("title", settings.title), 1200);
         } catch (error) {
-          console.error("Link konnte nicht kopiert werden.", error);
+          console.error("Failed to copy link.", error);
           button.setAttribute("title", settings.errorTitle);
           setFeedback(settings.errorTitle, "is-error");
           setTimeout(() => button.setAttribute("title", settings.title), 1600);
