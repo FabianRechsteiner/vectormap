@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
@@ -54,7 +54,7 @@
             <p class="card-text">Einzelkarte mit Suche, Basemap-Auswahl, Standort, Vollbild und Vergleichsmodus.</p>
             <ul class="example-meta">
               <li><strong>URL:</strong> <a href="maps/index.html" target="_blank" rel="noopener">maps/index.html</a></li>
-              <li><strong>Module:</strong> base-map.js + fullscreen-control.js + navigation-control.js + geolocate-control.js + basemap-control.js + search-map.js + compare-map.js</li>
+              <li><strong>Module:</strong> base-map.js + url-state.js + fullscreen-control.js + navigation-control.js + geolocate-control.js + basemap-control.js + share-control.js + search-map.js + compare-map.js</li>
               <li><strong>Styles:</strong> <a href="styles/ch.vectormap.lightbasemap.json" target="_blank" rel="noopener">ch.vectormap.lightbasemap.json</a> / <a href="https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/style.json" target="_blank" rel="noopener">ch.swisstopo.lightbasemap.json</a></li>
             </ul>
           </div>
@@ -93,6 +93,16 @@
             <strong>Basemap-Auswahl</strong>
             <code>basemap-control.js</code>
             <span>Wechsel zwischen Vectormap, swisstopo und weiteren Basemaps.</span>
+          </div>
+          <div class="module-list-row" role="listitem">
+            <strong>URL-State</strong>
+            <code>url-state.js</code>
+            <span>Persistiert Kamera-, Modus-, Such- und Basemap-Zustand in der URL.</span>
+          </div>
+          <div class="module-list-row" role="listitem">
+            <strong>Share</strong>
+            <code>share-control.js</code>
+            <span>Kopiert oder teilt den aktuellen Kartenlink direkt aus der Karte.</span>
           </div>
           <div class="module-list-row" role="listitem">
             <strong>Suche</strong>
@@ -206,7 +216,7 @@
       <div class="site-container">
         <div class="section-heading">
           <h2 class="section-title">Einbindung</h2>
-          <p class="section-lead"><code>base-map.js</code> kommt zuerst. Danach folgen die gewünschten Controls in der Reihenfolge, in der sie innerhalb derselben MapLibre-Position erscheinen sollen. Für ein einzelnes Modul lässt du die übrigen Script-Tags weg.</p>
+          <p class="section-lead"><code>base-map.js</code> kommt zuerst. Danach folgen die gewünschten Controls in der Reihenfolge, in der sie innerhalb derselben MapLibre-Position erscheinen sollen. für ein einzelnes Modul lässt du die übrigen Script-Tags weg.</p>
         </div>
         <pre class="code-block"><code>&lt;div id="map" aria-label="Kartenansicht"&gt;&lt;/div&gt;
 
@@ -223,10 +233,12 @@
 &lt;/script&gt;
 
 &lt;script src="../assets/js/modules/base-map.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/url-state.js"&gt;&lt;/script&gt;
 &lt;script src="../assets/js/modules/fullscreen-control.js"&gt;&lt;/script&gt;
 &lt;script src="../assets/js/modules/navigation-control.js"&gt;&lt;/script&gt;
 &lt;script src="../assets/js/modules/geolocate-control.js"&gt;&lt;/script&gt;
 &lt;script src="../assets/js/modules/basemap-control.js"&gt;&lt;/script&gt;
+&lt;script src="../assets/js/modules/share-control.js"&gt;&lt;/script&gt;
 &lt;script src="../assets/js/modules/search-map.js"&gt;&lt;/script&gt;</code></pre>
       </div>
     </section>
@@ -249,3 +261,4 @@
   <script src="assets/js/pwa-register.js"></script>
 </body>
 </html>
+
