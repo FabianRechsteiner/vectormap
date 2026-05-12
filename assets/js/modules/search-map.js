@@ -1,6 +1,7 @@
 (() => {
   const config = window.vectormapSearchConfig || {};
   const moduleState = window.vectormapModules || {};
+  moduleState.searchState = moduleState.searchState || { query: "" };
   const baseMap = moduleState.baseMap;
 
   const defaults = {
@@ -811,6 +812,14 @@
     const setStatus = (text) => {
       status.textContent = text;
     };
+    const emitSearchState = () => {
+      moduleState.searchState.query = input.value.trim();
+      window.dispatchEvent(
+        new CustomEvent("vectormap:search-change", {
+          detail: { query: moduleState.searchState.query }
+        })
+      );
+    };
 
     const clearResults = () => {
       results.innerHTML = "";
@@ -901,6 +910,7 @@
 
       if (hasLocation) {
         setStatus(`Auswahl: ${getResultLabel(result)}`);
+        emitSearchState();
       }
     };
 
@@ -959,6 +969,7 @@
         lastQuery = "";
         clearResults();
         setStatus(settings.idleMessage);
+        emitSearchState();
         return;
       }
       if (trimmed === lastQuery) {
@@ -1048,6 +1059,7 @@
     input.addEventListener("focus", () => setOpen(true));
     input.addEventListener("input", () => {
       setOpen(true);
+      emitSearchState();
       scheduleSearch(false);
     });
     input.addEventListener("keydown", (event) => {
@@ -1074,6 +1086,10 @@
 
     setStatus(settings.idleMessage);
     setOpen(false);
+    if (moduleState.searchState.query) {
+      input.value = moduleState.searchState.query;
+      scheduleSearch(false);
+    }
 
     return control;
   };

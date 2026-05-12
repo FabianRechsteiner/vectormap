@@ -91,6 +91,15 @@
   let syncSequence = 0;
 
   const controlsByMap = new WeakMap();
+  moduleState.basemapState = moduleState.basemapState || {};
+  moduleState.basemapState.getActiveBasemapId = () => activeRightBasemapId;
+  moduleState.basemapState.getActiveNormalBasemapId = () => activeNormalBasemapId;
+  moduleState.basemapState.getActiveDefaultBasemapId = () => activeDefaultBasemapId;
+  moduleState.basemapState.setActiveBasemapId = (value) => {
+    if (typeof value === "string" && value.trim()) {
+      activeRightBasemapId = value.trim();
+    }
+  };
 
   const getContainerId = (map) => map?.getContainer?.()?.id || "";
   const isDefaultMap = (map) => mapContainerIds.has(getContainerId(map));
@@ -174,6 +183,11 @@
           activeDefaultBasemapId = nextBasemapId;
         }
 
+        window.dispatchEvent(
+          new CustomEvent("vectormap:basemap-change", {
+            detail: { basemapId: nextBasemapId }
+          })
+        );
         config.onBasemapChange?.(event);
       }
     });

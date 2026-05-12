@@ -1,6 +1,7 @@
 (() => {
   const config = window.vectormapCompareConfig || {};
   const moduleState = window.vectormapModules || {};
+  moduleState.searchState = moduleState.searchState || { query: "" };
   const baseMap = moduleState.baseMap;
 
   if (!baseMap) {
@@ -10,19 +11,23 @@
 
   const rootId = config.containerId || "compare-root";
   const modeOrder = ["normal", "split", "compare"];
-  const controlsLeft = {
+  let controlsLeft = {
     navigation: false,
     geolocate: false,
     scale: false,
     fullscreen: false,
-    basemap: false
+    basemap: false,
+    search: false,
+    share: false
   };
-  const controlsInteractive = {
+  let controlsInteractive = {
     navigation: true,
     geolocate: true,
     scale: false,
     fullscreen: true,
-    basemap: true
+    basemap: true,
+    search: true,
+    share: true
   };
 
   let rootEl = null;
@@ -41,7 +46,7 @@
   let splitCompare = null;
   const toggleButtons = [];
   const geolocateMirrorState = new WeakMap();
-  let hashEnabled = true;
+  let stateEnabled = true;
   let splitSyncRafId = 0;
   let splitDragActive = false;
 
@@ -89,48 +94,45 @@
     };
   };
 
-  const readHashView = () => {
-    const value = window.location.hash.replace(/^#/, "");
-    if (!value) {
-      return null;
+  const parseControlState = (visibleControls = []) => {
+    const nextLeft = { ...controlsLeft };
+    const nextInteractive = { ...controlsInteractive };
+    const valid = new Set(
+      (Array.isArray(visibleControls) ? visibleControls : [])
+        .filter((item) => typeof item === "string")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    );
+    if (!valid.size) {
+      return;
     }
-
-    const parts = value.split("/").map((item) => Number(item));
-    if (parts.length < 3 || parts.some((item) => !Number.isFinite(item))) {
-      return null;
-    }
-
-    const [zoom, lat, lng, bearing = 0, pitch = 0] = parts;
-    return {
-      center: [lng, lat],
-      zoom,
-      bearing,
-      pitch
-    };
+    Object.keys(nextInteractive).forEach((key) => {
+      nextInteractive[key] = valid.has(key);
+    });
+    Object.keys(nextLeft).forEach((key) => {
+      nextLeft[key] = false;
+    });
+    controlsLeft = nextLeft;
+    controlsInteractive = nextInteractive;
   };
 
-  const formatHashView = (map) => {
-    if (!map) {
-      return "";
-    }
-    const center = map.getCenter();
-    const zoom = map.getZoom();
-    const bearing = map.getBearing();
-    const pitch = map.getPitch();
-    return `#${zoom.toFixed(2)}/${center.lat.toFixed(5)}/${center.lng.toFixed(5)}/${bearing.toFixed(2)}/${pitch.toFixed(2)}`;
-  };
+  const getVisibleControls = () =>
+    Object.keys(controlsInteractive).filter((key) => controlsInteractive[key]);
 
-  const updateHash = () => {
-    if (!hashEnabled) {
+  const updateUrlState = () => {
+    if (!stateEnabled || !moduleState.urlState) {
       return;
     }
     const activeMap = getActiveMap();
-    const nextHash = formatHashView(activeMap);
-    if (!nextHash || window.location.hash === nextHash) {
-      return;
-    }
-    const nextUrl = `${window.location.pathname}${window.location.search}${nextHash}`;
-    window.history.replaceState(null, "", nextUrl);
+    const camera = moduleState.urlState.cameraFromMap(activeMap);
+    const basemapId = moduleState.basemapState?.getActiveBasemapId?.() || null;
+    moduleState.urlState.replaceUrl({
+      camera,
+      basemapId,
+      visibleControls: getVisibleControls(),
+      mode: currentMode,
+      searchQuery: moduleState.searchState?.query || null
+    });
   };
 
   const centerSplitSlider = () => {
@@ -210,6 +212,7 @@
     if (currentMode === "split") {
       centerSplitSlider();
     }
+    updateUrlState();
   };
 
   const toggleMode = () => {
@@ -511,9 +514,22 @@
       hash: false,
       pitchWithRotate: parseBoolean(readValue("pitchWithRotate"), true)
     };
-    hashEnabled = parseBoolean(readValue("hash"), true);
-    if (hashEnabled) {
-      Object.assign(view, readHashView() || {});
+    stateEnabled = parseBoolean(readValue("hash"), true);
+    if (stateEnabled && moduleState.urlState) {
+      const parsedState = moduleState.urlState.parse(window.location.search);
+      if (parsedState.camera) {
+        Object.assign(view, parsedState.camera);
+      }
+      if (parsedState.mode) {
+        initialMode = normalizeMode(parsedState.mode, initialMode);
+      }
+      if (parsedState.basemapId) {
+        moduleState.basemapState?.setActiveBasemapId?.(parsedState.basemapId);
+      }
+      if (parsedState.searchQuery) {
+        moduleState.searchState.query = parsedState.searchQuery;
+      }
+      parseControlState(parsedState.visibleControls);
     }
 
     try {
@@ -687,26 +703,19 @@
     [normalMap, afterMap, cmpRight].forEach((map) => {
       map.on("moveend", () => {
         if (map === getActiveMap()) {
-          updateHash();
+          updateUrlState();
         }
       });
     });
-    window.addEventListener("hashchange", () => {
-      if (!hashEnabled) {
-        return;
-      }
-      const hashView = readHashView();
-      if (!hashView) {
-        return;
-      }
-      allMaps.forEach((map) => map.jumpTo(hashView));
-      if (currentMode === "split") {
-        centerSplitSlider();
-      }
+    window.addEventListener("vectormap:basemap-change", () => {
+      updateUrlState();
+    });
+    window.addEventListener("vectormap:search-change", () => {
+      updateUrlState();
     });
 
     applyMode(initialMode, { preserveCamera: false });
-    updateHash();
+    updateUrlState();
     updateToggleButtons();
   };
 
