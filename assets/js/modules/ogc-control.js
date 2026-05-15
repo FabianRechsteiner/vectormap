@@ -15,12 +15,12 @@
     position: "top-right",
     managerPosition: "top-left",
     mapContainerIds: ["normalMap", "after", "cmpMapRight"],
-    title: "OGC-Layer hinzufuegen",
+    title: "OGC-Layer hinzufügen",
     panelTitle: "Geodaten suchen",
     searchPlaceholder: "Suchbegriff oder WMS/WMTS-URL",
     searchButtonLabel: "Katalog suchen",
     addServiceButtonLabel: "Dienst laden",
-    addLayerButtonLabel: "Layer hinzufuegen",
+    addLayerButtonLabel: "Layer hinzufügen",
     requestTimeoutMs: 12000,
     searchDebounceMs: 400,
     maxCatalogResults: 15,
@@ -184,10 +184,10 @@
       if (xml.querySelector("Capabilities, wmts\\:Capabilities")) {
         return { serviceType: "WMTS", layers: extractWmtsLayers(xml) };
       }
-      throw new Error("Kein gueltiges WMS/WMTS GetCapabilities.");
+      throw new Error("Kein gültiges WMS/WMTS GetCapabilities.");
     } catch (error) {
       if (error?.name === "AbortError") {
-        throw new Error("Zeitueberschreitung beim Laden des Dienstes.");
+        throw new Error("Zeitüberschreitung beim Laden des Dienstes.");
       }
       if (/Failed to fetch/i.test(String(error?.message || ""))) {
         throw new Error("Netzwerk- oder CORS-Fehler beim Dienst.");
@@ -196,19 +196,41 @@
     }
   };
 
+  const detectServiceType = (url) => {
+    const text = String(url || "");
+    if (/service=WMS/i.test(text) || /\/wms\b/i.test(text)) {
+      return "WMS";
+    }
+    if (/service=WMTS/i.test(text) || /WMTSCapabilities\.xml/i.test(text) || /\/wmts\b/i.test(text)) {
+      return "WMTS";
+    }
+    if (/service=WFS/i.test(text) || /\/wfs\b/i.test(text)) {
+      return "WFS";
+    }
+    return "OGC";
+  };
+  const pickRecordExtent = (src) => {
+    const candidate = src?.geom?.[0] || src?.shape || null;
+    if (!candidate?.type || !candidate?.coordinates) {
+      return null;
+    }
+    return { type: candidate.type, coordinates: candidate.coordinates };
+  };
   const extractCapabilitiesCandidates = (record) => {
     const links = Array.isArray(record?.links) ? record.links : [];
     return links
-      .map((x) => String(x || ""))
+      .map((x) => String(x?.url || x || ""))
       .filter((url) => /^https?:\/\//i.test(url))
-      .filter(
-        (url) =>
-          /GetCapabilities/i.test(url) ||
-          /service=WMS/i.test(url) ||
-          /service=WMTS/i.test(url) ||
-          /WMTSCapabilities\.xml/i.test(url)
-      );
+      .map((url) => ({ url, serviceType: detectServiceType(url) }))
+      .filter((link, idx, all) => all.findIndex((x) => x.url === link.url) === idx);
   };
+  const pickLoadableCandidate = (candidates) =>
+    candidates.find(
+      (link) =>
+        link.serviceType === "WMS" ||
+        link.serviceType === "WMTS" ||
+        /GetCapabilities/i.test(link.url)
+    ) || null;
   const buildMetadataUrl = (id) => {
     const clean = safeText(id);
     return clean ? `https://www.geocat.ch/datahub/dataset/${encodeURIComponent(clean)}` : "";
@@ -349,9 +371,16 @@
           safeText(src?.resourceAbstractObject?.default) ||
           safeText(src?.abstract) ||
           safeText(src?.description),
-        organization: safeText(src?.OrgForResource || src?.orgName || src?.organisation),
+        organization: safeText(
+          src?.OrgForResource ||
+            src?.orgName ||
+            src?.organisation ||
+            src?.contactOrg ||
+            src?.ownername
+        ),
         metadataUrl: buildMetadataUrl(id),
-        links
+        links,
+        extentGeometry: pickRecordExtent(src)
       };
     });
     return mapped.filter((record) => extractCapabilitiesCandidates(record).length > 0);
@@ -594,30 +623,34 @@
       .vectormap-ogc-ctrl { position: relative; display: block; margin-bottom: 8px; }
       .vectormap-ogc-toggle.maplibregl-ctrl-icon { position: relative; background-image: none; }
       .vectormap-ogc-toggle.maplibregl-ctrl-icon::after { content: ""; position: absolute; inset: 6px; background: center/14px 14px no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2317302a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='6'/><path d='M20 20l-4-4'/></svg>"); }
-      .vectormap-ogc-panel { position: absolute; right: calc(100% + 10px); top: -1px; width: min(92vw, 480px); max-height: min(74vh, 700px); overflow: auto; display: none; z-index: 3; border: 1px solid rgba(0,0,0,.12); border-radius: 12px; background: rgba(255,255,255,.98); box-shadow: 0 16px 30px rgba(0,0,0,.2); padding: 12px; }
+      .vectormap-ogc-panel { position: absolute; right: calc(100% + 10px); top: -1px; width: min(90vw, 440px); max-height: min(74vh, 700px); overflow: hidden; display: none; z-index: 3; border: 1px solid rgba(0,0,0,.12); border-radius: 12px; background: rgba(255,255,255,.82); backdrop-filter: blur(3px); box-shadow: 0 16px 30px rgba(0,0,0,.2); padding: 10px; }
       .vectormap-ogc-ctrl.is-open .vectormap-ogc-panel { display: block; }
-      .vectormap-ogc-row { display: grid; grid-template-columns: 1fr auto auto; gap: 7px; margin: 8px 0; }
+      .vectormap-ogc-body { display: flex; flex-direction: column; gap: 6px; height: 100%; max-height: calc(min(74vh, 700px) - 20px); }
+      .vectormap-ogc-search-top { flex: 0 0 auto; }
+      .vectormap-ogc-service-results { flex: 1 1 auto; min-height: 120px; overflow: auto; padding-right: 2px; }
+      .vectormap-ogc-row { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; margin: 6px 0; }
       .vectormap-ogc-input { min-width: 0; height: 34px; border: 1px solid #b8d4cb; border-radius: 9px; padding: 0 10px; font: 13px/1.2 "Segoe UI", Arial, sans-serif; }
-      .vectormap-ogc-btn { height: 34px; border-radius: 9px; border: 1px solid #8cc9c4; background: #fff; color: #0f4e4b; padding: 0 10px; font: 600 12px/1 "Segoe UI", Arial, sans-serif; cursor: pointer; }
+      .vectormap-ogc-btn { height: 34px; border-radius: 9px; border: 1px solid #8cc9c4; background: #fff; color: #0f4e4b; padding: 0 10px; font: 600 12px/1.2 "Segoe UI", Arial, sans-serif; cursor: pointer; width: auto; min-width: 0; }
       .vectormap-ogc-btn--primary { background: #fff; border-color: #8cc9c4; color: #0f4e4b; }
       .vectormap-ogc-options { display: flex; gap: 8px; margin-top: 6px; align-items: center; flex-wrap: wrap; }
       .vectormap-ogc-options label { display: inline-flex; align-items: center; gap: 6px; font: 12px/1.2 "Segoe UI", Arial, sans-serif; color: #2f5f55; }
       .vectormap-ogc-status { margin-top: 8px; font: 12px/1.3 "Segoe UI", Arial, sans-serif; color: #2f5f55; }
-      .vectormap-ogc-list { display: grid; gap: 8px; margin: 8px 0; }
-      .vectormap-ogc-item { border: 1px solid #d2e7df; border-radius: 10px; background: #fff; padding: 8px; }
+      .vectormap-ogc-list { display: grid; gap: 6px; margin: 6px 0; }
+      .vectormap-ogc-item { border: 1px solid #d2e7df; border-radius: 10px; background: rgba(255,255,255,.9); padding: 7px; transition: border-color .15s ease, box-shadow .15s ease; }
+      .vectormap-ogc-item:hover { border-color: #4ea48f; box-shadow: 0 0 0 1px rgba(78,164,143,.35); }
       .vectormap-ogc-title { font: 700 12px/1.3 "Segoe UI", Arial, sans-serif; color: #103a31; }
       .vectormap-ogc-meta { margin-top: 3px; color: #4d6e63; font: 11px/1.35 "Segoe UI", Arial, sans-serif; }
       .vectormap-ogc-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+      .vectormap-ogc-actions .vectormap-ogc-btn { height: 38px; padding: 0 12px; font: 600 13px/1.2 "Segoe UI", Arial, sans-serif; white-space: nowrap; width: fit-content; min-width: max-content; flex: 0 0 auto; }
       .vectormap-ogc-tag { display: inline-block; margin-top: 6px; padding: 2px 7px; border-radius: 999px; background: #ecf7f3; color: #24584b; font: 600 10px/1.2 "Segoe UI", Arial, sans-serif; }
-      .vectormap-ogc-manager { min-width: 250px; max-width: 340px; max-height: 42vh; overflow: auto; padding: 8px; background: rgba(255,255,255,.96); }
-      .vectormap-ogc-manager-title { margin: 0 0 6px; font: 700 12px/1.2 "Segoe UI", Arial, sans-serif; color: #153e34; }
-      .vectormap-ogc-chip { display: grid; grid-template-columns: 1fr auto auto auto; gap: 6px; align-items: center; border: 1px solid #d7e8e1; border-radius: 8px; padding: 5px 6px; background: #fff; }
-      .vectormap-ogc-chip[draggable='true'] { cursor: grab; }
-      .vectormap-ogc-chip.is-dragging { opacity: .6; }
-      .vectormap-ogc-chip.is-drop-target { outline: 2px dashed #4ea48f; outline-offset: 1px; }
-      .vectormap-ogc-chip span { font: 12px/1.2 "Segoe UI", Arial, sans-serif; color: #173e35; }
-      .vectormap-ogc-chip button { width: 28px; height: 24px; border: 1px solid #bad8cf; border-radius: 6px; background: #fff; color: #1b584c; cursor: pointer; font: 600 10px/1 "Segoe UI", Arial, sans-serif; }
-      .vectormap-ogc-chip input[type='range'] { grid-column: 1 / -1; width: 100%; accent-color: #00a7b3; }
+      .vectormap-ogc-services { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+      .vectormap-ogc-service-badge { border-radius: 999px; padding: 2px 8px; font: 600 10px/1.2 "Segoe UI", Arial, sans-serif; border: 1px solid #b7d8cf; background: #f0faf6; color: #1f5b4d; }
+      .vectormap-ogc-active { flex: 0 0 auto; margin-top: 2px; border-top: 1px solid rgba(0,0,0,.08); padding-top: 8px; }
+      .vectormap-ogc-active-title { margin: 0 0 5px; font: 700 12px/1.2 "Segoe UI", Arial, sans-serif; color: #153e34; }
+      .vectormap-ogc-layer-row { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: center; border: 1px solid #d7e8e1; border-radius: 8px; padding: 4px 6px; background: rgba(255,255,255,.92); }
+      .vectormap-ogc-layer-row span { font: 12px/1.2 "Segoe UI", Arial, sans-serif; color: #173e35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .vectormap-ogc-layer-row button { width: 28px; height: 24px; border: 1px solid #bad8cf; border-radius: 6px; background: #fff; color: #1b584c; cursor: pointer; font: 600 10px/1 "Segoe UI", Arial, sans-serif; }
+      .vectormap-ogc-layer-row input[type='range'] { grid-column: 1 / -1; width: 100%; accent-color: #00a7b3; }
       @media (max-width: 760px) {
         .vectormap-ogc-panel { position: fixed; right: 10px; left: 10px; top: 66px; width: auto; max-height: 72vh; }
         .vectormap-ogc-row { grid-template-columns: 1fr; }
@@ -648,6 +681,8 @@
     let activeSearchController = null;
     let isPanelOpen = false;
     let maybeAutoRefresh = () => {};
+    let renderActiveLayers = () => {};
+    let clearHoverGeometry = () => {};
     return ({
     onAdd(map) {
       const root = document.createElement("div");
@@ -661,21 +696,31 @@
       const panel = document.createElement("div");
       panel.className = "vectormap-ogc-panel";
       panel.innerHTML = `
-        <div class="vectormap-ogc-head">
-          <h4>${safeText(settings.panelTitle)}</h4>
-          <p style="margin:4px 0 0;font:12px/1.3 'Segoe UI',Arial,sans-serif;color:#36554b;">Suche in geocat.ch oder lade eine WMS/WMTS-URL direkt.</p>
+        <div class="vectormap-ogc-body">
+          <div class="vectormap-ogc-search-top">
+            <div class="vectormap-ogc-head">
+              <h4>${safeText(settings.panelTitle)}</h4>
+              <p style="margin:4px 0 0;font:12px/1.3 'Segoe UI',Arial,sans-serif;color:#36554b;">Suche in geocat.ch oder lade eine WMS/WMTS-URL direkt.</p>
+            </div>
+            <div class="vectormap-ogc-row">
+              <input type="text" class="vectormap-ogc-input" placeholder="${safeText(settings.searchPlaceholder)}" />
+              <button type="button" class="vectormap-ogc-btn vectormap-ogc-btn--primary vectormap-ogc-search">In geocat suchen</button>
+              <button type="button" class="vectormap-ogc-btn vectormap-ogc-add-service">GetCapabilities laden</button>
+            </div>
+            <div class="vectormap-ogc-options">
+              <label><input type="checkbox" class="vectormap-ogc-use-bbox" /> Nur aktueller Kartenausschnitt</label>
+            </div>
+            <div class="vectormap-ogc-status">Bereit.</div>
+          </div>
+          <div class="vectormap-ogc-service-results">
+            <div class="vectormap-ogc-list vectormap-ogc-records"></div>
+            <div class="vectormap-ogc-list vectormap-ogc-layers"></div>
+          </div>
+          <div class="vectormap-ogc-active">
+            <div class="vectormap-ogc-active-title">Aktive Layer</div>
+            <div class="vectormap-ogc-list vectormap-ogc-active-layers"></div>
+          </div>
         </div>
-        <div class="vectormap-ogc-row">
-          <input type="text" class="vectormap-ogc-input" placeholder="${safeText(settings.searchPlaceholder)}" />
-          <button type="button" class="vectormap-ogc-btn vectormap-ogc-btn--primary vectormap-ogc-search">${safeText(settings.searchButtonLabel)}</button>
-          <button type="button" class="vectormap-ogc-btn vectormap-ogc-add-service">${safeText(settings.addServiceButtonLabel)}</button>
-        </div>
-        <div class="vectormap-ogc-options">
-          <label><input type="checkbox" class="vectormap-ogc-use-bbox" /> Nur aktueller Kartenausschnitt</label>
-        </div>
-        <div class="vectormap-ogc-status">Bereit.</div>
-        <div class="vectormap-ogc-list vectormap-ogc-records"></div>
-        <div class="vectormap-ogc-list vectormap-ogc-layers"></div>
       `;
 
       const inputEl = panel.querySelector(".vectormap-ogc-input");
@@ -685,9 +730,103 @@
       const bboxEl = panel.querySelector(".vectormap-ogc-use-bbox");
       const recordsEl = panel.querySelector(".vectormap-ogc-records");
       const layersEl = panel.querySelector(".vectormap-ogc-layers");
+      const activeEl = panel.querySelector(".vectormap-ogc-active-layers");
+      const hoverSourceId = `ogc-hover-src-${mapId(map) || "map"}`;
+      const hoverFillLayerId = `ogc-hover-fill-${mapId(map) || "map"}`;
+      const hoverLayerId = `ogc-hover-lyr-${mapId(map) || "map"}`;
       const setStatus = (text) => {
         statusEl.textContent = text;
       };
+      const ensureHoverLayer = () => {
+        if (!map.getSource(hoverSourceId)) {
+          map.addSource(hoverSourceId, {
+            type: "geojson",
+            data: { type: "FeatureCollection", features: [] }
+          });
+        }
+        if (!map.getLayer(hoverFillLayerId)) {
+          map.addLayer({
+            id: hoverFillLayerId,
+            type: "fill",
+            source: hoverSourceId,
+            paint: {
+              "fill-color": "#1e9f6e",
+              "fill-opacity": 0.18
+            }
+          });
+        }
+        if (!map.getLayer(hoverLayerId)) {
+          map.addLayer({
+            id: hoverLayerId,
+            type: "line",
+            source: hoverSourceId,
+            paint: {
+              "line-color": "#0d8d73",
+              "line-width": 2,
+              "line-opacity": 0.9
+            }
+          });
+        }
+      };
+      clearHoverGeometry = () => {
+        const source = map.getSource(hoverSourceId);
+        if (source) {
+          source.setData({ type: "FeatureCollection", features: [] });
+        }
+      };
+      const showHoverGeometry = (geometry) => {
+        if (!geometry) {
+          clearHoverGeometry();
+          return;
+        }
+        ensureHoverLayer();
+        const source = map.getSource(hoverSourceId);
+        source?.setData({
+          type: "FeatureCollection",
+          features: [{ type: "Feature", geometry, properties: {} }]
+        });
+      };
+      renderActiveLayers = () => {
+        activeEl.innerHTML = "";
+        const overlays = ogcState.getOverlays().filter((overlay) => isOverlayOnMap(overlay, map));
+        if (!overlays.length) {
+          const empty = document.createElement("div");
+          empty.className = "vectormap-ogc-meta";
+          empty.textContent = "Keine aktiven Layer.";
+          activeEl.appendChild(empty);
+          return;
+        }
+        overlays.forEach((overlay) => {
+          const row = document.createElement("div");
+          row.className = "vectormap-ogc-layer-row";
+          const label = document.createElement("span");
+          label.textContent = overlay.title || overlay.layerId;
+          const toggleBtn = document.createElement("button");
+          toggleBtn.type = "button";
+          toggleBtn.title = overlay.visible ? "Layer ausblenden" : "Layer einblenden";
+          toggleBtn.textContent = overlay.visible ? "AN" : "AUS";
+          toggleBtn.addEventListener("click", () => ogcState.updateOverlayVisibility(overlay.id, !overlay.visible));
+          const removeBtn = document.createElement("button");
+          removeBtn.type = "button";
+          removeBtn.title = "Layer entfernen";
+          removeBtn.textContent = "×";
+          removeBtn.addEventListener("click", () => ogcState.removeOverlay(overlay.id));
+          const opacity = document.createElement("input");
+          opacity.type = "range";
+          opacity.min = "0";
+          opacity.max = "1";
+          opacity.step = "0.05";
+          opacity.value = String(normalizeOpacity(overlay.opacity));
+          opacity.title = "Transparenz";
+          opacity.addEventListener("pointerdown", (event) => event.stopPropagation());
+          opacity.addEventListener("touchstart", (event) => event.stopPropagation(), { passive: true });
+          opacity.addEventListener("input", () => ogcState.updateOverlayOpacity(overlay.id, opacity.value));
+          row.append(label, toggleBtn, removeBtn, opacity);
+          activeEl.appendChild(row);
+        });
+      };
+      renderActiveLayers();
+      window.addEventListener("vectormap:ogc-overlays-change", renderActiveLayers);
       const addOverlay = (layer, capabilitiesUrl, metadataUrl) => {
         ogcState.addOverlay(overlayFromLayer(layer, capabilitiesUrl, metadataUrl, map));
       };
@@ -696,17 +835,17 @@
         layersEl.innerHTML = "";
         const summary = document.createElement("div");
         summary.className = "vectormap-ogc-meta";
-        summary.textContent = `${parsed.layers.length} Layer verfuegbar (${parsed.serviceType}).`;
+        summary.textContent = `${parsed.layers.length} Layer verfügbar (${parsed.serviceType}).`;
         layersEl.appendChild(summary);
         const actions = document.createElement("div");
         actions.className = "vectormap-ogc-actions";
         const addAll = document.createElement("button");
         addAll.type = "button";
         addAll.className = "vectormap-ogc-btn";
-        addAll.textContent = "Dienst hinzufuegen";
+        addAll.textContent = "Alle Layer hinzufügen";
         addAll.addEventListener("click", () => {
           parsed.layers.forEach((layer) => addOverlay(layer, capabilitiesUrl, metadataUrl));
-          setStatus(`${parsed.layers.length} Layer hinzugefuegt.`);
+          setStatus(`${parsed.layers.length} Layer hinzugefügt.`);
         });
         actions.appendChild(addAll);
         layersEl.appendChild(actions);
@@ -724,11 +863,11 @@
           actionsRow.className = "vectormap-ogc-actions";
           const one = document.createElement("button");
           one.type = "button";
-          one.className = "vectormap-ogc-btn";
-          one.textContent = safeText(settings.addLayerButtonLabel);
-          one.addEventListener("click", () => {
-            addOverlay(layer, capabilitiesUrl, metadataUrl);
-            setStatus(`Hinzugefuegt: ${layer.title || layer.layerId}`);
+            one.className = "vectormap-ogc-btn";
+            one.textContent = safeText(settings.addLayerButtonLabel);
+            one.addEventListener("click", () => {
+              addOverlay(layer, capabilitiesUrl, metadataUrl);
+            setStatus(`Hinzugefügt: ${layer.title || layer.layerId}`);
           });
           actionsRow.appendChild(one);
           item.append(title, meta, actionsRow);
@@ -739,7 +878,7 @@
       const loadCapabilities = async (url, metadataUrl = "") => {
         const capUrl = safeText(url);
         if (!capUrl) {
-          setStatus("Bitte gueltige Service-URL eingeben.");
+          setStatus("Bitte gültige Service-URL eingeben.");
           return;
         }
         layersEl.innerHTML = "";
@@ -764,8 +903,8 @@
         if (!records.length) {
           setStatus(
             context.useMapBbox
-              ? "Keine OGC-faehigen Datensaetze im aktuellen Kartenausschnitt gefunden."
-              : "Keine OGC-faehigen Datensaetze gefunden."
+              ? "Keine OGC-fähigen Datensätze im aktuellen Kartenausschnitt gefunden."
+              : "Keine OGC-fähigen Datensätze gefunden."
           );
           return;
         }
@@ -774,6 +913,7 @@
           if (!candidates.length) {
             return;
           }
+          const loadable = pickLoadableCandidate(candidates);
           const item = document.createElement("div");
           item.className = "vectormap-ogc-item";
           const title = document.createElement("div");
@@ -781,27 +921,47 @@
           title.textContent = record.title || "Ohne Titel";
           const meta = document.createElement("div");
           meta.className = "vectormap-ogc-meta";
-          meta.textContent = [record.organization, record.abstract].filter(Boolean).join(" | ");
+          meta.textContent = [record.organization ? `Herausgeber: ${record.organization}` : "", record.abstract]
+            .filter(Boolean)
+            .join(" | ");
           const tag = document.createElement("span");
           tag.className = "vectormap-ogc-tag";
           tag.textContent = `${candidates.length} Service-Link${candidates.length > 1 ? "s" : ""}`;
+          const services = document.createElement("div");
+          services.className = "vectormap-ogc-services";
+          [...new Set(candidates.map((x) => x.serviceType))].forEach((serviceType) => {
+            const badge = document.createElement("span");
+            badge.className = "vectormap-ogc-service-badge";
+            badge.textContent = serviceType;
+            services.appendChild(badge);
+          });
           const actions = document.createElement("div");
           actions.className = "vectormap-ogc-actions";
 
           const list = document.createElement("button");
           list.type = "button";
           list.className = "vectormap-ogc-btn";
-          list.textContent = "Layer anzeigen";
-          list.addEventListener("click", () => void loadCapabilities(candidates[0], record.metadataUrl));
+          list.textContent = "Layer prüfen";
+          list.disabled = !loadable;
+          list.addEventListener("click", () => {
+            if (loadable) {
+              void loadCapabilities(loadable.url, record.metadataUrl);
+            }
+          });
           const addService = document.createElement("button");
           addService.type = "button";
           addService.className = "vectormap-ogc-btn";
-          addService.textContent = "Dienst hinzufuegen";
+          addService.textContent = "Alle Layer hinzufügen";
+          addService.disabled = !loadable;
           addService.addEventListener("click", async () => {
+            if (!loadable) {
+              setStatus("Für diesen Dienst ist aktuell nur die Typ-Erkennung verfügbar.");
+              return;
+            }
             try {
-              const parsed = await parseCapabilities(candidates[0]);
-              parsed.layers.forEach((layer) => addOverlay(layer, candidates[0], record.metadataUrl));
-              setStatus(`${parsed.layers.length} Layer hinzugefuegt.`);
+              const parsed = await parseCapabilities(loadable.url);
+              parsed.layers.forEach((layer) => addOverlay(layer, loadable.url, record.metadataUrl));
+              setStatus(`${parsed.layers.length} Layer hinzugefügt.`);
             } catch (error) {
               console.error(error);
               setStatus(`Dienstfehler: ${error.message}`);
@@ -819,10 +979,12 @@
             }
           });
           actions.append(list, addService, metaBtn);
-          item.append(title, meta, tag, actions);
+          item.append(title, meta, tag, services, actions);
+          item.addEventListener("mouseenter", () => showHoverGeometry(record.extentGeometry));
+          item.addEventListener("mouseleave", clearHoverGeometry);
           recordsEl.appendChild(item);
         });
-        setStatus(`${records.length} OGC-faehige Datensaetze gefunden.`);
+        setStatus(`${records.length} OGC-fähige Datensätze gefunden.`);
       };
 
       const runSearch = async (opts = {}) => {
@@ -839,7 +1001,7 @@
         const useMapBbox = Boolean(bboxEl?.checked);
         const isAuto = opts.trigger === "auto";
         if (!isAuto) {
-          setStatus("Suche in geocat.ch laeuft...");
+          setStatus("Suche in geocat.ch läuft...");
         }
         if (activeSearchController) {
           activeSearchController.abort();
@@ -882,7 +1044,7 @@
       const runManualAdd = async () => {
         const url = safeText(inputEl.value);
         if (!/^https?:\/\//i.test(url)) {
-          setStatus("Bitte gueltige WMS/WMTS-URL eingeben.");
+          setStatus("Bitte gültige WMS/WMTS-URL eingeben.");
           return;
         }
         recordsEl.innerHTML = "";
@@ -935,111 +1097,12 @@
       if (activeSearchController) {
         activeSearchController.abort();
       }
+      window.removeEventListener("vectormap:ogc-overlays-change", renderActiveLayers);
+      clearHoverGeometry();
       map?.off?.("moveend", maybeAutoRefresh);
       map?.off?.("zoomend", maybeAutoRefresh);
     }
   });
-  };
-
-  const createManagerControl = () => {
-    let dragId = null;
-    return {
-      onAdd() {
-        const root = document.createElement("div");
-        root.className = "maplibregl-ctrl maplibregl-ctrl-group vectormap-ogc-manager";
-        const title = document.createElement("div");
-        title.className = "vectormap-ogc-manager-title";
-        title.textContent = "Hinzugefuegte Layer";
-        const list = document.createElement("div");
-        list.style.display = "grid";
-        list.style.gap = "6px";
-
-        const render = () => {
-          list.innerHTML = "";
-          ogcState.overlays.forEach((overlay) => {
-            const row = document.createElement("div");
-            row.className = "vectormap-ogc-chip";
-            row.setAttribute("draggable", "true");
-            row.dataset.overlayId = overlay.id;
-            const label = document.createElement("span");
-            label.textContent = overlay.title || overlay.layerId;
-            const toggle = document.createElement("button");
-            toggle.type = "button";
-            toggle.title = overlay.visible ? "Layer ausblenden" : "Layer einblenden";
-            toggle.textContent = overlay.visible ? "ON" : "OFF";
-            toggle.addEventListener("click", () => ogcState.updateOverlayVisibility(overlay.id, !overlay.visible));
-            const info = document.createElement("button");
-            info.type = "button";
-            info.title = "Metadaten";
-            info.textContent = "i";
-            info.disabled = !overlay.metadataUrl;
-            info.addEventListener("click", () => {
-              if (overlay.metadataUrl) {
-                window.open(overlay.metadataUrl, "_blank", "noopener");
-              }
-            });
-            const remove = document.createElement("button");
-            remove.type = "button";
-            remove.title = "Layer entfernen";
-            remove.textContent = "x";
-            remove.addEventListener("click", () => ogcState.removeOverlay(overlay.id));
-            const opacity = document.createElement("input");
-            opacity.type = "range";
-            opacity.min = "0";
-            opacity.max = "1";
-            opacity.step = "0.05";
-            opacity.value = String(normalizeOpacity(overlay.opacity));
-            opacity.title = "Transparenz";
-            opacity.addEventListener("mousedown", (event) => event.stopPropagation());
-            opacity.addEventListener("input", () => ogcState.updateOverlayOpacity(overlay.id, opacity.value));
-
-            row.addEventListener("dragstart", (event) => {
-              if (event.target?.tagName === "INPUT") {
-                event.preventDefault();
-                return;
-              }
-              dragId = overlay.id;
-              row.classList.add("is-dragging");
-            });
-            row.addEventListener("dragend", () => {
-              row.classList.remove("is-dragging");
-              [...list.children].forEach((child) => child.classList.remove("is-drop-target"));
-            });
-            row.addEventListener("dragover", (event) => {
-              event.preventDefault();
-              if (overlay.id !== dragId) {
-                row.classList.add("is-drop-target");
-              }
-            });
-            row.addEventListener("dragleave", () => row.classList.remove("is-drop-target"));
-            row.addEventListener("drop", (event) => {
-              event.preventDefault();
-              row.classList.remove("is-drop-target");
-              if (!dragId || dragId === overlay.id) {
-                return;
-              }
-              const ids = ogcState.overlays.map((x) => x.id);
-              const from = ids.indexOf(dragId);
-              const to = ids.indexOf(overlay.id);
-              if (from < 0 || to < 0) {
-                return;
-              }
-              ids.splice(to, 0, ids.splice(from, 1)[0]);
-              ogcState.reorderOverlays(ids);
-            });
-
-            row.append(label, toggle, info, remove, opacity);
-            list.appendChild(row);
-          });
-        };
-
-        render();
-        window.addEventListener("vectormap:ogc-overlays-change", render);
-        root.append(title, list);
-        return root;
-      },
-      onRemove() {}
-    };
   };
 
   const appliesTo = (map) => targetIds.has(mapId(map));
@@ -1049,12 +1112,6 @@
     position: settings.position,
     applyTo: appliesTo,
     create: createSearchControl
-  });
-  baseMap.registerControl({
-    key: "ogc-overlays",
-    position: settings.managerPosition,
-    applyTo: appliesTo,
-    create: createManagerControl
   });
 
   restoreOverlaysFromUrl();
