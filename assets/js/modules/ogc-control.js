@@ -1,4 +1,4 @@
-(() => {
+﻿(() => {
   const config = window.vectormapOgcControlConfig || {};
   const moduleState = (window.vectormapModules = window.vectormapModules || {});
   const baseMap = moduleState.baseMap;
@@ -27,7 +27,8 @@
     maxLayerResults: 120,
     geocat: {
       enabled: true,
-      searchEndpoint: "https://www.geocat.ch/geonetwork/srv/api/search/records/_search"
+      searchEndpoint: "https://www.geocat.ch/geonetwork/srv/api/search/records/_search",
+      groupEndpoint: "https://www.geocat.ch/geonetwork/srv/api/groups"
     }
   };
 
@@ -44,6 +45,43 @@
       .filter(Boolean)
   );
   const safeText = (v) => String(v || "").replace(/\s+/g, " ").trim();
+  const sanitizeHtml = (input) => {
+    const raw = String(input || "");
+    if (!raw) {
+      return "";
+    }
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(`<div>${raw}</div>`, "text/html");
+    const allowedTags = new Set(["B", "STRONG", "I", "EM", "U", "P", "BR", "UL", "OL", "LI", "A"]);
+    const walker = document.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT);
+    const remove = [];
+    while (walker.nextNode()) {
+      const el = walker.currentNode;
+      if (!allowedTags.has(el.tagName)) {
+        remove.push(el);
+        continue;
+      }
+      [...el.attributes].forEach((attr) => {
+        const name = attr.name.toLowerCase();
+        if (el.tagName === "A" && (name === "href" || name === "target" || name === "rel")) {
+          return;
+        }
+        el.removeAttribute(attr.name);
+      });
+      if (el.tagName === "A") {
+        const href = el.getAttribute("href") || "";
+        if (!/^https?:\/\//i.test(href)) {
+          el.removeAttribute("href");
+        } else {
+          el.setAttribute("target", "_blank");
+          el.setAttribute("rel", "noopener");
+        }
+      }
+    }
+    remove.forEach((el) => el.replaceWith(...el.childNodes));
+    return doc.body.innerHTML;
+  };
+  const groupNameCache = new Map();
   const normalizeOpacity = (v) => {
     const n = Number(v);
     if (!Number.isFinite(n)) {
@@ -342,6 +380,37 @@
       }
     };
   };
+  const resolveGroupOwnerName = async (groupOwnerId) => {
+    const id = safeText(groupOwnerId);
+    if (!id) {
+      return "";
+    }
+    if (groupNameCache.has(id)) {
+      return groupNameCache.get(id);
+    }
+    try {
+      const endpoint = `${String(settings.geocat.groupEndpoint || "").replace(/\/+$/, "")}/${encodeURIComponent(id)}`;
+      const res = await fetchWithTimeout(endpoint, {
+        headers: { accept: "application/json" }
+      });
+      if (!res.ok) {
+        groupNameCache.set(id, id);
+        return id;
+      }
+      const data = await res.json();
+      const name =
+        safeText(data?.label?.ger) ||
+        safeText(data?.label?.deu) ||
+        safeText(data?.label?.default) ||
+        safeText(data?.name) ||
+        id;
+      groupNameCache.set(id, name);
+      return name;
+    } catch (error) {
+      groupNameCache.set(id, id);
+      return id;
+    }
+  };
 
   const discoverGeocat = async (query, map, options = {}) => {
     const q = safeText(query);
@@ -403,6 +472,10 @@
           safeText(src?.resourceAbstractObject?.default) ||
           safeText(src?.abstract) ||
           safeText(src?.description),
+        abstractHtml:
+          String(src?.resourceAbstractObject?.default || "") ||
+          String(src?.abstract || "") ||
+          String(src?.description || ""),
         organization: safeText(
           src?.OrgForResource ||
             src?.orgName ||
@@ -411,12 +484,25 @@
             src?.ownername
         ),
         groupOwner: safeText(src?.groupOwner),
+        groupOwnerName: "",
         metadataUrl: buildMetadataUrl(id),
         links,
         extentGeometry: pickRecordExtent(src)
       };
     });
-    return mapped.filter((record) => extractCapabilitiesCandidates(record).length > 0);
+    const ownerIds = [...new Set(mapped.map((r) => safeText(r.groupOwner)).filter(Boolean))];
+    const ownerNameMap = new Map();
+    await Promise.all(
+      ownerIds.map(async (id) => {
+        ownerNameMap.set(id, await resolveGroupOwnerName(id));
+      })
+    );
+    return mapped
+      .map((record) => ({
+        ...record,
+        groupOwnerName: ownerNameMap.get(record.groupOwner) || record.groupOwner || ""
+      }))
+      .filter((record) => extractCapabilitiesCandidates(record).length > 0);
   };
 
   const buildWmsTileUrl = (overlay) => {
@@ -680,10 +766,14 @@
       .vectormap-ogc-service-badge { border-radius: 999px; padding: 2px 8px; font: 600 10px/1.2 "Segoe UI", Arial, sans-serif; border: 1px solid #b7d8cf; background: #f0faf6; color: #1f5b4d; }
       .vectormap-ogc-active { flex: 0 0 auto; margin-top: 2px; border-top: 1px solid rgba(0,0,0,.08); padding-top: 8px; }
       .vectormap-ogc-active-title { margin: 0 0 5px; font: 700 12px/1.2 "Segoe UI", Arial, sans-serif; color: #153e34; }
-      .vectormap-ogc-layer-row { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: center; border: 1px solid #d7e8e1; border-radius: 8px; padding: 4px 6px; background: rgba(255,255,255,.92); }
-      .vectormap-ogc-layer-row span { font: 12px/1.2 "Segoe UI", Arial, sans-serif; color: #173e35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .vectormap-ogc-layer-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 6px; align-items: center; border: 1px solid #d7e8e1; border-radius: 8px; padding: 4px 6px; background: rgba(255,255,255,.92); cursor: grab; }
+      .vectormap-ogc-layer-row.is-dragging { opacity: .6; }
+      .vectormap-ogc-layer-row.is-drop-target { outline: 2px dashed #4ea48f; outline-offset: 1px; }
+      .vectormap-ogc-layer-main { display: grid; grid-template-columns: minmax(0,1fr) 88px; gap: 6px; align-items: center; min-width: 0; }
+      .vectormap-ogc-layer-main span { font: 12px/1.2 "Segoe UI", Arial, sans-serif; color: #173e35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .vectormap-ogc-layer-row button { width: 28px; height: 24px; border: 1px solid #bad8cf; border-radius: 6px; background: #fff; color: #1b584c; cursor: pointer; font: 600 10px/1 "Segoe UI", Arial, sans-serif; }
-      .vectormap-ogc-layer-row input[type='range'] { grid-column: 1 / -1; width: 100%; accent-color: #00a7b3; }
+      .vectormap-ogc-layer-row input[type='range'] { width: 88px; accent-color: #00a7b3; }
+      .vectormap-ogc-info-popover { position: absolute; z-index: 5; max-width: 280px; background: rgba(255,255,255,.97); border: 1px solid #c7dfd7; border-radius: 8px; box-shadow: 0 8px 18px rgba(0,0,0,.16); padding: 8px; font: 12px/1.35 "Segoe UI", Arial, sans-serif; color: #1e453b; display: none; }
       @media (max-width: 760px) {
         .vectormap-ogc-panel { position: fixed; right: 10px; left: 10px; top: 66px; width: auto; max-height: 72vh; }
         .vectormap-ogc-row { grid-template-columns: 1fr; }
@@ -692,7 +782,7 @@
     document.head.appendChild(style);
   };
 
-  const overlayFromLayer = (layer, capabilitiesUrl, metadataUrl, map) => ({
+  const overlayFromLayer = (layer, capabilitiesUrl, metadataUrl, map, metadata = {}) => ({
     id: `ogc-${hashString(`${safeText(layer.serviceType).toUpperCase()}|${normalizeCapabilitiesUrl(capabilitiesUrl || "")}|${safeText(layer.layerId).toLowerCase()}`)}`,
     title: layer.title || layer.layerId,
     metadataUrl: safeText(metadataUrl || ""),
@@ -704,6 +794,9 @@
     tileTemplate: layer.tileTemplate || "",
     tileMatrixSet: layer.tileMatrixSet || "3857",
     targetContainerIds: [mapId(map)].filter(Boolean),
+    organization: safeText(metadata.organization || ""),
+    groupOwner: safeText(metadata.groupOwner || ""),
+    abstractHtml: String(metadata.abstractHtml || ""),
     opacity: 1,
     visible: true
   });
@@ -817,6 +910,27 @@
           features: [{ type: "Feature", geometry, properties: {} }]
         });
       };
+      const infoPopover = document.createElement("div");
+      infoPopover.className = "vectormap-ogc-info-popover";
+      panel.appendChild(infoPopover);
+      const openInfoPopover = (overlay, anchor) => {
+        const html = sanitizeHtml(overlay.abstractHtml || "");
+        infoPopover.innerHTML = `
+          <div><strong>${safeText(overlay.title || overlay.layerId)}</strong></div>
+          <div>Herausgeber: ${safeText(overlay.organization || "-")}</div>
+          <div>Katalog: ${safeText(overlay.groupOwner || "-")}</div>
+          ${html ? `<div style="margin-top:6px">${html}</div>` : ""}
+        `;
+        const panelRect = panel.getBoundingClientRect();
+        const anchorRect = anchor.getBoundingClientRect();
+        infoPopover.style.left = `${Math.max(8, anchorRect.left - panelRect.left - 210)}px`;
+        infoPopover.style.top = `${Math.max(8, anchorRect.top - panelRect.top + 26)}px`;
+        infoPopover.style.display = "block";
+      };
+      const closeInfoPopover = () => {
+        infoPopover.style.display = "none";
+        infoPopover.innerHTML = "";
+      };
       renderActiveLayers = () => {
         activeEl.innerHTML = "";
         const overlays = ogcState.getOverlays().filter((overlay) => isOverlayOnMap(overlay, map));
@@ -827,21 +941,16 @@
           activeEl.appendChild(empty);
           return;
         }
+        let dragId = null;
         overlays.forEach((overlay) => {
           const row = document.createElement("div");
           row.className = "vectormap-ogc-layer-row";
+          row.setAttribute("draggable", "true");
+          row.dataset.overlayId = overlay.id;
+          const main = document.createElement("div");
+          main.className = "vectormap-ogc-layer-main";
           const label = document.createElement("span");
           label.textContent = overlay.title || overlay.layerId;
-          const toggleBtn = document.createElement("button");
-          toggleBtn.type = "button";
-          toggleBtn.title = overlay.visible ? "Layer ausblenden" : "Layer einblenden";
-          toggleBtn.textContent = overlay.visible ? "AN" : "AUS";
-          toggleBtn.addEventListener("click", () => ogcState.updateOverlayVisibility(overlay.id, !overlay.visible));
-          const removeBtn = document.createElement("button");
-          removeBtn.type = "button";
-          removeBtn.title = "Layer entfernen";
-          removeBtn.textContent = "×";
-          removeBtn.addEventListener("click", () => ogcState.removeOverlay(overlay.id));
           const opacity = document.createElement("input");
           opacity.type = "range";
           opacity.min = "0";
@@ -852,14 +961,75 @@
           opacity.addEventListener("pointerdown", (event) => event.stopPropagation());
           opacity.addEventListener("touchstart", (event) => event.stopPropagation(), { passive: true });
           opacity.addEventListener("input", () => ogcState.updateOverlayOpacity(overlay.id, opacity.value));
-          row.append(label, toggleBtn, removeBtn, opacity);
+          main.append(label, opacity);
+          const toggleBtn = document.createElement("button");
+          toggleBtn.type = "button";
+          toggleBtn.title = overlay.visible ? "Layer ausblenden" : "Layer einblenden";
+          toggleBtn.textContent = overlay.visible ? "AN" : "AUS";
+          toggleBtn.addEventListener("pointerdown", (event) => event.stopPropagation());
+          toggleBtn.addEventListener("click", () => ogcState.updateOverlayVisibility(overlay.id, !overlay.visible));
+          const infoBtn = document.createElement("button");
+          infoBtn.type = "button";
+          infoBtn.title = "Information";
+          infoBtn.textContent = "i";
+          infoBtn.disabled = !overlay.metadataUrl && !overlay.abstractHtml;
+          infoBtn.addEventListener("pointerdown", (event) => event.stopPropagation());
+          infoBtn.addEventListener("mouseenter", () => openInfoPopover(overlay, infoBtn));
+          infoBtn.addEventListener("mouseleave", closeInfoPopover);
+          infoBtn.addEventListener("click", () => {
+            if (overlay.metadataUrl) {
+              window.open(overlay.metadataUrl, "_blank", "noopener");
+            }
+          });
+          const removeBtn = document.createElement("button");
+          removeBtn.type = "button";
+          removeBtn.title = "Layer entfernen";
+          removeBtn.textContent = "×";
+          removeBtn.addEventListener("pointerdown", (event) => event.stopPropagation());
+          removeBtn.addEventListener("click", () => ogcState.removeOverlay(overlay.id));
+          row.addEventListener("dragstart", (event) => {
+            if (["BUTTON", "INPUT"].includes(event.target?.tagName)) {
+              event.preventDefault();
+              return;
+            }
+            dragId = overlay.id;
+            row.classList.add("is-dragging");
+          });
+          row.addEventListener("dragend", () => {
+            row.classList.remove("is-dragging");
+            [...activeEl.children].forEach((child) => child.classList.remove("is-drop-target"));
+          });
+          row.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            if (dragId && dragId !== overlay.id) {
+              row.classList.add("is-drop-target");
+            }
+          });
+          row.addEventListener("dragleave", () => row.classList.remove("is-drop-target"));
+          row.addEventListener("drop", (event) => {
+            event.preventDefault();
+            row.classList.remove("is-drop-target");
+            if (!dragId || dragId === overlay.id) {
+              return;
+            }
+            const ids = overlays.map((x) => x.id);
+            const from = ids.indexOf(dragId);
+            const to = ids.indexOf(overlay.id);
+            if (from < 0 || to < 0) {
+              return;
+            }
+            ids.splice(to, 0, ids.splice(from, 1)[0]);
+            ogcState.reorderOverlays(ids);
+          });
+          row.append(main, toggleBtn, infoBtn, removeBtn);
           activeEl.appendChild(row);
         });
       };
       renderActiveLayers();
       window.addEventListener("vectormap:ogc-overlays-change", renderActiveLayers);
-      const addOverlay = (layer, capabilitiesUrl, metadataUrl) => {
-        ogcState.addOverlay(overlayFromLayer(layer, capabilitiesUrl, metadataUrl, map));
+      let activeRecordMetadata = {};
+      const addOverlay = (layer, capabilitiesUrl, metadataUrl, metadata = activeRecordMetadata) => {
+        ogcState.addOverlay(overlayFromLayer(layer, capabilitiesUrl, metadataUrl, map, metadata || {}));
       };
 
       const renderLayerList = (parsed, capabilitiesUrl, metadataUrl) => {
@@ -968,7 +1138,7 @@
           title.textContent = record.title || "Ohne Titel";
           const meta = document.createElement("div");
           meta.className = "vectormap-ogc-meta";
-          meta.textContent = [record.organization ? `Herausgeber: ${record.organization}` : "", `GroupOwner: ${record.groupOwner || "unbekannt"}`, record.abstract]
+          meta.textContent = [record.organization ? `Herausgeber: ${record.organization}` : "", `Katalog: ${record.groupOwnerName || record.groupOwner || "unbekannt"}`, record.abstract]
             .filter(Boolean)
             .join(" | ");
           const tag = document.createElement("span");
@@ -992,6 +1162,11 @@
           list.disabled = !loadable;
           list.addEventListener("click", () => {
             if (loadable) {
+              activeRecordMetadata = {
+                organization: record.organization,
+                groupOwner: record.groupOwnerName || record.groupOwner,
+                abstractHtml: record.abstractHtml
+              };
               void loadCapabilities(loadable.url, record.metadataUrl);
             }
           });
