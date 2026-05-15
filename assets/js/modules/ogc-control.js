@@ -57,6 +57,15 @@
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "")
       .slice(0, 54) || "ogc-layer";
+  const hashString = (value) => {
+    const input = String(value || "");
+    let hash = 2166136261;
+    for (let i = 0; i < input.length; i += 1) {
+      hash ^= input.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(36);
+  };
   const toBase64 = (value) => btoa(unescape(encodeURIComponent(value)));
   const fromBase64 = (value) => decodeURIComponent(escape(atob(value)));
 
@@ -102,6 +111,19 @@
     } catch (error) {
       return String(url || "");
     }
+  };
+  const looksLikeCapabilitiesInput = (value) => {
+    const raw = safeText(value);
+    if (!raw || !/^https?:\/\//i.test(raw)) {
+      return false;
+    }
+    return (
+      /getcapabilities/i.test(raw) ||
+      /service=(wms|wmts|wfs)/i.test(raw) ||
+      /wms\b/i.test(raw) ||
+      /wmts\b/i.test(raw) ||
+      /WMTSCapabilities\.xml/i.test(raw)
+    );
   };
   const toServiceBaseUrl = (url) => {
     try {
@@ -628,7 +650,7 @@
       .vectormap-ogc-body { display: flex; flex-direction: column; gap: 6px; height: 100%; max-height: calc(min(74vh, 700px) - 20px); }
       .vectormap-ogc-search-top { flex: 0 0 auto; }
       .vectormap-ogc-service-results { flex: 1 1 auto; min-height: 120px; overflow: auto; padding-right: 2px; }
-      .vectormap-ogc-row { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; margin: 6px 0; }
+      .vectormap-ogc-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; margin: 6px 0; }
       .vectormap-ogc-input { min-width: 0; height: 34px; border: 1px solid #b8d4cb; border-radius: 9px; padding: 0 10px; font: 13px/1.2 "Segoe UI", Arial, sans-serif; }
       .vectormap-ogc-btn { height: 34px; border-radius: 9px; border: 1px solid #8cc9c4; background: #fff; color: #0f4e4b; padding: 0 10px; font: 600 12px/1.2 "Segoe UI", Arial, sans-serif; cursor: pointer; width: auto; min-width: 0; }
       .vectormap-ogc-btn--primary { background: #fff; border-color: #8cc9c4; color: #0f4e4b; }
@@ -660,7 +682,7 @@
   };
 
   const overlayFromLayer = (layer, capabilitiesUrl, metadataUrl, map) => ({
-    id: slug(`${layer.serviceType}|${capabilitiesUrl}|${layer.layerId}`),
+    id: `ogc-${hashString(`${safeText(layer.serviceType).toUpperCase()}|${normalizeCapabilitiesUrl(capabilitiesUrl || "")}|${safeText(layer.layerId).toLowerCase()}`)}`,
     title: layer.title || layer.layerId,
     metadataUrl: safeText(metadataUrl || ""),
     serviceType: layer.serviceType,
@@ -704,8 +726,7 @@
             </div>
             <div class="vectormap-ogc-row">
               <input type="text" class="vectormap-ogc-input" placeholder="${safeText(settings.searchPlaceholder)}" />
-              <button type="button" class="vectormap-ogc-btn vectormap-ogc-btn--primary vectormap-ogc-search">In geocat suchen</button>
-              <button type="button" class="vectormap-ogc-btn vectormap-ogc-add-service">GetCapabilities laden</button>
+              <button type="button" class="vectormap-ogc-btn vectormap-ogc-btn--primary vectormap-ogc-search">Suchen</button>
             </div>
             <div class="vectormap-ogc-options">
               <label><input type="checkbox" class="vectormap-ogc-use-bbox" /> Nur aktueller Kartenausschnitt</label>
@@ -725,7 +746,6 @@
 
       const inputEl = panel.querySelector(".vectormap-ogc-input");
       const searchBtn = panel.querySelector(".vectormap-ogc-search");
-      const addBtn = panel.querySelector(".vectormap-ogc-add-service");
       const statusEl = panel.querySelector(".vectormap-ogc-status");
       const bboxEl = panel.querySelector(".vectormap-ogc-use-bbox");
       const recordsEl = panel.querySelector(".vectormap-ogc-records");
@@ -1041,14 +1061,18 @@
         }
         scheduleSearch({ trigger: "auto" });
       };
-      const runManualAdd = async () => {
-        const url = safeText(inputEl.value);
-        if (!/^https?:\/\//i.test(url)) {
-          setStatus("Bitte gültige WMS/WMTS-URL eingeben.");
+      const runPrimaryAction = async (opts = {}) => {
+        const value = safeText(inputEl.value);
+        if (!value) {
+          setStatus("Bitte Suchbegriff eingeben.");
           return;
         }
-        recordsEl.innerHTML = "";
-        await loadCapabilities(url);
+        if (looksLikeCapabilitiesInput(value)) {
+          recordsEl.innerHTML = "";
+          await loadCapabilities(value);
+          return;
+        }
+        await runSearch(opts);
       };
 
       toggle.addEventListener("click", () => {
@@ -1071,18 +1095,13 @@
           scheduleSearch({ trigger: "auto" });
         }
       });
-      searchBtn.addEventListener("click", () => void runSearch());
-      addBtn.addEventListener("click", () => void runManualAdd());
+      searchBtn.addEventListener("click", () => void runPrimaryAction());
       inputEl.addEventListener("keydown", (event) => {
         if (event.key !== "Enter") {
           return;
         }
         event.preventDefault();
-        if (/^https?:\/\//i.test(safeText(inputEl.value))) {
-          void runManualAdd();
-        } else {
-          void runSearch();
-        }
+        void runPrimaryAction();
       });
       map.on("moveend", maybeAutoRefresh);
       map.on("zoomend", maybeAutoRefresh);
@@ -1118,3 +1137,4 @@
   window.addEventListener("vectormap:maps-ready", applyAll);
   window.setTimeout(applyAll, 1200);
 })();
+
