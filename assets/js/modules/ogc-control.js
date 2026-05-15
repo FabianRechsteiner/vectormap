@@ -157,6 +157,11 @@
     });
     return out.slice(0, settings.maxLayerResults);
   };
+  const extractWmsServiceLayerId = (xml) =>
+    safeText(
+      xml.querySelector("Capability > Layer > Name, WMS_Capabilities > Capability > Layer > Name")
+        ?.textContent || ""
+    );
 
   const extractWmtsLayers = (xml) => {
     const nodes = [...xml.querySelectorAll("Contents > Layer, wmts\\:Contents > wmts\\:Layer")];
@@ -201,7 +206,11 @@
       }
       const xml = parseXml(await res.text());
       if (xml.querySelector("WMS_Capabilities, WMT_MS_Capabilities")) {
-        return { serviceType: "WMS", layers: extractWmsLayers(xml) };
+        return {
+          serviceType: "WMS",
+          layers: extractWmsLayers(xml),
+          serviceLayerId: extractWmsServiceLayerId(xml)
+        };
       }
       if (xml.querySelector("Capabilities, wmts\\:Capabilities")) {
         return { serviceType: "WMTS", layers: extractWmtsLayers(xml) };
@@ -244,6 +253,7 @@
       .map((x) => String(x?.url || x || ""))
       .filter((url) => /^https?:\/\//i.test(url))
       .map((url) => ({ url, serviceType: detectServiceType(url) }))
+      .filter((link) => link.serviceType === "WMS")
       .filter((link, idx, all) => all.findIndex((x) => x.url === link.url) === idx);
   };
   const pickLoadableCandidate = (candidates) =>
@@ -400,6 +410,7 @@
             src?.contactOrg ||
             src?.ownername
         ),
+        groupOwner: safeText(src?.groupOwner),
         metadataUrl: buildMetadataUrl(id),
         links,
         extentGeometry: pickRecordExtent(src)
@@ -859,15 +870,30 @@
         layersEl.appendChild(summary);
         const actions = document.createElement("div");
         actions.className = "vectormap-ogc-actions";
-        const addAll = document.createElement("button");
-        addAll.type = "button";
-        addAll.className = "vectormap-ogc-btn";
-        addAll.textContent = "Alle Layer hinzufügen";
-        addAll.addEventListener("click", () => {
-          parsed.layers.forEach((layer) => addOverlay(layer, capabilitiesUrl, metadataUrl));
-          setStatus(`${parsed.layers.length} Layer hinzugefügt.`);
+        const addServiceLayer = document.createElement("button");
+        addServiceLayer.type = "button";
+        addServiceLayer.className = "vectormap-ogc-btn";
+        addServiceLayer.textContent = "Dienst hinzufügen";
+        addServiceLayer.disabled = !(parsed.serviceType === "WMS" && safeText(parsed.serviceLayerId));
+        addServiceLayer.addEventListener("click", () => {
+          const serviceLayerId = safeText(parsed.serviceLayerId);
+          if (!serviceLayerId) {
+            setStatus("Für diesen Dienst ist kein WMS-Dienstname verfügbar.");
+            return;
+          }
+          addOverlay(
+            {
+              serviceType: "WMS",
+              layerId: serviceLayerId,
+              title: `WMS-Dienst (${serviceLayerId})`,
+              format: "image/png"
+            },
+            capabilitiesUrl,
+            metadataUrl
+          );
+          setStatus(`Dienst hinzugefügt: ${serviceLayerId}`);
         });
-        actions.appendChild(addAll);
+        actions.appendChild(addServiceLayer);
         layersEl.appendChild(actions);
 
         parsed.layers.forEach((layer) => {
@@ -901,6 +927,7 @@
           setStatus("Bitte gültige Service-URL eingeben.");
           return;
         }
+        recordsEl.innerHTML = "";
         layersEl.innerHTML = "";
         setStatus("Lade GetCapabilities...");
         try {
@@ -941,7 +968,7 @@
           title.textContent = record.title || "Ohne Titel";
           const meta = document.createElement("div");
           meta.className = "vectormap-ogc-meta";
-          meta.textContent = [record.organization ? `Herausgeber: ${record.organization}` : "", record.abstract]
+          meta.textContent = [record.organization ? `Herausgeber: ${record.organization}` : "", `GroupOwner: ${record.groupOwner || "unbekannt"}`, record.abstract]
             .filter(Boolean)
             .join(" | ");
           const tag = document.createElement("span");
@@ -968,26 +995,6 @@
               void loadCapabilities(loadable.url, record.metadataUrl);
             }
           });
-          const addService = document.createElement("button");
-          addService.type = "button";
-          addService.className = "vectormap-ogc-btn";
-          addService.textContent = "Alle Layer hinzufügen";
-          addService.disabled = !loadable;
-          addService.addEventListener("click", async () => {
-            if (!loadable) {
-              setStatus("Für diesen Dienst ist aktuell nur die Typ-Erkennung verfügbar.");
-              return;
-            }
-            try {
-              const parsed = await parseCapabilities(loadable.url);
-              parsed.layers.forEach((layer) => addOverlay(layer, loadable.url, record.metadataUrl));
-              setStatus(`${parsed.layers.length} Layer hinzugefügt.`);
-            } catch (error) {
-              console.error(error);
-              setStatus(`Dienstfehler: ${error.message}`);
-            }
-          });
-
           const metaBtn = document.createElement("button");
           metaBtn.type = "button";
           metaBtn.className = "vectormap-ogc-btn";
@@ -998,7 +1005,7 @@
               window.open(record.metadataUrl, "_blank", "noopener");
             }
           });
-          actions.append(list, addService, metaBtn);
+          actions.append(list, metaBtn);
           item.append(title, meta, tag, services, actions);
           item.addEventListener("mouseenter", () => showHoverGeometry(record.extentGeometry));
           item.addEventListener("mouseleave", clearHoverGeometry);
@@ -1137,4 +1144,10 @@
   window.addEventListener("vectormap:maps-ready", applyAll);
   window.setTimeout(applyAll, 1200);
 })();
+
+
+
+
+
+
 
