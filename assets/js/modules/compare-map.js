@@ -131,7 +131,8 @@
       basemapId,
       visibleControls: getVisibleControls(),
       mode: currentMode,
-      searchQuery: moduleState.searchState?.query || null
+      searchQuery: moduleState.searchState?.query || null,
+      overlayIds: moduleState.ogcState?.serializeOverlayIds?.() || []
     });
   };
 
@@ -218,6 +219,10 @@
   const toggleMode = () => {
     applyMode(getNextMode(currentMode));
   };
+
+  moduleState.compareState = moduleState.compareState || {};
+  moduleState.compareState.getMode = () => currentMode;
+  moduleState.compareState.getActiveMap = () => getActiveMap();
 
   const toLngLat = (position) => {
     const coords = position?.coords || position;
@@ -713,10 +718,20 @@
     window.addEventListener("vectormap:search-change", () => {
       updateUrlState();
     });
+    window.addEventListener("vectormap:ogc-overlays-change", () => {
+      updateUrlState();
+    });
 
     applyMode(initialMode, { preserveCamera: false });
     updateUrlState();
     updateToggleButtons();
+    window.dispatchEvent(
+      new CustomEvent("vectormap:maps-ready", {
+        detail: {
+          maps: allMaps.map((m) => m?.getContainer?.()?.id).filter(Boolean)
+        }
+      })
+    );
   };
 
   init();
