@@ -14,8 +14,8 @@
     bearing: 0,
     pitch: 0,
     attributionControl: true,
-    maplibreCss: "https://unpkg.com/maplibre-gl@5.23.0/dist/maplibre-gl.css",
-    maplibreJs: "https://unpkg.com/maplibre-gl@5.23.0/dist/maplibre-gl.js",
+    maplibreCss: "https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css",
+    maplibreJs: "https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js",
     pmtilesJs: "https://unpkg.com/pmtiles@4.4.1/dist/pmtiles.js"
   };
 
