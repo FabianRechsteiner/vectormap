@@ -3,6 +3,11 @@
   const moduleState = window.vectormapModules || {};
   moduleState.searchState = moduleState.searchState || { query: "" };
   const baseMap = moduleState.baseMap;
+  const moduleUrl = document.currentScript?.src || window.location.href;
+  const defaultMarkerImage = new URL(
+    "../../../assets/images/logo_v.png",
+    moduleUrl
+  ).href;
 
   const defaults = {
     mapContainer: "map",
@@ -30,7 +35,7 @@
     loadingMessage: "Searching...",
     emptyMessage: "No results.",
     errorMessage: "Search failed.",
-    markerImage: "../assets/images/logo_v.png",
+    markerImage: defaultMarkerImage,
     markerSize: 34,
     markerAnchor: "bottom",
     showMarker: true,

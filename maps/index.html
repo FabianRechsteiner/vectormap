@@ -4,73 +4,261 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0b111c" />
-  <title>Hauptkarte - Vectormap</title>
-  <meta
-    name="description"
-    content="Vectormap Hauptkarte mit Basemap-Auswahl, Suche, Navigation, Standort, Vollbild und Style-Vergleich."
-  />
+  <title>Karten und Module - Vectormap</title>
+  <meta name="description" content="Hauptkarte mit allen Vectormap-Funktionen und modulare Einzelkarten für MapLibre-Beispiele.">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
 </head>
-<body>
-  <div
-    id="compare-root"
-    aria-label="Vectormap Hauptkarte"
-    data-style-left="../styles/ch.vectormap.lightbasemap.json"
-    data-style-right="https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/style.json"
-    data-left-basemap-id="vectormap.light"
-    data-right-basemap-id="swisstopo.light"
-    data-compare-css="../assets/css/maplibre-gl-compare.css"
-    data-compare-js="../assets/js/maplibre-gl-compare.js"
-    data-center="8.7241,47.4987"
-    data-zoom="17"
-    data-bearing="0"
-    data-pitch="0"
-    data-hash="true"
-    data-pitch-with-rotate="true"
-    data-initial-mode="normal"
-    data-label-normal="Switch to single map"
-    data-label-split="Switch to split comparison"
-    data-label-compare="Switch to side-by-side comparison"
-  ></div>
+<body class="maps-page">
+  <header class="site-header">
+    <div class="site-container header-inner">
+      <a class="brand" href="../">
+        <img class="brand-logo" src="../assets/images/logo_vectormap_transparent.png" alt="Vectormap Logo">
+      </a>
+      <nav class="main-nav">
+        <a href="../">Start</a>
+        <a href="../dataset/">Datensatz</a>
+        <a href="../styles/">Styles</a>
+        <a href="../maps/" aria-current="page">Karten</a>
+        <a href="../licenses/">Lizenzen &amp; Quellen</a>
+        <a href="../about/">Über Vectormap</a>
+      </nav>
+    </div>
+  </header>
 
-  <script>
-    window.vectormapMapPwa = {
-      name: "Vectormap Hauptkarte",
-      shortName: "Vectormap"
-    };
+  <main>
+    <section class="hero hero--compact">
+      <div class="site-container reveal">
+        <p class="eyebrow">Karten</p>
+        <h1 class="hero-title">Vectormap Karten.</h1>
+        <p class="hero-lead">Die Hauptkarte bündelt alle Funktionen. Die Modulbeispiele zeigen einzelne Bausteine schlank und nachvollziehbar.</p>
+      </div>
+    </section>
 
-    window.vectormapExampleConfig = {
-      autoInit: false,
-      maplibreCss: "https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css",
-      maplibreJs: "https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js",
-      pmtilesJs: "https://unpkg.com/pmtiles@4.4.1/dist/pmtiles.js"
-    };
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">Hauptkarte</h2>
+          <p class="section-lead">Alle Vectormap-Funktionen in einer Karte.</p>
+        </div>
+        <article class="example-card example-card--featured">
+          <div class="example-preview example-preview--large">
+            <iframe title="Vectormap Hauptkarte Vorschau" src="map/" allowfullscreen></iframe>
+          </div>
+          <div class="example-content">
+            <h3 class="card-title">Vectormap Hauptkarte</h3>
+            <p class="card-text">Einzelkarte mit Suche, Basemap-Auswahl, Standort, Vollbild und Vergleichsmodus.</p>
+            <ul class="example-meta">
+              <li><strong>URL:</strong> <a href="map/" target="_blank" rel="noopener">maps/map/</a></li>
+              <li><strong>Module:</strong> base-map.js + url-state.js + fullscreen-control.js + navigation-control.js + geolocate-control.js + basemap-control.js + share-control.js + search-map.js + compare-map.js</li>
+              <li><strong>Styles:</strong> <a href="../styles/ch.vectormap.lightbasemap.json" target="_blank" rel="noopener">ch.vectormap.lightbasemap.json</a> / <a href="https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/style.json" target="_blank" rel="noopener">ch.swisstopo.lightbasemap.json</a></li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </section>
 
-    window.vectormapCompareConfig = { containerId: "compare-root" };
-    window.vectormapBasemapControlConfig = {
-      initialBasemapId: "vectormap.light",
-      initialNormalBasemapId: "vectormap.light",
-      initialRightBasemapId: "swisstopo.light",
-      position: "bottom-left"
-    };
-    window.vectormapSearchConfig = {
-      mapContainer: ["normalMap", "after", "cmpMapRight"]
-    };
-    window.vectormapOgcControlConfig = {
-      mapContainerIds: ["normalMap", "after", "cmpMapRight"],
-      position: "top-right",
-      managerPosition: "top-left"
-    };
-  </script>
-  <script src="../assets/js/map-page-pwa.js"></script>
-  <script src="../assets/js/modules/base-map.js"></script>
-  <script src="../assets/js/modules/url-state.js"></script>
-  <script src="../assets/js/modules/fullscreen-control.js"></script>
-  <script src="../assets/js/modules/navigation-control.js"></script>
-  <script src="../assets/js/modules/geolocate-control.js"></script>
-  <script src="../assets/js/modules/search-map.js"></script>
-  <script src="../assets/js/modules/basemap-control.js"></script>
-  <script src="../assets/js/modules/ogc-control.js"></script>
-  <script src="../assets/js/modules/share-control.js"></script>
-  <script src="../assets/js/modules/compare-map.js"></script>
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">Modulübersicht</h2>
+          <p class="section-lead">Alle Bausteine auf einen Blick.</p>
+        </div>
+        <div class="module-list" role="list">
+          <div class="module-list-row" role="listitem">
+            <strong>Basiskarte</strong>
+            <code>base-map.js</code>
+            <span>MapLibre, PMTiles und Vectormap-Style.</span>
+          </div>
+          <div class="module-list-row" role="listitem">
+            <strong>Zoom &amp; Rotation</strong>
+            <code>navigation-control.js</code>
+            <span>MapLibre-Navigation mit Zoom und Kompass.</span>
+          </div>
+          <div class="module-list-row" role="listitem">
+            <strong>Vollbild</strong>
+            <code>fullscreen-control.js</code>
+            <span>Vollbildmodus für Karte oder Vergleich.</span>
+          </div>
+          <div class="module-list-row" role="listitem">
+            <strong>Standort</strong>
+            <code>geolocate-control.js</code>
+            <span>Browser-Standort, wenn freigegeben.</span>
+          </div>
+          <div class="module-list-row" role="listitem">
+            <strong>Basemap-Auswahl</strong>
+            <code>basemap-control.js</code>
+            <span>Wechsel zwischen Vectormap, swisstopo und weiteren Basemaps.</span>
+          </div>
+          <div class="module-list-row" role="listitem">
+            <strong>URL-State</strong>
+            <code>url-state.js</code>
+            <span>Persistiert Kamera-, Modus-, Such- und Basemap-Zustand in der URL.</span>
+          </div>
+          <div class="module-list-row" role="listitem">
+            <strong>Share</strong>
+            <code>share-control.js</code>
+            <span>Kopiert oder teilt den aktuellen Kartenlink direkt aus der Karte.</span>
+          </div>
+          <div class="module-list-row" role="listitem">
+            <strong>Suche</strong>
+            <code>search-map.js</code>
+            <span>Orte und Adressen über swisstopo Search.</span>
+          </div>
+          <div class="module-list-row" role="listitem">
+            <strong>Vergleich</strong>
+            <code>compare-map.js</code>
+            <span>Einzelkarte, Split-Vergleich und Doppelvergleich.</span>
+          </div>
+          <div class="module-list-row module-list-row--supplement" role="listitem">
+            <strong>AV-WMS</strong>
+            <code>av-wms-map.js</code>
+            <span>Zusatzkarte für die SOGI-Umfrage.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">Modulbeispiele</h2>
+          <p class="section-lead">Fokussierte Beispiele statt überladene Demos.</p>
+        </div>
+        <div class="example-grid map-card-grid stagger">
+          <article class="example-card">
+            <div class="example-preview">
+              <iframe title="Basiskarte Vorschau" loading="lazy" src="base/" allowfullscreen></iframe>
+            </div>
+            <div class="example-content">
+              <h3 class="card-title">Basiskarte</h3>
+              <p class="card-text">Basiskarte mit Zoom/Navigation und Vollbild.</p>
+              <ul class="example-meta">
+                <li><strong>URL:</strong> <a href="base/" target="_blank" rel="noopener">maps/base/</a></li>
+                <li><strong>Module:</strong> base-map.js + fullscreen-control.js + navigation-control.js</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="example-card">
+            <div class="example-preview">
+              <iframe title="Basemap-Auswahl Vorschau" loading="lazy" src="basemaps/" allowfullscreen></iframe>
+            </div>
+            <div class="example-content">
+              <h3 class="card-title">Basemap-Auswahl</h3>
+              <p class="card-text">Basiskarte mit Basemap-Wechsel.</p>
+              <ul class="example-meta">
+                <li><strong>URL:</strong> <a href="basemaps/" target="_blank" rel="noopener">maps/basemaps/</a></li>
+                <li><strong>Module:</strong> base-map.js + basemap-control.js</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="example-card">
+            <div class="example-preview">
+              <iframe title="Suche Vorschau" loading="lazy" src="search/" allowfullscreen></iframe>
+            </div>
+            <div class="example-content">
+              <h3 class="card-title">Suche</h3>
+              <p class="card-text">Basiskarte mit swisstopo-Suche.</p>
+              <ul class="example-meta">
+                <li><strong>URL:</strong> <a href="search/" target="_blank" rel="noopener">maps/search/</a></li>
+                <li><strong>Module:</strong> base-map.js + search-map.js</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="example-card">
+            <div class="example-preview">
+              <iframe title="Style-Vergleich Vorschau" loading="lazy" src="compare/" allowfullscreen></iframe>
+            </div>
+            <div class="example-content">
+              <h3 class="card-title">Style-Vergleich</h3>
+              <p class="card-text">Vectormap und swisstopo im Vergleich.</p>
+              <ul class="example-meta">
+                <li><strong>URL:</strong> <a href="compare/" target="_blank" rel="noopener">maps/compare/</a></li>
+                <li><strong>Module:</strong> base-map.js + compare-map.js</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--supplement">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">Zusatzkarte zur AV-WMS-Umfrage</h2>
+          <p class="section-lead">Getrenntes Zusatzprodukt für die <a href="https://sogi.ch/umfrage-av-wms/" target="_blank" rel="noopener">SOGI-Umfrage AV-WMS</a>.</p>
+        </div>
+        <article class="example-card example-card--supplement">
+          <div class="example-preview example-preview--large">
+            <iframe title="AV-WMS Umfragekarte Vorschau" loading="lazy" src="av-wms-survey/" allowfullscreen></iframe>
+          </div>
+          <div class="example-content">
+            <h3 class="card-title">AV-WMS Umfragekarte</h3>
+            <p class="card-text">Sechs synchronisierte Karten: Vectormap, swisstopo und vier AV-WMS-Dienste.</p>
+            <ul class="example-meta">
+              <li><strong>URL:</strong> <a href="av-wms-survey/" target="_blank" rel="noopener">maps/av-wms-survey/</a></li>
+              <li><strong>Umfrage:</strong> <a href="https://sogi.ch/umfrage-av-wms/" target="_blank" rel="noopener">sogi.ch/umfrage-av-wms</a></li>
+              <li><strong>Module:</strong> base-map.js + fullscreen-control.js + navigation-control.js + geolocate-control.js + av-wms-map.js + search-map.js</li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="site-container">
+        <div class="section-heading">
+          <h2 class="section-title">Einbindung</h2>
+          <p class="section-lead"><code>base-map.js</code> kommt zuerst. Danach folgen die gewünschten Controls in der Reihenfolge, in der sie innerhalb derselben MapLibre-Position erscheinen sollen. für ein einzelnes Modul lässt du die übrigen Script-Tags weg.</p>
+        </div>
+        <pre class="code-block"><code>&lt;div id="map" aria-label="Kartenansicht"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  window.vectormapExampleConfig = {
+    autoInit: true,
+    styleUrl: "../../styles/ch.vectormap.lightbasemap.json"
+  };
+
+  window.vectormapBasemapControlConfig = {
+    position: "bottom-left",
+    initialBasemapId: "vectormap.light"
+  };
+&lt;/script&gt;
+
+&lt;script src="../../assets/js/modules/base-map.js"&gt;&lt;/script&gt;
+&lt;script src="../../assets/js/modules/url-state.js"&gt;&lt;/script&gt;
+&lt;script src="../../assets/js/modules/fullscreen-control.js"&gt;&lt;/script&gt;
+&lt;script src="../../assets/js/modules/navigation-control.js"&gt;&lt;/script&gt;
+&lt;script src="../../assets/js/modules/geolocate-control.js"&gt;&lt;/script&gt;
+&lt;script src="../../assets/js/modules/basemap-control.js"&gt;&lt;/script&gt;
+&lt;script src="../../assets/js/modules/share-control.js"&gt;&lt;/script&gt;
+&lt;script src="../../assets/js/modules/search-map.js"&gt;&lt;/script&gt;</code></pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-container footer-grid">
+      <div class="footer-links">
+        <a href="../dataset/">Datensatz</a>
+        <a href="../styles/">Styles</a>
+        <a href="../maps/" aria-current="page">Karten</a>
+        <a href="../licenses/">Lizenzen &amp; Quellen</a>
+        <a href="../about/">Über Vectormap</a>
+        <a href="https://github.com/FabianRechsteiner" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <p class="footer-note">Daten basieren auf offenen Geodaten der Schweiz.</p>
+      <p class="footer-note"><a href="https://github.com/FabianRechsteiner/vectormap" target="_blank" rel="noopener">© Vectormap</a></p>
+    </div>
+  </footer>
+  <script src="../assets/js/pwa-register.js"></script>
 </body>
 </html>
+

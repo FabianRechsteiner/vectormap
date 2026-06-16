@@ -15,7 +15,7 @@ Die Website unterstuetzt eine schlanke Progressive-Web-App-Basis:
 
 ### Karten als eigene App installieren
 
-Jede Karte unter `maps/*.html` kann als eigene Web-App installiert werden und startet wieder auf ihrer jeweiligen Karten-URL.
+Jede Karte unter `maps/<name>/` kann als eigene Web-App installiert werden und startet wieder auf ihrer jeweiligen Karten-URL.
 
 - Android (Chrome): Menü (drei Punkte) -> `App installieren` oder `Zum Startbildschirm hinzufuegen`
 - iOS (Safari): Teilen -> `Zum Home-Bildschirm`
@@ -23,9 +23,9 @@ Jede Karte unter `maps/*.html` kann als eigene Web-App installiert werden und st
 
 ### Regel fuer neue Karten
 
-Damit neue Karten automatisch installierbar sind, muss in jeder neuen `maps/*.html` nur dieses Script eingebunden werden:
+Damit neue Karten automatisch installierbar sind, muss in jeder neuen Karten-Seite unter `maps/<name>/index.html` nur dieses Script eingebunden werden:
 
-- `../assets/js/map-page-pwa.js`
+- `../../assets/js/map-page-pwa.js`
 
 Optional kann pro Seite `window.vectormapMapPwa` gesetzt werden, um App-Name und Kurzname zu steuern.
 

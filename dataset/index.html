@@ -6,26 +6,26 @@
   <meta name="theme-color" content="#0b111c" />
   <title>Datensatz – Vectormap</title>
   <meta name="description" content="Details zum AV-Datensatz von Vectormap, inklusive PMTiles-Erklärung und Layer-Dokumentation aus av.json.">
-  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="manifest" href="../manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
 </head>
 <body>
   <header class="site-header">
     <div class="site-container header-inner">
-      <a class="brand" href="index.html">
-        <img class="brand-logo" src="assets/images/logo_vectormap_transparent.png" alt="Vectormap Logo">
+      <a class="brand" href="../">
+        <img class="brand-logo" src="../assets/images/logo_vectormap_transparent.png" alt="Vectormap Logo">
       </a>
       <nav class="main-nav">
-        <a href="index.html">Start</a>
-        <a href="dataset.html" aria-current="page">Datensatz</a>
-        <a href="styles.html">Styles</a>
-        <a href="maps.html">Karten</a>
-        <a href="lizenzen.html">Lizenzen &amp; Quellen</a>
-        <a href="about.html">Über Vectormap</a>
+        <a href="../">Start</a>
+        <a href="../dataset/" aria-current="page">Datensatz</a>
+        <a href="../styles/">Styles</a>
+        <a href="../maps/">Karten</a>
+        <a href="../licenses/">Lizenzen &amp; Quellen</a>
+        <a href="../about/">Über Vectormap</a>
       </nav>
     </div>
   </header>
@@ -162,11 +162,11 @@
   <footer class="site-footer">
     <div class="site-container footer-grid">
       <div class="footer-links">
-        <a href="dataset.html" aria-current="page">Datensatz</a>
-        <a href="styles.html">Styles</a>
-        <a href="maps.html">Karten</a>
-        <a href="lizenzen.html">Lizenzen &amp; Quellen</a>
-        <a href="about.html">Über Vectormap</a>
+        <a href="../dataset/" aria-current="page">Datensatz</a>
+        <a href="../styles/">Styles</a>
+        <a href="../maps/">Karten</a>
+        <a href="../licenses/">Lizenzen &amp; Quellen</a>
+        <a href="../about/">Über Vectormap</a>
         <a href="https://github.com/FabianRechsteiner" target="_blank" rel="noopener">GitHub</a>
       </div>
       <p class="footer-note">Daten basieren auf offenen Geodaten der Schweiz.</p>
@@ -175,20 +175,25 @@
   </footer>
 
   <script>
+    window.vectormapDatasetConfig = {
+      metadataUrl: "../av.json",
+      boundariesUrl: "../assets/data/kantonsgrenzen.geojson"
+    };
+
     window.vectormapExampleConfig = {
       autoInit: true,
       container: "dataset-map",
-      styleUrl: "styles/ch.vectormap.lightbasemap.json",
+      styleUrl: "../styles/ch.vectormap.lightbasemap.json",
       center: [8.23, 46.82],
       zoom: 7.0
     };
   </script>
-  <script src="assets/js/modules/base-map.js"></script>
-  <script src="assets/js/modules/fullscreen-control.js"></script>
-  <script src="assets/js/modules/navigation-control.js"></script>
-  <script src="assets/js/modules/geolocate-control.js"></script>
-  <script src="assets/js/dataset.js"></script>
-  <script src="assets/js/pwa-register.js"></script>
+  <script src="../assets/js/modules/base-map.js"></script>
+  <script src="../assets/js/modules/fullscreen-control.js"></script>
+  <script src="../assets/js/modules/navigation-control.js"></script>
+  <script src="../assets/js/modules/geolocate-control.js"></script>
+  <script src="../assets/js/dataset.js"></script>
+  <script src="../assets/js/pwa-register.js"></script>
 </body>
 </html>
 

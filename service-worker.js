@@ -1,4 +1,4 @@
-const CACHE_VERSION = "vectormap-v6";
+const CACHE_VERSION = "vectormap-v7";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const MAX_RUNTIME_ENTRIES = 80;
@@ -6,30 +6,47 @@ const MAX_RUNTIME_ENTRIES = 80;
 const PRECACHE_URLS = [
   "./",
   "./index.html",
-  "./dataset.html",
-  "./styles.html",
-  "./maps.html",
-  "./about.html",
-  "./lizenzen.html",
+  "./dataset/",
+  "./dataset/index.html",
+  "./styles/",
+  "./styles/index.html",
+  "./maps/",
   "./maps/index.html",
-  "./maps/base-map.html",
-  "./maps/basemap-control.html",
-  "./maps/search-map.html",
-  "./maps/compare-map.html",
-  "./maps/av-wms.html",
+  "./maps/map/",
+  "./maps/map/index.html",
+  "./maps/base/",
+  "./maps/base/index.html",
+  "./maps/basemaps/",
+  "./maps/basemaps/index.html",
+  "./maps/search/",
+  "./maps/search/index.html",
+  "./maps/compare/",
+  "./maps/compare/index.html",
+  "./maps/av-wms-survey/",
+  "./maps/av-wms-survey/index.html",
+  "./about/",
+  "./about/index.html",
+  "./licenses/",
+  "./licenses/index.html",
   "./offline.html",
   "./manifest.webmanifest",
   "./assets/css/style.css",
   "./assets/css/maplibre-gl-compare.css",
+  "./styles/ch.vectormap.lightbasemap.json",
+  "./av.json",
+  "./assets/data/kantonsgrenzen.geojson",
   "./assets/js/pwa-register.js",
   "./assets/js/map-page-pwa.js",
   "./assets/js/modules/base-map.js",
+  "./assets/js/modules/url-state.js",
   "./assets/js/modules/fullscreen-control.js",
   "./assets/js/modules/navigation-control.js",
   "./assets/js/modules/geolocate-control.js",
   "./assets/js/modules/basemap-control.js",
   "./assets/js/modules/search-map.js",
   "./assets/js/modules/compare-map.js",
+  "./assets/js/modules/ogc-control.js",
+  "./assets/js/modules/share-control.js",
   "./assets/js/modules/av-wms-map.js",
   "./assets/images/logo_v.png"
 ];
@@ -46,6 +63,8 @@ const isAppShellRequest = (request) => {
     url.pathname.endsWith(".html") ||
     url.pathname.endsWith(".js") ||
     url.pathname.endsWith(".css") ||
+    url.pathname.endsWith(".json") ||
+    url.pathname.endsWith(".geojson") ||
     url.pathname.endsWith(".webmanifest")
   );
 };

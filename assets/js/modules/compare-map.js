@@ -3,6 +3,19 @@
   const moduleState = window.vectormapModules || {};
   moduleState.searchState = moduleState.searchState || { query: "" };
   const baseMap = moduleState.baseMap;
+  const moduleUrl = document.currentScript?.src || window.location.href;
+  const defaultCompareCss = new URL(
+    "../../../assets/css/maplibre-gl-compare.css",
+    moduleUrl
+  ).href;
+  const defaultCompareJs = new URL(
+    "../../../assets/js/maplibre-gl-compare.js",
+    moduleUrl
+  ).href;
+  const defaultStyleUrl = new URL(
+    "../../../styles/ch.vectormap.lightbasemap.json",
+    moduleUrl
+  ).href;
 
   if (!baseMap) {
     console.error("Base map module fehlt.");
@@ -487,15 +500,15 @@
 
     const compareCss = readValue(
       "compareCss",
-      "../assets/css/maplibre-gl-compare.css"
+      defaultCompareCss
     );
     const compareJs = readValue(
       "compareJs",
-      "../assets/js/maplibre-gl-compare.js"
+      defaultCompareJs
     );
     const styleLeft = readValue(
       "styleLeft",
-      "../styles/ch.vectormap.lightbasemap.json"
+      defaultStyleUrl
     );
     const styleRight = readValue(
       "styleRight",

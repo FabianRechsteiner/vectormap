@@ -8,15 +8,16 @@
   const metadata = window.vectormapMapPwa || {};
   const appName = metadata.name || pageTitle;
   const shortName = metadata.shortName || appName.slice(0, 12);
-  const rootPrefix = path.includes("/maps/") ? ".." : ".";
+  const rootPrefix = path.includes("/maps/") ? "../.." : ".";
   const iconPath = `${rootPrefix}/assets/images/logo_v.png`;
+  const scopePath = new URL("../", window.location.href).pathname;
 
   const manifest = {
     id: path,
     name: appName,
     short_name: shortName,
     start_url: path,
-    scope: "/maps/",
+    scope: scopePath,
     display: "standalone",
     background_color: "#0b111c",
     theme_color: "#0b111c",

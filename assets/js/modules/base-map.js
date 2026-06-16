@@ -6,9 +6,14 @@
     geolocate: true,
     scale: false
   };
+  const moduleUrl = document.currentScript?.src || window.location.href;
+  const defaultStyleUrl = new URL(
+    "../../../styles/ch.vectormap.lightbasemap.json",
+    moduleUrl
+  ).href;
   const defaults = {
     container: "map",
-    styleUrl: "../styles/ch.vectormap.lightbasemap.json",
+    styleUrl: defaultStyleUrl,
     center: [8.7241, 47.4987],
     zoom: 17,
     bearing: 0,

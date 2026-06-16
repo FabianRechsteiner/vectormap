@@ -1,6 +1,7 @@
 ﻿const listEl = document.querySelector("[data-layer-list]");
 const countEl = document.querySelector("[data-layer-count]");
 const searchInput = document.querySelector("[data-layer-search]");
+const datasetConfig = window.vectormapDatasetConfig || {};
 
 if (listEl && countEl && searchInput) {
   const state = {
@@ -119,7 +120,7 @@ if (listEl && countEl && searchInput) {
     return details;
   };
 
-  fetch("av.json")
+  fetch(datasetConfig.metadataUrl || "av.json")
     .then((response) => {
       if (!response.ok) {
         throw new Error("Layer data could not be loaded");
@@ -170,7 +171,7 @@ if (mapContainer) {
       if (!map.getSource(sourceId)) {
         map.addSource(sourceId, {
           type: "geojson",
-          data: "assets/data/kantonsgrenzen.geojson"
+          data: datasetConfig.boundariesUrl || "assets/data/kantonsgrenzen.geojson"
         });
       }
 

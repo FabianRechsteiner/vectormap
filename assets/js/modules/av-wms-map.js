@@ -2,6 +2,11 @@
   const config = window.vectormapAvWmsConfig || {};
   const moduleState = window.vectormapModules || {};
   const baseMap = moduleState.baseMap;
+  const moduleUrl = document.currentScript?.src || window.location.href;
+  const defaultStyleUrl = new URL(
+    "../../../styles/ch.vectormap.lightbasemap.json",
+    moduleUrl
+  ).href;
 
   if (!baseMap) {
     console.error("Base map module fehlt.");
@@ -13,7 +18,7 @@
       id: "av-map-1",
       label: "Vectormap",
       type: "map",
-      styleUrl: "../styles/ch.vectormap.lightbasemap.json",
+      styleUrl: config.styleUrl || defaultStyleUrl,
       controls: {
         navigation: false,
         geolocate: false,
