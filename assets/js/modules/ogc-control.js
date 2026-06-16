@@ -740,8 +740,23 @@
     style.id = "vectormap-ogc-style";
     style.textContent = `
       .vectormap-ogc-ctrl { position: relative; display: block; margin-bottom: 8px; }
-      .vectormap-ogc-toggle.maplibregl-ctrl-icon { position: relative; background-image: none; }
-      .vectormap-ogc-toggle.maplibregl-ctrl-icon::after { content: ""; position: absolute; inset: 6px; background: center/14px 14px no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2317302a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='6'/><path d='M20 20l-4-4'/></svg>"); }
+      .vectormap-ogc-toggle.maplibregl-ctrl-icon {
+        position: relative;
+        background-image: none;
+      }
+      .vectormap-ogc-toggle.maplibregl-ctrl-icon::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        width: 18px;
+        height: 18px;
+        background: center/18px 18px no-repeat url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f1f1f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 8l8-4 8 4-8 4-8-4z'/><path d='M4 12l8 4 8-4'/><path d='M4 16l8 4 8-4'/></svg>");
+      }
+      .vectormap-ogc-toggle.maplibregl-ctrl-icon:hover,
+      .vectormap-ogc-toggle.maplibregl-ctrl-icon:focus-visible {
+        background-color: rgba(30, 122, 93, 0.08);
+      }
       .vectormap-ogc-panel { position: absolute; right: calc(100% + 10px); top: -1px; width: min(90vw, 440px); max-height: min(74vh, 700px); overflow: hidden; display: none; z-index: 3; border: 1px solid rgba(0,0,0,.12); border-radius: 12px; background: rgba(255,255,255,.82); backdrop-filter: blur(3px); box-shadow: 0 16px 30px rgba(0,0,0,.2); padding: 10px; }
       .vectormap-ogc-ctrl.is-open .vectormap-ogc-panel { display: block; }
       .vectormap-ogc-body { display: flex; flex-direction: column; gap: 6px; height: 100%; max-height: calc(min(74vh, 700px) - 20px); }

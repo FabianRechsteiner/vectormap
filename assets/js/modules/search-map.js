@@ -148,13 +148,17 @@
         box-shadow: 0 0 0 2px rgba(27, 42, 35, 0.2);
       }
       .vectormap-search-toggle.maplibregl-ctrl-icon {
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f1f1f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='7'/><line x1='20' y1='20' x2='16.5' y2='16.5'/></svg>");
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f1f1f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s6-4.35 6-9a6 6 0 10-12 0c0 4.65 6 9 6 9z'/><circle cx='12' cy='12' r='2.2'/></svg>");
         background-size: 18px 18px;
         background-repeat: no-repeat;
         background-position: center;
       }
+      .vectormap-search-toggle.maplibregl-ctrl-icon:hover,
+      .vectormap-search-toggle.maplibregl-ctrl-icon:focus-visible {
+        background-color: rgba(30, 122, 93, 0.08);
+      }
       .vectormap-search-ctrl.has-selection .vectormap-search-toggle.maplibregl-ctrl-icon {
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f1f1f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='10.5' cy='10.5' r='6.5'/><line x1='18.5' y1='18.5' x2='15.5' y2='15.5'/><circle cx='18.5' cy='6.2' r='3.2' fill='white'/><line x1='16.8' y1='6.2' x2='20.2' y2='6.2' stroke='%23b42318' stroke-width='2.2'/><circle cx='18.5' cy='6.2' r='3.2' stroke='%23b42318' stroke-width='1.2'/></svg>");
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f1f1f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s6-4.35 6-9a6 6 0 10-12 0c0 4.65 6 9 6 9z'/><circle cx='12' cy='12' r='2.2'/><circle cx='18' cy='6.5' r='3.2' fill='white' stroke='%231f1f1f'/><line x1='16.6' y1='6.5' x2='19.4' y2='6.5' stroke='%231f1f1f' stroke-width='2.2'/><line x1='18' y1='5.1' x2='18' y2='7.9' stroke='%231f1f1f' stroke-width='2.2'/></svg>");
       }
       .vectormap-search-dropdown {
         width: min(86vw, 320px);
