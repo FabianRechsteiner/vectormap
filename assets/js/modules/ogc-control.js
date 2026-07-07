@@ -38,6 +38,11 @@
     ...config,
     geocat: { ...defaults.geocat, ...(config.geocat || {}) }
   };
+  const featureCursorUrl = new URL(
+    "../../../assets/images/cursor_vectormap.png",
+    document.currentScript?.src || window.location.href
+  ).href;
+  const featureCursor = `url("${featureCursorUrl}") 16 31, pointer`;
 
   const targetIds = new Set(
     (Array.isArray(settings.mapContainerIds) ? settings.mapContainerIds : [])
@@ -176,24 +181,50 @@
   const parseXml = (text) => new DOMParser().parseFromString(text, "text/xml");
   const xmlText = (node, selector) => safeText(node?.querySelector(selector)?.textContent || "");
 
+  const parseWmsQueryable = (node, inherited = false) => {
+    if (!node) {
+      return inherited;
+    }
+    const attr = safeText(node.getAttribute("queryable"));
+    if (!attr) {
+      return inherited;
+    }
+    return attr === "1" || /^true$/i.test(attr);
+  };
+  const extractWmsInfoFormats = (xml) =>
+    [...xml.querySelectorAll("Request > GetFeatureInfo > Format, Capability > Request > GetFeatureInfo > Format")]
+      .map((node) => safeText(node.textContent))
+      .filter(Boolean);
   const extractWmsLayers = (xml) => {
-    const nodes = [...xml.querySelectorAll("Capability > Layer > Layer, Layer Layer")];
+    const root =
+      xml.querySelector("WMS_Capabilities > Capability > Layer, Capability > Layer") || null;
     const seen = new Set();
     const out = [];
-    nodes.forEach((node) => {
-      const layerId = xmlText(node, "Name");
-      if (!layerId || seen.has(layerId)) {
+    const walk = (node, inheritedQueryable = false) => {
+      if (!node || out.length >= settings.maxLayerResults) {
         return;
       }
-      seen.add(layerId);
-      out.push({
-        serviceType: "WMS",
-        layerId,
-        title: xmlText(node, "Title") || layerId,
-        abstract: xmlText(node, "Abstract"),
-        format: "image/png"
-      });
-    });
+      const queryable = parseWmsQueryable(node, inheritedQueryable);
+      const directName = [...node.children].find((child) => /:?(Name)$/i.test(child.tagName));
+      const directTitle = [...node.children].find((child) => /:?(Title)$/i.test(child.tagName));
+      const directAbstract = [...node.children].find((child) => /:?(Abstract)$/i.test(child.tagName));
+      const layerId = safeText(directName?.textContent || "");
+      if (layerId && !seen.has(layerId)) {
+        seen.add(layerId);
+        out.push({
+          serviceType: "WMS",
+          layerId,
+          title: safeText(directTitle?.textContent || "") || layerId,
+          abstract: safeText(directAbstract?.textContent || ""),
+          format: "image/png",
+          queryable
+        });
+      }
+      [...node.children]
+        .filter((child) => /:?(Layer)$/i.test(child.tagName))
+        .forEach((child) => walk(child, queryable));
+    };
+    walk(root, false);
     return out.slice(0, settings.maxLayerResults);
   };
   const extractWmsServiceLayerId = (xml) =>
@@ -248,7 +279,16 @@
         return {
           serviceType: "WMS",
           layers: extractWmsLayers(xml),
-          serviceLayerId: extractWmsServiceLayerId(xml)
+          serviceLayerId: extractWmsServiceLayerId(xml),
+          queryable: parseWmsQueryable(
+            xml.querySelector("WMS_Capabilities > Capability > Layer, Capability > Layer"),
+            false
+          ),
+          infoFormats: extractWmsInfoFormats(xml),
+          version:
+            safeText(
+              xml.querySelector("WMS_Capabilities, WMT_MS_Capabilities")?.getAttribute("version")
+            ) || "1.1.1"
         };
       }
       if (xml.querySelector("Capabilities, wmts\\:Capabilities")) {
@@ -557,6 +597,12 @@
   moduleState.ogcState = moduleState.ogcState || {};
   const ogcState = moduleState.ogcState;
   ogcState.overlays = ogcState.overlays || [];
+  moduleState.ogcInteractionState = moduleState.ogcInteractionState || {
+    popup: null,
+    popupOverlayIds: [],
+    popupMap: null
+  };
+  const ogcInteractionState = moduleState.ogcInteractionState;
 
   const emitChange = () => {
     window.dispatchEvent(
@@ -571,6 +617,14 @@
     return ids.length ? ids : [...targetIds];
   };
   const isOverlayOnMap = (overlay, map) => getOverlayTargets(overlay).includes(mapId(map));
+  const getInteractiveOverlays = (map) =>
+    ogcState.overlays.filter(
+      (overlay) =>
+        overlay.visible !== false &&
+        overlay.serviceType === "WMS" &&
+        overlay.queryable === true &&
+        isOverlayOnMap(overlay, map)
+    );
 
   const ensureOverlayOnMap = (map, overlay) => {
     const sid = overlaySourceId(overlay);
@@ -628,6 +682,377 @@
     });
   };
 
+  const closeFeaturePopup = () => {
+    const popup = ogcInteractionState.popup;
+    ogcInteractionState.popup = null;
+    ogcInteractionState.popupOverlayIds = [];
+    ogcInteractionState.popupMap = null;
+    if (popup) {
+      popup.remove();
+    }
+  };
+  const syncFeaturePopupVisibility = () => {
+    if (!ogcInteractionState.popupOverlayIds.length) {
+      return;
+    }
+    const allPopupOverlaysUsable = ogcInteractionState.popupOverlayIds.every((overlayId) => {
+      const overlay = ogcState.overlays.find((candidate) => candidate.id === overlayId);
+      return (
+        overlay &&
+        overlay.visible !== false &&
+        (!ogcInteractionState.popupMap || isOverlayOnMap(overlay, ogcInteractionState.popupMap))
+      );
+    });
+    if (!allPopupOverlaysUsable) {
+      closeFeaturePopup();
+    }
+  };
+  const chooseInfoFormat = (overlay) => {
+    const formats = Array.isArray(overlay.infoFormats) ? overlay.infoFormats : [];
+    const preferred = [
+      "application/json",
+      "application/geo+json",
+      "application/vnd.ogc.gml/3.1.1",
+      "application/vnd.ogc.gml",
+      "text/xml",
+      "application/xml",
+      "text/html",
+      "text/plain"
+    ];
+    return preferred.find((format) => formats.includes(format)) || formats[0] || "application/json";
+  };
+  const projectBounds3857 = (map) => {
+    const bounds = map.getBounds();
+    const sw = maplibregl.MercatorCoordinate.fromLngLat(bounds.getSouthWest());
+    const ne = maplibregl.MercatorCoordinate.fromLngLat(bounds.getNorthEast());
+    const halfWorld = 20037508.342789244;
+    return {
+      minX: sw.x * 2 * halfWorld - halfWorld,
+      minY: sw.y * -2 * halfWorld + halfWorld,
+      maxX: ne.x * 2 * halfWorld - halfWorld,
+      maxY: ne.y * -2 * halfWorld + halfWorld
+    };
+  };
+  const buildFeatureInfoUrl = (overlay, map, point, options = {}) => {
+    const base = toServiceBaseUrl(overlay.capabilitiesUrl || "");
+    const width = Math.max(1, Math.round(map.getCanvas().clientWidth || map.getCanvas().width || 1));
+    const height = Math.max(
+      1,
+      Math.round(map.getCanvas().clientHeight || map.getCanvas().height || 1)
+    );
+    const bbox = projectBounds3857(map);
+    const version = overlay.version || "1.1.1";
+    const isWms13 = /^1\.3(?:\.|$)/.test(version);
+    const q = new URLSearchParams();
+    q.set("SERVICE", "WMS");
+    q.set("REQUEST", "GetFeatureInfo");
+    q.set("VERSION", version);
+    q.set("LAYERS", overlay.layerId);
+    q.set("QUERY_LAYERS", overlay.layerId);
+    q.set("STYLES", "");
+    q.set("FORMAT", overlay.format || "image/png");
+    q.set("TRANSPARENT", "true");
+    q.set("FEATURE_COUNT", String(options.featureCount || 20));
+    q.set(isWms13 ? "CRS" : "SRS", "EPSG:3857");
+    q.set("BBOX", `${bbox.minX},${bbox.minY},${bbox.maxX},${bbox.maxY}`);
+    q.set("WIDTH", String(width));
+    q.set("HEIGHT", String(height));
+    q.set(isWms13 ? "I" : "X", String(Math.round(point.x)));
+    q.set(isWms13 ? "J" : "Y", String(Math.round(point.y)));
+    q.set("INFO_FORMAT", chooseInfoFormat(overlay));
+    return `${base}?${q.toString()}`;
+  };
+  const formatFeatureValue = (value) => {
+    if (value === null || value === undefined) {
+      return "";
+    }
+    if (Array.isArray(value)) {
+      return value.map(formatFeatureValue).filter(Boolean).join(", ");
+    }
+    if (typeof value === "object") {
+      try {
+        return JSON.stringify(value);
+      } catch (error) {
+        return String(value);
+      }
+    }
+    return String(value);
+  };
+  const normalizeFeatureAttributes = (properties) =>
+    Object.entries(properties || {})
+      .map(([key, value]) => [safeText(key), safeText(formatFeatureValue(value))])
+      .filter(([key, value]) => key && value);
+  const extractJsonFeatureInfo = (payload) => {
+    if (Array.isArray(payload?.features)) {
+      return payload.features.map((feature) => ({
+        properties: feature?.properties || {},
+        geometry: feature?.geometry || null
+      }));
+    }
+    if (Array.isArray(payload?.results)) {
+      return payload.results.map((item) => ({ properties: item || {}, geometry: null }));
+    }
+    if (Array.isArray(payload)) {
+      return payload.map((item) => ({ properties: item || {}, geometry: null }));
+    }
+    if (payload && typeof payload === "object") {
+      return [{ properties: payload, geometry: null }];
+    }
+    return [];
+  };
+  const isGeometryPropertyName = (name) =>
+    /^(boundedBy|geom|geometry|the_geom|shape|point|linestring|polygon|multipoint|multilinestring|multipolygon|coordinates|pos|posList)$/i.test(
+      safeText(name)
+    );
+  const collectXmlProperties = (node, properties, prefix = "") => {
+    if (!node || isGeometryPropertyName(node.localName || node.tagName)) {
+      return;
+    }
+    [...node.attributes].forEach((attr) => {
+      if (/^xmlns/i.test(attr.name)) {
+        return;
+      }
+      const key = prefix ? `${prefix}.${attr.name}` : attr.name;
+      const value = safeText(attr.value);
+      if (key && value) {
+        properties[key] = value;
+      }
+    });
+    const children = [...node.children].filter(
+      (child) => !isGeometryPropertyName(child.localName || child.tagName)
+    );
+    if (!children.length) {
+      const key = prefix || node.localName || node.tagName;
+      const value = safeText(node.textContent);
+      if (key && value) {
+        properties[key] = value;
+      }
+      return;
+    }
+    children.forEach((child) => {
+      const name = safeText(child.localName || child.tagName);
+      const childElements = [...child.children].filter(
+        (grandchild) => !isGeometryPropertyName(grandchild.localName || grandchild.tagName)
+      );
+      const value = safeText(child.textContent);
+      if (!childElements.length && name && value) {
+        properties[name] = value;
+        return;
+      }
+      collectXmlProperties(child, properties, prefix && name ? `${prefix}.${name}` : name);
+    });
+  };
+  const extractXmlFeatureInfo = (text) => {
+    const xml = parseXml(text);
+    const featureMembers = [
+      ...xml.querySelectorAll(
+        "featureMember, gml\\:featureMember, featureMembers > *, gml\\:featureMembers > *"
+      )
+    ];
+    if (featureMembers.length) {
+      return featureMembers
+        .map((member) => {
+          const properties = {};
+          const isWrapper = /featureMember$/i.test(member.localName || member.tagName);
+          const featureNode = isWrapper
+            ? [...member.children].find(
+                (child) => !isGeometryPropertyName(child.localName || child.tagName)
+              ) || member
+            : member;
+          collectXmlProperties(featureNode, properties);
+          return { properties, geometry: null };
+        })
+        .filter((feature) => normalizeFeatureAttributes(feature.properties).length);
+    }
+    return [...xml.querySelectorAll("FIELDS, FeatureInfo > *")]
+      .map((node) => {
+        const properties = {};
+        [...node.attributes].forEach((attr) => {
+          const value = safeText(attr.value);
+          if (value) {
+            properties[attr.name] = value;
+          }
+        });
+        [...node.children].forEach((child) => {
+          const value = safeText(child.textContent);
+          if (value) {
+            properties[child.localName || child.tagName] = value;
+          }
+        });
+        return { properties, geometry: null };
+      })
+      .filter((feature) => normalizeFeatureAttributes(feature.properties).length);
+  };
+  const extractHtmlFeatureInfo = (text) => {
+    const doc = new DOMParser().parseFromString(text, "text/html");
+    return [...doc.querySelectorAll("table")]
+      .map((table) => {
+        const properties = {};
+        [...table.querySelectorAll("tr")].forEach((row) => {
+          const cells = row.querySelectorAll("th,td");
+          if (cells.length >= 2) {
+            const key = safeText(cells[0].textContent);
+            const value = safeText(cells[1].textContent);
+            if (key && value) {
+              properties[key] = value;
+            }
+          }
+        });
+        return { properties, geometry: null };
+      })
+      .filter((feature) => normalizeFeatureAttributes(feature.properties).length);
+  };
+  const parseFeatureInfoResponse = async (response) => {
+    const contentType = safeText(response.headers.get("content-type")).toLowerCase();
+    if (contentType.includes("json")) {
+      return extractJsonFeatureInfo(await response.json());
+    }
+    const text = await response.text();
+    if (/^\s*[{[]/.test(text)) {
+      try {
+        return extractJsonFeatureInfo(JSON.parse(text));
+      } catch (error) {
+        // Fall through to XML/HTML parsing.
+      }
+    }
+    if (contentType.includes("html")) {
+      return extractHtmlFeatureInfo(text);
+    }
+    const xmlFeatures = extractXmlFeatureInfo(text);
+    return xmlFeatures.length ? xmlFeatures : extractHtmlFeatureInfo(text);
+  };
+  const queryFeatureInfoForOverlay = async (overlay, map, point, signal, options = {}) => {
+    const response = await fetchWithTimeout(buildFeatureInfoUrl(overlay, map, point, options), {
+      headers: {
+        accept: `${chooseInfoFormat(overlay)},application/json,text/xml,text/html,*/*`
+      },
+      signal
+    });
+    if (!response.ok) {
+      return [];
+    }
+    return (await parseFeatureInfoResponse(response))
+      .map((feature) => ({
+        overlay,
+        properties: feature.properties || {},
+        geometry: feature.geometry || null
+      }))
+      .filter((feature) => normalizeFeatureAttributes(feature.properties).length);
+  };
+  const createPopupContent = (hits) => {
+    const root = document.createElement("div");
+    root.className = "vectormap-ogc-popup";
+    hits.forEach((hit) => {
+      const section = document.createElement("section");
+      section.className = "vectormap-ogc-popup-section";
+      const heading = document.createElement(hit.overlay.metadataUrl ? "a" : "div");
+      heading.className = "vectormap-ogc-popup-title";
+      heading.textContent = hit.overlay.title || hit.overlay.layerId;
+      if (hit.overlay.metadataUrl) {
+        heading.href = hit.overlay.metadataUrl;
+        heading.target = "_blank";
+        heading.rel = "noopener";
+      }
+      const grid = document.createElement("div");
+      grid.className = "vectormap-ogc-popup-grid";
+      normalizeFeatureAttributes(hit.properties).forEach(([key, value]) => {
+        const keyEl = document.createElement("div");
+        keyEl.className = "vectormap-ogc-popup-key";
+        keyEl.textContent = key;
+        const valueEl = document.createElement("div");
+        valueEl.className = "vectormap-ogc-popup-value";
+        valueEl.textContent = String(value);
+        grid.append(keyEl, valueEl);
+      });
+      section.append(heading, grid);
+      root.appendChild(section);
+    });
+    return root;
+  };
+  const openFeaturePopup = (map, lngLat, hits) => {
+    closeFeaturePopup();
+    const popup = new maplibregl.Popup({
+      closeButton: true,
+      closeOnClick: false,
+      maxWidth: "420px"
+    })
+      .setLngLat(lngLat)
+      .setDOMContent(createPopupContent(hits))
+      .addTo(map);
+    ogcInteractionState.popup = popup;
+    ogcInteractionState.popupMap = map;
+    ogcInteractionState.popupOverlayIds = [...new Set(hits.map((hit) => hit.overlay.id))];
+    popup.on("close", () => {
+      if (ogcInteractionState.popup === popup) {
+        closeFeaturePopup();
+      }
+    });
+  };
+  const setMapCursor = (map, isSelectable) => {
+    const canvas = map?.getCanvas?.();
+    const container = map?.getContainer?.();
+    const canvasContainer = container?.querySelector?.(".maplibregl-canvas-container");
+    if (!canvas || !container) {
+      return;
+    }
+    container.classList.toggle("vectormap-ogc-feature-hover", isSelectable);
+    canvasContainer?.classList.toggle("vectormap-ogc-feature-hover", isSelectable);
+    if (isSelectable) {
+      canvas.style.cursor = featureCursor;
+      return;
+    }
+    if (canvas.style.cursor === featureCursor) {
+      canvas.style.cursor = "";
+    }
+  };
+  const clearMapHoverState = (map) => {
+    setMapCursor(map, false);
+  };
+  const queryVisibleOverlayHits = async (map, point, signal, options = {}) => {
+    const overlays = getInteractiveOverlays(map);
+    if (!overlays.length) {
+      return [];
+    }
+    const results = await Promise.all(
+      overlays.map((overlay) =>
+        queryFeatureInfoForOverlay(overlay, map, point, signal, {
+          featureCount: options.featureCount || 20
+        }).catch(() => [])
+      )
+    );
+    return results.flat();
+  };
+  const bindFeatureInfoInteractions = (map) => {
+    if (!appliesTo(map) || map.__vectormapOgcFeatureInfoBound) {
+      return;
+    }
+    map.__vectormapOgcFeatureInfoBound = true;
+    map.on("mousemove", () => {
+      setMapCursor(map, getInteractiveOverlays(map).length > 0);
+    });
+    map.on("mouseleave", () => {
+      clearMapHoverState(map);
+    });
+    map.on("click", async (event) => {
+      clearMapHoverState(map);
+      if (!getInteractiveOverlays(map).length) {
+        closeFeaturePopup();
+        return;
+      }
+      try {
+        const controller = new AbortController();
+        const hits = await queryVisibleOverlayHits(map, event.point, controller.signal);
+        if (!hits.length) {
+          closeFeaturePopup();
+          return;
+        }
+        openFeaturePopup(map, event.lngLat, hits);
+      } catch (error) {
+        closeFeaturePopup();
+      }
+    });
+  };
+
   const encodeOverlay = (overlay) =>
     `ogc:${toBase64(
       JSON.stringify({
@@ -641,6 +1066,9 @@
         style: overlay.style,
         tileTemplate: overlay.tileTemplate,
         tileMatrixSet: overlay.tileMatrixSet,
+        version: overlay.version || "1.1.1",
+        queryable: overlay.queryable === true,
+        infoFormats: Array.isArray(overlay.infoFormats) ? overlay.infoFormats : [],
         targetContainerIds: getOverlayTargets(overlay),
         opacity: normalizeOpacity(overlay.opacity),
         visible: overlay.visible !== false
@@ -672,7 +1100,10 @@
     const next = {
       ...overlay,
       opacity: normalizeOpacity(overlay.opacity),
-      visible: overlay.visible !== false
+      visible: overlay.visible !== false,
+      queryable: overlay.queryable === true,
+      infoFormats: Array.isArray(overlay.infoFormats) ? overlay.infoFormats : [],
+      version: overlay.version || "1.1.1"
     };
     if (idx >= 0) {
       ogcState.overlays[idx] = next;
@@ -681,6 +1112,7 @@
     }
     applyAll();
     emitChange();
+    syncFeaturePopupVisibility();
   };
   ogcState.removeOverlay = (overlayId) => {
     const ov = ogcState.overlays.find((x) => x.id === overlayId);
@@ -691,6 +1123,7 @@
     ogcState.overlays = ogcState.overlays.filter((x) => x.id !== overlayId);
     applyAll();
     emitChange();
+    syncFeaturePopupVisibility();
   };
   ogcState.reorderOverlays = (orderedIds) => {
     const order = new Map();
@@ -702,6 +1135,7 @@
     });
     applyAll();
     emitChange();
+    syncFeaturePopupVisibility();
   };
   ogcState.updateOverlayVisibility = (overlayId, visible) => {
     const idx = ogcState.overlays.findIndex((x) => x.id === overlayId);
@@ -711,6 +1145,7 @@
     ogcState.overlays[idx] = { ...ogcState.overlays[idx], visible: Boolean(visible) };
     applyAll();
     emitChange();
+    syncFeaturePopupVisibility();
   };
   ogcState.updateOverlayOpacity = (overlayId, opacity) => {
     const idx = ogcState.overlays.findIndex((x) => x.id === overlayId);
@@ -791,9 +1226,20 @@
       .vectormap-ogc-layer-row button { width: 28px; height: 24px; border: 1px solid #bad8cf; border-radius: 6px; background: #fff; color: #1b584c; cursor: pointer; font: 600 10px/1 "Segoe UI", Arial, sans-serif; }
       .vectormap-ogc-layer-row input[type='range'] { width: 88px; accent-color: #00a7b3; }
       .vectormap-ogc-info-popover { position: absolute; z-index: 5; max-width: 280px; background: rgba(255,255,255,.97); border: 1px solid #c7dfd7; border-radius: 8px; box-shadow: 0 8px 18px rgba(0,0,0,.16); padding: 8px; font: 12px/1.35 "Segoe UI", Arial, sans-serif; color: #1e453b; display: none; }
+      .vectormap-ogc-feature-hover .maplibregl-canvas,
+      .maplibregl-canvas-container.vectormap-ogc-feature-hover,
+      .maplibregl-canvas-container.vectormap-ogc-feature-hover .maplibregl-canvas { cursor: ${featureCursor} !important; }
+      .vectormap-ogc-popup { width: fit-content; max-width: min(420px, calc(100vw - 48px)); color: #173e35; }
+      .vectormap-ogc-popup-section + .vectormap-ogc-popup-section { margin-top: 10px; padding-top: 10px; border-top: 1px solid #d7e8e1; }
+      .vectormap-ogc-popup-title { display: inline-block; margin-bottom: 6px; font: 700 13px/1.3 "Segoe UI", Arial, sans-serif; color: #0f4e4b; text-decoration: none; }
+      .vectormap-ogc-popup-title:hover { text-decoration: underline; }
+      .vectormap-ogc-popup-grid { display: grid; grid-template-columns: max-content minmax(120px, 1fr); gap: 4px 10px; align-items: start; width: fit-content; max-width: 100%; }
+      .vectormap-ogc-popup-key { font: 600 12px/1.35 "Segoe UI", Arial, sans-serif; color: #24584b; white-space: nowrap; }
+      .vectormap-ogc-popup-value { font: 12px/1.35 "Segoe UI", Arial, sans-serif; color: #173e35; overflow-wrap: anywhere; min-width: 0; }
       @media (max-width: 760px) {
         .vectormap-ogc-panel { position: fixed; right: 10px; left: 10px; top: 66px; width: auto; max-height: 72vh; }
         .vectormap-ogc-row { grid-template-columns: 1fr; }
+        .vectormap-ogc-popup-grid { grid-template-columns: minmax(88px, max-content) minmax(0, 1fr); width: 100%; }
       }
     `;
     document.head.appendChild(style);
@@ -810,6 +1256,9 @@
     style: layer.style || "default",
     tileTemplate: layer.tileTemplate || "",
     tileMatrixSet: layer.tileMatrixSet || "3857",
+    version: layer.version || "1.1.1",
+    queryable: layer.queryable === true,
+    infoFormats: Array.isArray(layer.infoFormats) ? layer.infoFormats.slice() : [],
     targetContainerIds: [mapId(map)].filter(Boolean),
     organization: safeText(metadata.organization || ""),
     groupOwner: safeText(metadata.groupOwner || ""),
@@ -1055,7 +1504,16 @@
         summary.className = "vectormap-ogc-meta";
         const totalLayers = parsed.layers.length;
         const layerMatches = parsed.layers.map((layer) => ({
-          layer,
+          layer: {
+            ...layer,
+            version: layer.version || parsed.version || "1.1.1",
+            queryable: layer.queryable === true,
+            infoFormats: Array.isArray(layer.infoFormats)
+              ? layer.infoFormats
+              : Array.isArray(parsed.infoFormats)
+                ? parsed.infoFormats
+                : []
+          },
           haystack: [
             safeText(layer.title),
             safeText(layer.layerId)
@@ -1095,7 +1553,10 @@
               serviceType: "WMS",
               layerId: serviceLayerId,
               title: `WMS-Dienst (${serviceLayerId})`,
-              format: "image/png"
+              format: "image/png",
+              version: parsed.version || "1.1.1",
+              queryable: parsed.queryable === true,
+              infoFormats: Array.isArray(parsed.infoFormats) ? parsed.infoFormats : []
             },
             capabilitiesUrl,
             metadataUrl
@@ -1381,7 +1842,12 @@
   });
 
   restoreOverlaysFromUrl();
-  window.addEventListener("vectormap:maps-ready", applyAll);
+  getTargetMaps().forEach(bindFeatureInfoInteractions);
+  window.addEventListener("vectormap:maps-ready", () => {
+    applyAll();
+    getTargetMaps().forEach(bindFeatureInfoInteractions);
+  });
+  window.addEventListener("vectormap:ogc-overlays-change", syncFeaturePopupVisibility);
   window.setTimeout(applyAll, 1200);
 })();
 
