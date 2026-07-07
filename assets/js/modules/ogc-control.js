@@ -19,6 +19,7 @@
     panelTitle: "Geodaten suchen",
     searchPlaceholder: "Suchbegriff oder WMS/WMTS-URL",
     searchButtonLabel: "Katalog suchen",
+    layerSearchPlaceholder: "Layer im Dienst filtern",
     addServiceButtonLabel: "Dienst laden",
     addLayerButtonLabel: "Layer hinzufügen",
     requestTimeoutMs: 12000,
@@ -776,6 +777,7 @@
       .vectormap-ogc-meta { margin-top: 3px; color: #4d6e63; font: 11px/1.35 "Segoe UI", Arial, sans-serif; }
       .vectormap-ogc-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
       .vectormap-ogc-actions .vectormap-ogc-btn { height: 38px; padding: 0 12px; font: 600 13px/1.2 "Segoe UI", Arial, sans-serif; white-space: nowrap; width: fit-content; min-width: max-content; flex: 0 0 auto; }
+      .vectormap-ogc-actions .vectormap-ogc-input { flex: 1 1 210px; min-width: 180px; }
       .vectormap-ogc-tag { display: inline-block; margin-top: 6px; padding: 2px 7px; border-radius: 999px; background: #ecf7f3; color: #24584b; font: 600 10px/1.2 "Segoe UI", Arial, sans-serif; }
       .vectormap-ogc-services { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
       .vectormap-ogc-service-badge { border-radius: 999px; padding: 2px 8px; font: 600 10px/1.2 "Segoe UI", Arial, sans-serif; border: 1px solid #b7d8cf; background: #f0faf6; color: #1f5b4d; }
@@ -1051,10 +1053,32 @@
         layersEl.innerHTML = "";
         const summary = document.createElement("div");
         summary.className = "vectormap-ogc-meta";
-        summary.textContent = `${parsed.layers.length} Layer verfügbar (${parsed.serviceType}).`;
+        const totalLayers = parsed.layers.length;
+        const layerMatches = parsed.layers.map((layer) => ({
+          layer,
+          haystack: [
+            safeText(layer.title),
+            safeText(layer.layerId)
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase()
+        }));
+        const updateSummary = (visibleCount) => {
+          summary.textContent =
+            visibleCount === totalLayers
+              ? `${totalLayers} Layer verfügbar (${parsed.serviceType}).`
+              : `${visibleCount} von ${totalLayers} Layern sichtbar (${parsed.serviceType}).`;
+        };
+        updateSummary(totalLayers);
         layersEl.appendChild(summary);
         const actions = document.createElement("div");
         actions.className = "vectormap-ogc-actions";
+        const layerFilterInput = document.createElement("input");
+        layerFilterInput.type = "search";
+        layerFilterInput.className = "vectormap-ogc-input";
+        layerFilterInput.placeholder = safeText(settings.layerSearchPlaceholder);
+        layerFilterInput.setAttribute("aria-label", "Layer im Dienst filtern");
         const addServiceLayer = document.createElement("button");
         addServiceLayer.type = "button";
         addServiceLayer.className = "vectormap-ogc-btn";
@@ -1078,32 +1102,52 @@
           );
           setStatus(`Dienst hinzugefügt: ${serviceLayerId}`);
         });
-        actions.appendChild(addServiceLayer);
+        actions.append(layerFilterInput, addServiceLayer);
         layersEl.appendChild(actions);
+        const listRoot = document.createElement("div");
+        listRoot.className = "vectormap-ogc-list";
+        layersEl.appendChild(listRoot);
+        const emptyState = document.createElement("div");
+        emptyState.className = "vectormap-ogc-meta";
+        emptyState.textContent = "Keine passenden Layer im Dienst gefunden.";
 
-        parsed.layers.forEach((layer) => {
-          const item = document.createElement("div");
-          item.className = "vectormap-ogc-item";
-          const title = document.createElement("div");
-          title.className = "vectormap-ogc-title";
-          title.textContent = layer.title || layer.layerId;
-          const meta = document.createElement("div");
-          meta.className = "vectormap-ogc-meta";
-          meta.textContent = `${layer.serviceType} | ${layer.layerId}`;
-          const actionsRow = document.createElement("div");
-          actionsRow.className = "vectormap-ogc-actions";
-          const one = document.createElement("button");
-          one.type = "button";
+        const renderVisibleLayers = () => {
+          const needle = safeText(layerFilterInput.value).toLowerCase();
+          listRoot.innerHTML = "";
+          const visibleLayers = layerMatches.filter(({ haystack }) =>
+            !needle || haystack.includes(needle)
+          );
+          updateSummary(visibleLayers.length);
+          if (!visibleLayers.length) {
+            listRoot.appendChild(emptyState);
+            return;
+          }
+          visibleLayers.forEach(({ layer }) => {
+            const item = document.createElement("div");
+            item.className = "vectormap-ogc-item";
+            const title = document.createElement("div");
+            title.className = "vectormap-ogc-title";
+            title.textContent = layer.title || layer.layerId;
+            const meta = document.createElement("div");
+            meta.className = "vectormap-ogc-meta";
+            meta.textContent = `${layer.serviceType} | ${layer.layerId}`;
+            const actionsRow = document.createElement("div");
+            actionsRow.className = "vectormap-ogc-actions";
+            const one = document.createElement("button");
+            one.type = "button";
             one.className = "vectormap-ogc-btn";
             one.textContent = safeText(settings.addLayerButtonLabel);
             one.addEventListener("click", () => {
               addOverlay(layer, capabilitiesUrl, metadataUrl);
-            setStatus(`Hinzugefügt: ${layer.title || layer.layerId}`);
+              setStatus(`Hinzugefügt: ${layer.title || layer.layerId}`);
+            });
+            actionsRow.appendChild(one);
+            item.append(title, meta, actionsRow);
+            listRoot.appendChild(item);
           });
-          actionsRow.appendChild(one);
-          item.append(title, meta, actionsRow);
-          layersEl.appendChild(item);
-        });
+        };
+        layerFilterInput.addEventListener("input", renderVisibleLayers);
+        renderVisibleLayers();
       };
 
       const loadCapabilities = async (url, metadataUrl = "") => {
