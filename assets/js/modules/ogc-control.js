@@ -1156,6 +1156,7 @@
           setStatus("Bitte gültige Service-URL eingeben.");
           return;
         }
+        clearHoverGeometry();
         recordsEl.innerHTML = "";
         layersEl.innerHTML = "";
         setStatus("Lade GetCapabilities...");
@@ -1174,6 +1175,7 @@
       };
 
       const renderRecords = (records, context = {}) => {
+        clearHoverGeometry();
         recordsEl.innerHTML = "";
         layersEl.innerHTML = "";
         if (!records.length) {
@@ -1320,6 +1322,9 @@
         const open = !root.classList.contains("is-open");
         root.classList.toggle("is-open", open);
         isPanelOpen = open;
+        if (!open) {
+          clearHoverGeometry();
+        }
         if (open) {
           inputEl.focus();
         }
@@ -1329,6 +1334,7 @@
         if (!root.contains(event.target)) {
           root.classList.remove("is-open");
           isPanelOpen = false;
+          clearHoverGeometry();
         }
       });
       bboxEl?.addEventListener("change", () => {
