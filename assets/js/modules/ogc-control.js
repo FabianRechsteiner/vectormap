@@ -1062,6 +1062,7 @@
         serviceType: overlay.serviceType,
         layerId: overlay.layerId,
         capabilitiesUrl: overlay.capabilitiesUrl,
+        abstract: overlay.abstract || "",
         format: overlay.format,
         style: overlay.style,
         tileTemplate: overlay.tileTemplate,
@@ -1224,8 +1225,19 @@
       .vectormap-ogc-layer-main { display: grid; grid-template-columns: minmax(0,1fr) 88px; gap: 6px; align-items: center; min-width: 0; }
       .vectormap-ogc-layer-main span { font: 12px/1.2 "Segoe UI", Arial, sans-serif; color: #173e35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .vectormap-ogc-layer-row button { width: 28px; height: 24px; border: 1px solid #bad8cf; border-radius: 6px; background: #fff; color: #1b584c; cursor: pointer; font: 600 10px/1 "Segoe UI", Arial, sans-serif; }
+      .vectormap-ogc-layer-row button.is-active { border-color: #1f8f78; background: #e7f7f1; color: #0f4e4b; }
       .vectormap-ogc-layer-row input[type='range'] { width: 88px; accent-color: #00a7b3; }
-      .vectormap-ogc-info-popover { position: absolute; z-index: 5; max-width: 280px; background: rgba(255,255,255,.97); border: 1px solid #c7dfd7; border-radius: 8px; box-shadow: 0 8px 18px rgba(0,0,0,.16); padding: 8px; font: 12px/1.35 "Segoe UI", Arial, sans-serif; color: #1e453b; display: none; }
+      .vectormap-ogc-layer-details { display: none; margin-top: 8px; border: 1px solid #c7dfd7; border-radius: 8px; background: rgba(255,255,255,.96); padding: 9px; color: #1e453b; box-shadow: inset 0 1px 0 rgba(255,255,255,.7); max-height: min(42vh, 360px); overflow: auto; overscroll-behavior: contain; }
+      .vectormap-ogc-layer-details.is-open { display: block; }
+      .vectormap-ogc-layer-details-title { margin: 0 0 5px; font: 700 13px/1.3 "Segoe UI", Arial, sans-serif; color: #103a31; overflow-wrap: anywhere; }
+      .vectormap-ogc-layer-details-title a { color: inherit; text-decoration: none; }
+      .vectormap-ogc-layer-details-title a:hover { text-decoration: underline; }
+      .vectormap-ogc-layer-details-description { margin: 0 0 7px; font: 12px/1.4 "Segoe UI", Arial, sans-serif; color: #315c52; overflow-wrap: anywhere; }
+      .vectormap-ogc-layer-details-meta { display: grid; gap: 3px; margin: 0 0 7px; font: 11px/1.35 "Segoe UI", Arial, sans-serif; color: #466b60; }
+      .vectormap-ogc-layer-details-body { font: 12px/1.45 "Segoe UI", Arial, sans-serif; color: #1e453b; }
+      .vectormap-ogc-layer-details-body p { margin: 0 0 6px; }
+      .vectormap-ogc-layer-details-body ul,
+      .vectormap-ogc-layer-details-body ol { margin: 0 0 6px 18px; padding: 0; }
       .vectormap-ogc-feature-hover .maplibregl-canvas,
       .maplibregl-canvas-container.vectormap-ogc-feature-hover,
       .maplibregl-canvas-container.vectormap-ogc-feature-hover .maplibregl-canvas { cursor: ${featureCursor} !important; }
@@ -1260,6 +1272,7 @@
     queryable: layer.queryable === true,
     infoFormats: Array.isArray(layer.infoFormats) ? layer.infoFormats.slice() : [],
     targetContainerIds: [mapId(map)].filter(Boolean),
+    abstract: safeText(layer.abstract || metadata.abstract || ""),
     organization: safeText(metadata.organization || ""),
     groupOwner: safeText(metadata.groupOwner || ""),
     abstractHtml: String(metadata.abstractHtml || ""),
@@ -1310,6 +1323,7 @@
           <div class="vectormap-ogc-active">
             <div class="vectormap-ogc-active-title">Aktive Layer</div>
             <div class="vectormap-ogc-list vectormap-ogc-active-layers"></div>
+            <div class="vectormap-ogc-layer-details" aria-live="polite"></div>
           </div>
         </div>
       `;
@@ -1321,6 +1335,7 @@
       const recordsEl = panel.querySelector(".vectormap-ogc-records");
       const layersEl = panel.querySelector(".vectormap-ogc-layers");
       const activeEl = panel.querySelector(".vectormap-ogc-active-layers");
+      const layerDetailsEl = panel.querySelector(".vectormap-ogc-layer-details");
       const hoverSourceId = `ogc-hover-src-${mapId(map) || "map"}`;
       const hoverFillLayerId = `ogc-hover-fill-${mapId(map) || "map"}`;
       const hoverLayerId = `ogc-hover-lyr-${mapId(map) || "map"}`;
@@ -1376,30 +1391,77 @@
           features: [{ type: "Feature", geometry, properties: {} }]
         });
       };
-      const infoPopover = document.createElement("div");
-      infoPopover.className = "vectormap-ogc-info-popover";
-      panel.appendChild(infoPopover);
-      const openInfoPopover = (overlay, anchor) => {
-        const html = sanitizeHtml(overlay.abstractHtml || "");
-        infoPopover.innerHTML = `
-          <div><strong>${safeText(overlay.title || overlay.layerId)}</strong></div>
-          <div>Herausgeber: ${safeText(overlay.organization || "-")}</div>
-          <div>Katalog: ${safeText(overlay.groupOwner || "-")}</div>
-          ${html ? `<div style="margin-top:6px">${html}</div>` : ""}
-        `;
-        const panelRect = panel.getBoundingClientRect();
-        const anchorRect = anchor.getBoundingClientRect();
-        infoPopover.style.left = `${Math.max(8, anchorRect.left - panelRect.left - 210)}px`;
-        infoPopover.style.top = `${Math.max(8, anchorRect.top - panelRect.top + 26)}px`;
-        infoPopover.style.display = "block";
+      let selectedLayerInfoId = "";
+      const clearLayerDetails = () => {
+        selectedLayerInfoId = "";
+        layerDetailsEl.classList.remove("is-open");
+        layerDetailsEl.innerHTML = "";
+        [...activeEl.querySelectorAll("button.is-active")].forEach((button) =>
+          button.classList.remove("is-active")
+        );
       };
-      const closeInfoPopover = () => {
-        infoPopover.style.display = "none";
-        infoPopover.innerHTML = "";
+      const renderLayerDetails = (overlay) => {
+        if (!overlay || selectedLayerInfoId === overlay.id) {
+          clearLayerDetails();
+          return;
+        }
+        selectedLayerInfoId = overlay.id;
+        const html = sanitizeHtml(overlay.abstractHtml || "");
+        const metadataUrl = safeText(overlay.metadataUrl || "");
+        layerDetailsEl.innerHTML = "";
+        const title = document.createElement("h5");
+        title.className = "vectormap-ogc-layer-details-title";
+        if (metadataUrl) {
+          const titleLink = document.createElement("a");
+          titleLink.href = metadataUrl;
+          titleLink.target = "_blank";
+          titleLink.rel = "noopener";
+          titleLink.textContent = safeText(overlay.title || overlay.layerId);
+          title.appendChild(titleLink);
+        } else {
+          title.textContent = safeText(overlay.title || overlay.layerId);
+        }
+        layerDetailsEl.appendChild(title);
+        const descriptionText = safeText(overlay.abstract || "");
+        if (descriptionText) {
+          const description = document.createElement("div");
+          description.className = "vectormap-ogc-layer-details-description";
+          description.textContent = descriptionText;
+          layerDetailsEl.appendChild(description);
+        }
+        const meta = document.createElement("div");
+        meta.className = "vectormap-ogc-layer-details-meta";
+        [
+          `Layer: ${safeText(overlay.layerId || "-")}`,
+          `Dienst: ${safeText(overlay.serviceType || "-")}`,
+          `Herausgeber: ${safeText(overlay.organization || "-")}`,
+          `Katalog: ${safeText(overlay.groupOwner || "-")}`
+        ].forEach((line) => {
+          const item = document.createElement("div");
+          item.textContent = line;
+          meta.appendChild(item);
+        });
+        layerDetailsEl.appendChild(meta);
+        if (html) {
+          const body = document.createElement("div");
+          body.className = "vectormap-ogc-layer-details-body";
+          body.innerHTML = html;
+          layerDetailsEl.appendChild(body);
+        }
+        layerDetailsEl.classList.add("is-open");
+        [...activeEl.querySelectorAll("button.is-active")].forEach((button) =>
+          button.classList.remove("is-active")
+        );
+        activeEl
+          .querySelector(`[data-overlay-id="${CSS.escape(overlay.id)}"] .vectormap-ogc-info-btn`)
+          ?.classList.add("is-active");
       };
       renderActiveLayers = () => {
         activeEl.innerHTML = "";
         const overlays = ogcState.getOverlays().filter((overlay) => isOverlayOnMap(overlay, map));
+        if (selectedLayerInfoId && !overlays.some((overlay) => overlay.id === selectedLayerInfoId)) {
+          clearLayerDetails();
+        }
         if (!overlays.length) {
           const empty = document.createElement("div");
           empty.className = "vectormap-ogc-meta";
@@ -1436,23 +1498,26 @@
           toggleBtn.addEventListener("click", () => ogcState.updateOverlayVisibility(overlay.id, !overlay.visible));
           const infoBtn = document.createElement("button");
           infoBtn.type = "button";
+          infoBtn.className = "vectormap-ogc-info-btn";
           infoBtn.title = "Information";
           infoBtn.textContent = "i";
-          infoBtn.disabled = !overlay.metadataUrl && !overlay.abstractHtml;
+          infoBtn.disabled = !overlay.metadataUrl && !overlay.abstractHtml && !overlay.abstract;
+          infoBtn.classList.toggle("is-active", selectedLayerInfoId === overlay.id);
           infoBtn.addEventListener("pointerdown", (event) => event.stopPropagation());
-          infoBtn.addEventListener("mouseenter", () => openInfoPopover(overlay, infoBtn));
-          infoBtn.addEventListener("mouseleave", closeInfoPopover);
           infoBtn.addEventListener("click", () => {
-            if (overlay.metadataUrl) {
-              window.open(overlay.metadataUrl, "_blank", "noopener");
-            }
+            renderLayerDetails(overlay);
           });
           const removeBtn = document.createElement("button");
           removeBtn.type = "button";
           removeBtn.title = "Layer entfernen";
           removeBtn.textContent = "×";
           removeBtn.addEventListener("pointerdown", (event) => event.stopPropagation());
-          removeBtn.addEventListener("click", () => ogcState.removeOverlay(overlay.id));
+          removeBtn.addEventListener("click", () => {
+            if (selectedLayerInfoId === overlay.id) {
+              clearLayerDetails();
+            }
+            ogcState.removeOverlay(overlay.id);
+          });
           row.addEventListener("dragstart", (event) => {
             if (["BUTTON", "INPUT"].includes(event.target?.tagName)) {
               event.preventDefault();
@@ -1687,6 +1752,7 @@
               activeRecordMetadata = {
                 organization: record.organization,
                 groupOwner: record.groupOwnerName || record.groupOwner,
+                abstract: record.abstract,
                 abstractHtml: record.abstractHtml
               };
               void loadCapabilities(loadable.url, record.metadataUrl);
