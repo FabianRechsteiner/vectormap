@@ -34,6 +34,12 @@
   ></div>
 
   <script>
+    const homeHref =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+        ? "http://127.0.0.1:5500/maps/map/"
+        : "https://map.vectormap.ch/";
+
     window.vectormapMapPwa = {
       name: "Vectormap Hauptkarte",
       shortName: "Vectormap"
@@ -62,7 +68,7 @@
       managerPosition: "top-left"
     };
     window.vectormapHomeControlConfig = {
-      href: "/maps/map/",
+      href: homeHref,
       mapContainerIds: ["normalMap", "after", "cmpMapRight"],
       position: "top-left",
       title: "Zur Hauptkarte"
