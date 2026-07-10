@@ -1148,14 +1148,16 @@
     emitChange();
     syncFeaturePopupVisibility();
   };
-  ogcState.updateOverlayOpacity = (overlayId, opacity) => {
+  ogcState.updateOverlayOpacity = (overlayId, opacity, options = {}) => {
     const idx = ogcState.overlays.findIndex((x) => x.id === overlayId);
     if (idx < 0) {
       return;
     }
     ogcState.overlays[idx] = { ...ogcState.overlays[idx], opacity: normalizeOpacity(opacity) };
     applyAll();
-    emitChange();
+    if (options.emitChange !== false) {
+      emitChange();
+    }
   };
 
   const restoreOverlaysFromUrl = () => {
@@ -1226,7 +1228,7 @@
       .vectormap-ogc-layer-main span { font: 12px/1.2 "Segoe UI", Arial, sans-serif; color: #173e35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .vectormap-ogc-layer-row button { width: 28px; height: 24px; border: 1px solid #bad8cf; border-radius: 6px; background: #fff; color: #1b584c; cursor: pointer; font: 600 10px/1 "Segoe UI", Arial, sans-serif; }
       .vectormap-ogc-layer-row button.is-active { border-color: #1f8f78; background: #e7f7f1; color: #0f4e4b; }
-      .vectormap-ogc-layer-row input[type='range'] { width: 88px; accent-color: #00a7b3; }
+      .vectormap-ogc-layer-row input[type='range'] { width: 88px; accent-color: #00a7b3; cursor: pointer; }
       .vectormap-ogc-layer-details { display: none; margin-top: 8px; border: 1px solid #c7dfd7; border-radius: 8px; background: rgba(255,255,255,.96); padding: 9px; color: #1e453b; box-shadow: inset 0 1px 0 rgba(255,255,255,.7); max-height: min(42vh, 360px); overflow: auto; overscroll-behavior: contain; }
       .vectormap-ogc-layer-details.is-open { display: block; }
       .vectormap-ogc-layer-details-title { margin: 0 0 5px; font: 700 13px/1.3 "Segoe UI", Arial, sans-serif; color: #103a31; overflow-wrap: anywhere; }
@@ -1486,9 +1488,27 @@
           opacity.step = "0.05";
           opacity.value = String(normalizeOpacity(overlay.opacity));
           opacity.title = "Transparenz";
-          opacity.addEventListener("pointerdown", (event) => event.stopPropagation());
-          opacity.addEventListener("touchstart", (event) => event.stopPropagation(), { passive: true });
-          opacity.addEventListener("input", () => ogcState.updateOverlayOpacity(overlay.id, opacity.value));
+          const enableRowDrag = () => {
+            row.setAttribute("draggable", "true");
+          };
+          const disableRowDrag = () => {
+            row.setAttribute("draggable", "false");
+            window.addEventListener("pointerup", enableRowDrag, { once: true });
+            window.addEventListener("pointercancel", enableRowDrag, { once: true });
+          };
+          opacity.addEventListener("pointerdown", (event) => {
+            disableRowDrag();
+            event.stopPropagation();
+          });
+          opacity.addEventListener("blur", enableRowDrag);
+          opacity.addEventListener("touchstart", (event) => {
+            disableRowDrag();
+            event.stopPropagation();
+          }, { passive: true });
+          opacity.addEventListener("input", () =>
+            ogcState.updateOverlayOpacity(overlay.id, opacity.value, { emitChange: false })
+          );
+          opacity.addEventListener("change", () => ogcState.updateOverlayOpacity(overlay.id, opacity.value));
           main.append(label, opacity);
           const toggleBtn = document.createElement("button");
           toggleBtn.type = "button";
@@ -1519,7 +1539,7 @@
             ogcState.removeOverlay(overlay.id);
           });
           row.addEventListener("dragstart", (event) => {
-            if (["BUTTON", "INPUT"].includes(event.target?.tagName)) {
+            if (event.target?.closest?.("button,input")) {
               event.preventDefault();
               return;
             }
