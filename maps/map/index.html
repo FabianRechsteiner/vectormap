@@ -9,6 +9,7 @@
     name="description"
     content="Vectormap Hauptkarte mit Basemap-Auswahl, Suche, Navigation, Standort, Vollbild und Style-Vergleich."
   />
+  <link rel="icon" type="image/png" href="../../assets/images/logo_v.png" />
 </head>
 <body>
   <div
@@ -60,6 +61,12 @@
       position: "top-right",
       managerPosition: "top-left"
     };
+    window.vectormapHomeControlConfig = {
+      href: "/maps/map/",
+      mapContainerIds: ["normalMap", "after", "cmpMapRight"],
+      position: "top-left",
+      title: "Zur Hauptkarte"
+    };
   </script>
   <script src="../../assets/js/map-page-pwa.js"></script>
   <script src="../../assets/js/modules/base-map.js"></script>
@@ -69,6 +76,7 @@
   <script src="../../assets/js/modules/geolocate-control.js"></script>
   <script src="../../assets/js/modules/search-map.js"></script>
   <script src="../../assets/js/modules/basemap-control.js"></script>
+  <script src="../../assets/js/modules/home-control.js"></script>
   <script src="../../assets/js/modules/ogc-control.js"></script>
   <script src="../../assets/js/modules/share-control.js"></script>
   <script src="../../assets/js/modules/compare-map.js"></script>
