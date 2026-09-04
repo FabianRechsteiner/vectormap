@@ -162,7 +162,7 @@
     "vectormap_av": {
       "type": "vector",
       "url": "pmtiles://https://vectormap.ch/pmtiles/av/av.pmtiles",
-      "attribution": "© swisstopo, © vectormap"
+      "attribution": "<a href='https://www.vectormap.ch' target='_blank'>© vectormap</a>, <a href='https://geodienste.ch/terms-of-use' target='_blank'>geodienste.ch</a>"
     }
   },
   "sprite": "https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/sprite/sprite",
@@ -2078,6 +2078,7 @@
       "source": "base_v1.0.0",
       "source-layer": "transportation",
       "minzoom": 7,
+      "maxzoom": 16,
       "filter": [
         "all",
         [
@@ -2481,7 +2482,7 @@
           ]
         ],
         "line-offset": 0,
-        "line-opacity": ["interpolate", ["linear"], ["zoom"], 15, 1, 15.5, 0]
+        "line-opacity": ["interpolate", ["linear"], ["zoom"], 15, 1, 15.1, 0]
       }
     },
     {
@@ -2523,6 +2524,7 @@
       "source": "base_v1.0.0",
       "source-layer": "transportation",
       "minzoom": 7,
+      "maxzoom": 16,
       "filter": [
         "all",
         [
