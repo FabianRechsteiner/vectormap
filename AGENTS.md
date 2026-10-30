@@ -1,117 +1,292 @@
-# AGENT.md – Working Instructions for the Codex Agent
+# AGENTS.md – Vectormap Coding Agent
 
-This repository is maintained using an autonomous coding agent.
+## 1. Project
 
-## Branch Policy
+Vectormap is a static website built with HTML, CSS, JavaScript, and MapLibre GL JS.
 
-- All work MUST be done exclusively in the branch: `chatgpt-agentenmodus`
-- Never modify files on `master`
-- Never commit to `master`, `main`, or any other branch
-- Do not create additional branches
-- Before making any file change, staging files, or creating a commit, the agent MUST verify the current branch
-- If the current branch is not `chatgpt-agentenmodus`, the agent MUST stop and switch to `chatgpt-agentenmodus` first
-- Working on `master` is forbidden without exception
-- This branch rule overrides any default agent workflow or convenience behavior
+The repository contains the main Vectormap application, individual MapLibre examples, and dataset documentation.
 
-## Commit Policy
+The coding agent must prioritize correctness, maintainability, and efficient execution.
 
-- The agent MUST commit its own changes
-- Do NOT leave uncommitted work behind
-- Commits should be logically grouped
+## 2. Branch Policy (Mandatory)
 
-### Commit Message Rules
+All work MUST be performed exclusively on:
 
-- Language: English only
-- Use clear, concise, descriptive messages
-- Prefer imperative mood
+`chatgpt-agentenmodus`
+
+Rules:
+
+- Never modify or commit files on `master` or `main`.
+- Never create additional branches.
+- Verify the current branch before modifying files.
+- If the current branch is incorrect, switch to `chatgpt-agentenmodus` before proceeding.
+- If switching is unsafe because of uncommitted changes, stop and report the issue.
+- Never discard or overwrite existing user changes.
+- Do not switch branches unnecessarily.
+
+The branch policy overrides all other workflow instructions.
+
+## 3. Commit Policy
+
+The agent MUST commit its own completed changes.
+
+Rules:
+
+- Commit only files belonging to the current task.
+- Never include unrelated user changes.
+- Use small, logical commits.
+- Each commit should leave the affected functionality in a working state.
+- Use English commit messages.
+- Prefer concise, descriptive, imperative messages.
+- Do not create empty commits.
+- Verify the working tree before staging and committing.
+
+Example:
+
+`Add historical dataset navigation`
+
+Do not run redundant Git checks after every read-only operation.
+
+## 4. Technology
+
+Use only:
+
+- HTML
+- CSS
+- JavaScript
+- MapLibre GL JS
+- Existing project dependencies
+
+Do not introduce:
+
+- Build systems
+- Backend services
+- Unnecessary dependencies
+- New frameworks without explicit approval
+
+Prefer existing code patterns and reusable functions.
+
+Avoid unnecessary architectural changes.
+
+## 5. Token-Efficient Workflow (Important)
+
+Minimize unnecessary context, tool calls, and repeated analysis.
+
+### Repository Exploration
+
+- Start with the files explicitly mentioned in the task.
+- Read only relevant files and sections.
+- Prefer targeted searches over repository-wide searches.
+- Search filenames before reading file contents.
+- Avoid reading large files completely when only specific functions are relevant.
+- Exclude generated files, binary assets, caches, and large datasets from searches.
+- Do not repeatedly inspect files that have already been analyzed unless they changed.
+
+### Implementation
+
+- Focus exclusively on the requested functionality.
+- Prefer minimal, targeted modifications.
+- Reuse existing code and project conventions.
+- Avoid unrelated refactoring.
+- Do not reformat unaffected files.
+- Do not add unnecessary abstractions.
+- Do not create documentation unless relevant to the change.
+
+### Testing
+
+- Run the smallest relevant tests first.
+- Avoid repeatedly executing identical tests without changes.
+- Do not test unrelated modules.
+- Run broader tests only when changes affect shared functionality.
+- Report tests that could not be executed.
+
+### Communication
+
+- Keep responses concise.
+- Do not repeat task descriptions.
+- Avoid lengthy explanations of obvious implementation details.
+- Do not output entire modified files unless requested.
+- Provide one short final summary.
+
+## 6. MapLibre Skills
+
+Use existing MapLibre skills when they provide relevant technical guidance.
+
+Available skills:
+
+- `maplibre-tile-sources`
+- `maplibre-pmtiles-patterns`
+- `maplibre-mapbox-migration`
+
+Rules:
+
+- Select skills according to the actual task.
+- Read only the necessary skill instructions and references.
+- Do not load all MapLibre skills automatically.
+- Do not reload unchanged skill content unnecessarily within the same task.
+- Prefer existing project conventions when no additional guidance is needed.
+- Use local skill files where available.
+- Do not assume fallback paths exist.
+- Do not hardcode user-specific absolute paths.
+
+Skill selection:
+
+- Tile sources, layers, basemaps: `maplibre-tile-sources`
+- PMTiles integration and hosting: `maplibre-pmtiles-patterns`
+- Mapbox migration: `maplibre-mapbox-migration`
+
+For small changes that do not require MapLibre-specific guidance, avoid unnecessary skill loading.
+
+## 7. Map Demo Structure
+
+Main application:
+
+`maps/map/index.html`
+
+Rules:
+
+- The main application contains the complete current Vectormap feature set.
+- Individual directories in `maps/` demonstrate specific modules.
+- New core modules should be integrated into the main application.
+- Update module examples only when affected by the task.
+- Do not modify unrelated map examples.
+- Keep supplemental products separate from core modules.
+
+The AV-WMS survey map is a supplemental product for the SOGI AV-WMS survey.
+
+It must remain separate from regular Vectormap examples.
+
+## 8. Content Rules
+
+### Audience
+
+Public website content is written for end users and developers.
+
+Content must be:
+
+- Clear
+- Understandable
+- Professional
+- User-oriented
+
+Never include:
+
+- Internal planning notes
+- AI instructions
+- Prompt references
+- Explanations about AI-generated content
+
+### Language
+
+- Public website text: German
+- Code: English
+- Comments: English
+- Variable names: English
+- Commit messages: English
+
+Use Swiss Standard German.
+
+Never use the character `ß` in German website content.
+
+Always use `ss`.
 
 Examples:
-- `Refactor site structure and navigation`
-- `Add dataset page rendering av.json documentation`
-- `Add modular MapLibre base map example`
-- `Integrate logo and update header layout`
-- `Add AGENT.md with autonomous commit rules`
 
-## Working Style
+- Strasse
+- gross
+- Massstab
 
-- Prefer small, incremental commits
-- Each commit should leave the repository in a working state
-- Do not introduce build systems or backend code
-- Use plain HTML, CSS, and JavaScript only
+### Documentation
 
-## MapLibre Skills
+- README files may contain technical information.
+- Documentation should explain actual functionality.
+- Update documentation when functionality or configuration changes.
+- Avoid unnecessary documentation changes.
 
-- For any MapLibre-related task, load and read relevant skill files before implementation.
-- Prefer skills that are already available in the local agent environment.
-- Use skill selection by task type:
-  - `maplibre-tile-sources`: source/layer setup, blank map debugging, basemap and labels
-  - `maplibre-pmtiles-patterns`: PMTiles workflows, static/serverless hosting, MBTiles conversion patterns
-  - `maplibre-mapbox-migration`: migration from Mapbox GL JS to MapLibre
-- Apply skill guidance as the primary implementation baseline and only add extra research when required by gaps in the skill content.
-- Make assumptions explicit when skill guidance does not fully cover edge cases.
-- Skills are used from local files, not directly from browser URLs.
-- If project-local fallback skill files exist, they may be used as a fallback.
-- Do not assume that a project-local fallback path exists unless it is present in the repository.
-- Do not hardcode user-specific absolute paths in repository guidance.
+## 9. Refactoring
 
-## Map Demo Structure
+Existing code may be refactored when necessary.
 
-- `maps/map/index.html` is the main Vectormap map and MUST contain the complete current Vectormap feature set.
-- Individual map directories in `maps/` should stay focused on one module or one clearly scoped function.
-- When adding a new Vectormap module, update the module-specific map and also integrate the function into `maps/map/index.html` when it belongs in the complete example.
-- Supplemental or survey-specific maps that are not core Vectormap examples must be kept visibly separate from the regular module examples.
-- The AV-WMS survey map is a supplemental product for the SOGI AV-WMS survey and should not be treated as a regular Vectormap module example.
+However:
 
-## Content Rules (VERY IMPORTANT)
+- Prefer targeted changes.
+- Refactor only when required by the task.
+- Avoid unrelated structural modifications.
+- Preserve existing functionality.
+- Prioritize maintainability and modularity.
 
-### Target Audience
+Large refactoring operations require explicit justification.
 
-- All visible website text (HTML content) is written for **end users and developers visiting the website**
-- Text must be **clear, understandable, and user-oriented**
-- Do NOT include:
-  - internal planning notes
-  - references to prompts
-  - instructions given to the AI
-  - meta explanations about how or why the content was generated
+## 10. Context Management
 
-The website must read as if it was written directly for human visitors, not for an AI or internal documentation.
+Treat repository files as the source of truth.
 
----
+Rules:
 
-### Language Rules
+- Do not repeatedly reconstruct the entire project architecture.
+- Read existing documentation before performing extensive exploration.
+- Keep task context limited to relevant components.
+- Avoid unnecessary external research.
+- Do not load large datasets into conversation context.
+- Inspect data structures and small samples when possible.
 
-- All website text content MUST be written in **German**
-- Code, comments, variable names, and commit messages remain in English
-- **The German letter "ß" MUST NOT be used**
-  - Always use `ss` instead (e.g. `gross`, `Strasse`, `Massstab`)
+For complex tasks:
 
----
+1. Identify relevant files.
+2. Inspect existing implementation.
+3. Implement the requested change.
+4. Run targeted verification.
+5. Commit the result.
 
-## Refactoring Rules
+Use a new task context when moving to unrelated functionality.
 
-- A previous draft exists and may be heavily refactored or removed if needed
-- Prioritize clarity, modularity, and extensibility over preserving existing code
+## 11. Autonomous Execution
 
-## Documentation
+The agent may independently:
 
-- Update or add README files where helpful
-- Documentation is developer-focused and may be more technical
-- README files may reference configuration, modules, and parameters
-- Public website pages must remain end-user-oriented
+- Inspect relevant files
+- Make implementation decisions
+- Modify existing code
+- Create necessary files
+- Run relevant tests
+- Commit completed changes
 
-## Definition of Done
+The agent must not independently:
 
-Work is considered complete when:
+- Modify protected branches
+- Create new branches
+- Introduce backend systems
+- Replace existing project architecture unnecessarily
+- Delete unrelated files
+- Overwrite existing user changes
+- Deploy to production
 
-- All changes are committed to `chatgpt-agentenmodus`
-- No file modifications were made on `master`
-- The site runs as a static website without a build step
-- Public website text is end-user-friendly and contains no internal AI context
-- No German "ß" characters appear in HTML content
-- MapLibre examples work with placeholder or real data
-- Dataset documentation from `av.json` is correctly rendered
-- Code structure is clean, modular, and understandable
+Ask for clarification only when necessary to prevent incorrect or destructive changes.
 
----
+## 12. Definition of Done
 
-The agent is expected to act autonomously, including making decisions about structure, implementation details, and commit timing, as long as all rules above are respected.
+A task is complete when:
+
+- Changes were made on `chatgpt-agentenmodus`.
+- All changes belonging to the task are committed.
+- No unrelated user changes were committed.
+- The affected functionality works as expected.
+- Relevant tests were executed where possible.
+- The static website architecture is preserved.
+- Public website content follows the language rules.
+- Relevant MapLibre examples remain functional.
+- Documentation is updated where necessary.
+
+Do not run unrelated project-wide checks unless required by the changes.
+
+## 13. Final Response
+
+Provide a concise summary containing:
+
+1. Changes made
+2. Files modified
+3. Tests performed
+4. Commit hash
+5. Remaining issues, if any
+
+Avoid lengthy implementation narratives.
