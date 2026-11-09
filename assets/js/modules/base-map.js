@@ -21,7 +21,7 @@
     attributionControl: true,
     maplibreCss: "https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css",
     maplibreJs: "https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs",
-    pmtilesJs: "https://unpkg.com/pmtiles@4.4.1/dist/pmtiles.js"
+    pmtilesJs: "https://unpkg.com/pmtiles@4.5.0/dist/pmtiles.js"
   };
 
   window.vectormapModules = window.vectormapModules || {};
