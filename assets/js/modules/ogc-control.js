@@ -617,12 +617,16 @@
     return ids.length ? ids : [...targetIds];
   };
   const isOverlayOnMap = (overlay, map) => getOverlayTargets(overlay).includes(mapId(map));
+  const hasFeatureInfoSupport = (overlay) =>
+    overlay?.queryable === true &&
+    Array.isArray(overlay.infoFormats) &&
+    overlay.infoFormats.some((format) => safeText(format));
   const getInteractiveOverlays = (map) =>
     ogcState.overlays.filter(
       (overlay) =>
         overlay.visible !== false &&
         overlay.serviceType === "WMS" &&
-        overlay.queryable === true &&
+        hasFeatureInfoSupport(overlay) &&
         isOverlayOnMap(overlay, map)
     );
 
@@ -779,10 +783,21 @@
     }
     return String(value);
   };
+  const isMeaningfulFeatureAttribute = (key, value) => {
+    const name = safeText(key);
+    const content = safeText(value);
+    if (!name || !content || /[<>?]/.test(name)) {
+      return false;
+    }
+    if (/^(xmlns(?::|$)|xsi(?::|$)|gml(?::|$)|boundedby$|coordinates$|pos(list)?$)$/i.test(name)) {
+      return false;
+    }
+    return !/^\s*(?:<\?xml|<\/?(?:gml|wfs|ows|xsi)[:>])/i.test(content);
+  };
   const normalizeFeatureAttributes = (properties) =>
     Object.entries(properties || {})
       .map(([key, value]) => [safeText(key), safeText(formatFeatureValue(value))])
-      .filter(([key, value]) => key && value);
+      .filter(([key, value]) => isMeaningfulFeatureAttribute(key, value));
   const extractJsonFeatureInfo = (payload) => {
     if (Array.isArray(payload?.features)) {
       return payload.features.map((feature) => ({
@@ -952,6 +967,9 @@
     const xmlFeatures = extractXmlFeatureInfo(text);
     if (xmlFeatures.length) {
       return xmlFeatures;
+    }
+    if (/^\s*(?:<\?xml\b|<[^>]+>)/i.test(text)) {
+      return [];
     }
     const htmlFeatures = extractHtmlFeatureInfo(text);
     return htmlFeatures.length ? htmlFeatures : extractPlainTextFeatureInfo(text);
