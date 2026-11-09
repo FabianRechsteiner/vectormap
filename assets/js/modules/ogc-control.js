@@ -617,12 +617,16 @@
     return ids.length ? ids : [...targetIds];
   };
   const isOverlayOnMap = (overlay, map) => getOverlayTargets(overlay).includes(mapId(map));
+  const hasFeatureInfoSupport = (overlay) =>
+    overlay?.queryable === true &&
+    Array.isArray(overlay.infoFormats) &&
+    overlay.infoFormats.some((format) => safeText(format));
   const getInteractiveOverlays = (map) =>
     ogcState.overlays.filter(
       (overlay) =>
         overlay.visible !== false &&
         overlay.serviceType === "WMS" &&
-        overlay.queryable === true &&
+        hasFeatureInfoSupport(overlay) &&
         isOverlayOnMap(overlay, map)
     );
 
@@ -633,7 +637,8 @@
       map.addSource(sid, {
         type: "raster",
         tiles: [overlay.serviceType === "WMTS" ? buildWmtsTileUrl(overlay) : buildWmsTileUrl(overlay)],
-        tileSize: 256
+        tileSize: 256,
+        ...(overlay.attribution ? { attribution: overlay.attribution } : {})
       });
     }
     if (!map.getLayer(lid)) {
@@ -778,10 +783,21 @@
     }
     return String(value);
   };
+  const isMeaningfulFeatureAttribute = (key, value) => {
+    const name = safeText(key);
+    const content = safeText(value);
+    if (!name || !content || /[<>?]/.test(name)) {
+      return false;
+    }
+    if (/^(xmlns(?::|$)|xsi(?::|$)|gml(?::|$)|boundedby$|coordinates$|pos(list)?$)$/i.test(name)) {
+      return false;
+    }
+    return !/^\s*(?:<\?xml|<\/?(?:gml|wfs|ows|xsi)[:>])/i.test(content);
+  };
   const normalizeFeatureAttributes = (properties) =>
     Object.entries(properties || {})
       .map(([key, value]) => [safeText(key), safeText(formatFeatureValue(value))])
-      .filter(([key, value]) => key && value);
+      .filter(([key, value]) => isMeaningfulFeatureAttribute(key, value));
   const extractJsonFeatureInfo = (payload) => {
     if (Array.isArray(payload?.features)) {
       return payload.features.map((feature) => ({
@@ -902,24 +918,61 @@
       })
       .filter((feature) => normalizeFeatureAttributes(feature.properties).length);
   };
+  const extractPlainTextFeatureInfo = (text) => {
+    const features = [];
+    let properties = {};
+    const commit = () => {
+      if (normalizeFeatureAttributes(properties).length) {
+        features.push({ properties, geometry: null });
+      }
+      properties = {};
+    };
+    String(text || "")
+      .replace(/\r/g, "")
+      .split("\n")
+      .forEach((line) => {
+        const trimmed = safeText(line);
+        if (!trimmed) {
+          commit();
+          return;
+        }
+        const match = trimmed.match(/^([^:=]{1,120}?)\s*[:=]\s*(.+)$/);
+        if (match) {
+          const key = safeText(match[1]);
+          const value = safeText(match[2]);
+          if (key && value) {
+            properties[key] = value;
+          }
+        }
+      });
+    commit();
+    return features;
+  };
   const parseFeatureInfoResponse = async (response) => {
     const contentType = safeText(response.headers.get("content-type")).toLowerCase();
-    if (contentType.includes("json")) {
-      return extractJsonFeatureInfo(await response.json());
-    }
     const text = await response.text();
-    if (/^\s*[{[]/.test(text)) {
+    if (contentType.includes("json") || /^\s*[{[]/.test(text)) {
       try {
         return extractJsonFeatureInfo(JSON.parse(text));
       } catch (error) {
-        // Fall through to XML/HTML parsing.
+        // Some WMS servers label XML or plain text responses as JSON.
       }
     }
     if (contentType.includes("html")) {
-      return extractHtmlFeatureInfo(text);
+      const htmlFeatures = extractHtmlFeatureInfo(text);
+      if (htmlFeatures.length) {
+        return htmlFeatures;
+      }
     }
     const xmlFeatures = extractXmlFeatureInfo(text);
-    return xmlFeatures.length ? xmlFeatures : extractHtmlFeatureInfo(text);
+    if (xmlFeatures.length) {
+      return xmlFeatures;
+    }
+    if (/^\s*(?:<\?xml\b|<[^>]+>)/i.test(text)) {
+      return [];
+    }
+    const htmlFeatures = extractHtmlFeatureInfo(text);
+    return htmlFeatures.length ? htmlFeatures : extractPlainTextFeatureInfo(text);
   };
   const queryFeatureInfoForOverlay = async (overlay, map, point, signal, options = {}) => {
     const response = await fetchWithTimeout(buildFeatureInfoUrl(overlay, map, point, options), {
@@ -942,6 +995,10 @@
   const createPopupContent = (hits) => {
     const root = document.createElement("div");
     root.className = "vectormap-ogc-popup";
+    const summary = document.createElement("div");
+    summary.className = "vectormap-ogc-popup-summary";
+    summary.textContent = hits.length === 1 ? "Objektinformation" : `${hits.length} Objekte gefunden`;
+    root.appendChild(summary);
     hits.forEach((hit) => {
       const section = document.createElement("section");
       section.className = "vectormap-ogc-popup-section";
@@ -956,10 +1013,10 @@
       const grid = document.createElement("div");
       grid.className = "vectormap-ogc-popup-grid";
       normalizeFeatureAttributes(hit.properties).forEach(([key, value]) => {
-        const keyEl = document.createElement("div");
+        const keyEl = document.createElement("dt");
         keyEl.className = "vectormap-ogc-popup-key";
         keyEl.textContent = key;
-        const valueEl = document.createElement("div");
+        const valueEl = document.createElement("dd");
         valueEl.className = "vectormap-ogc-popup-value";
         valueEl.textContent = String(value);
         grid.append(keyEl, valueEl);
@@ -1148,14 +1205,16 @@
     emitChange();
     syncFeaturePopupVisibility();
   };
-  ogcState.updateOverlayOpacity = (overlayId, opacity) => {
+  ogcState.updateOverlayOpacity = (overlayId, opacity, options = {}) => {
     const idx = ogcState.overlays.findIndex((x) => x.id === overlayId);
     if (idx < 0) {
       return;
     }
     ogcState.overlays[idx] = { ...ogcState.overlays[idx], opacity: normalizeOpacity(opacity) };
     applyAll();
-    emitChange();
+    if (options.emitChange !== false) {
+      emitChange();
+    }
   };
 
   const restoreOverlaysFromUrl = () => {
@@ -1194,39 +1253,56 @@
       .vectormap-ogc-toggle.maplibregl-ctrl-icon:focus-visible {
         background-color: rgba(30, 122, 93, 0.08);
       }
-      .vectormap-ogc-panel { position: absolute; right: calc(100% + 10px); top: -1px; width: min(90vw, 440px); max-height: min(74vh, 700px); overflow: hidden; display: none; z-index: 3; border: 1px solid rgba(0,0,0,.12); border-radius: 12px; background: rgba(255,255,255,.82); backdrop-filter: blur(3px); box-shadow: 0 16px 30px rgba(0,0,0,.2); padding: 10px; }
-      .vectormap-ogc-ctrl.is-open .vectormap-ogc-panel { display: block; }
-      .vectormap-ogc-body { display: flex; flex-direction: column; gap: 6px; height: 100%; max-height: calc(min(74vh, 700px) - 20px); }
+      .vectormap-ogc-panel { position: fixed; inset: 0; display: none; z-index: 20; pointer-events: none; box-sizing: border-box; }
+      .vectormap-ogc-panel.is-open { display: block; }
+      .vectormap-ogc-shell { display: grid; grid-template-columns: minmax(360px, 420px) minmax(0, 1fr); height: 100%; transition: grid-template-columns .22s ease; }
+      .vectormap-ogc-panel.has-results .vectormap-ogc-shell { grid-template-columns: minmax(520px, 48vw) minmax(0, 1fr); }
+      .vectormap-ogc-catalog { grid-column: 1; grid-row: 1; min-width: 0; overflow: hidden; pointer-events: auto; border-right: 1px solid rgba(0,0,0,.12); background: rgba(250,253,252,.98); box-shadow: 16px 0 32px rgba(0,0,0,.16); }
+      .vectormap-ogc-body { display: flex; flex-direction: column; gap: 12px; height: 100%; padding: 20px; box-sizing: border-box; }
       .vectormap-ogc-search-top { flex: 0 0 auto; }
-      .vectormap-ogc-service-results { flex: 1 1 auto; min-height: 120px; overflow: auto; padding-right: 2px; }
+      .vectormap-ogc-head { display: flex; align-items: flex-start; gap: 8px; }
+      .vectormap-ogc-head-copy { min-width: 0; flex: 1 1 auto; }
+      .vectormap-ogc-close { flex: 0 0 44px; width: 44px; height: 44px; border: 1px solid #8cc9c4; border-radius: 9px; background: #fff; color: #0f4e4b; font: 700 22px/1 "Segoe UI", Arial, sans-serif; cursor: pointer; }
+      .vectormap-ogc-mobile-tabs, .vectormap-ogc-mobile-intro { display: none; }
+      .vectormap-ogc-service-results { flex: 1 1 auto; min-height: 160px; overflow: auto; padding-right: 6px; overscroll-behavior: contain; }
       .vectormap-ogc-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; margin: 6px 0; }
-      .vectormap-ogc-input { min-width: 0; height: 34px; border: 1px solid #b8d4cb; border-radius: 9px; padding: 0 10px; font: 13px/1.2 "Segoe UI", Arial, sans-serif; }
-      .vectormap-ogc-btn { height: 34px; border-radius: 9px; border: 1px solid #8cc9c4; background: #fff; color: #0f4e4b; padding: 0 10px; font: 600 12px/1.2 "Segoe UI", Arial, sans-serif; cursor: pointer; width: auto; min-width: 0; }
+      .vectormap-ogc-input { min-width: 0; min-height: 44px; border: 1px solid #b8d4cb; border-radius: 9px; padding: 0 10px; font: 13px/1.2 "Segoe UI", Arial, sans-serif; box-sizing: border-box; }
+      .vectormap-ogc-btn { min-height: 44px; border-radius: 9px; border: 1px solid #8cc9c4; background: #fff; color: #0f4e4b; padding: 0 10px; font: 600 12px/1.2 "Segoe UI", Arial, sans-serif; cursor: pointer; width: auto; min-width: 0; }
       .vectormap-ogc-btn--primary { background: #fff; border-color: #8cc9c4; color: #0f4e4b; }
       .vectormap-ogc-options { display: flex; gap: 8px; margin-top: 6px; align-items: center; flex-wrap: wrap; }
       .vectormap-ogc-options label { display: inline-flex; align-items: center; gap: 6px; font: 12px/1.2 "Segoe UI", Arial, sans-serif; color: #2f5f55; }
       .vectormap-ogc-status { margin-top: 8px; font: 12px/1.3 "Segoe UI", Arial, sans-serif; color: #2f5f55; }
-      .vectormap-ogc-list { display: grid; gap: 6px; margin: 6px 0; }
-      .vectormap-ogc-item { border: 1px solid #d2e7df; border-radius: 10px; background: rgba(255,255,255,.9); padding: 7px; transition: border-color .15s ease, box-shadow .15s ease; }
-      .vectormap-ogc-item:hover { border-color: #4ea48f; box-shadow: 0 0 0 1px rgba(78,164,143,.35); }
-      .vectormap-ogc-title { font: 700 12px/1.3 "Segoe UI", Arial, sans-serif; color: #103a31; }
-      .vectormap-ogc-meta { margin-top: 3px; color: #4d6e63; font: 11px/1.35 "Segoe UI", Arial, sans-serif; }
+      .vectormap-ogc-list { display: grid; gap: 10px; margin: 8px 0; }
+      .vectormap-ogc-records, .vectormap-ogc-layers { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); align-items: start; }
+      .vectormap-ogc-item { border: 1px solid #d2e7df; border-radius: 12px; background: #fff; padding: 14px; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+      .vectormap-ogc-item:hover, .vectormap-ogc-item:focus-within { border-color: #4ea48f; box-shadow: 0 6px 18px rgba(31,91,77,.14); transform: translateY(-1px); }
+      .vectormap-ogc-title { font: 700 15px/1.35 "Segoe UI", Arial, sans-serif; color: #103a31; }
+      .vectormap-ogc-meta { margin-top: 6px; color: #4d6e63; font: 12px/1.45 "Segoe UI", Arial, sans-serif; }
+      .vectormap-ogc-record-catalog { display: flex; align-items: baseline; gap: 5px; margin-top: 8px; color: #315c52; font: 12px/1.35 "Segoe UI", Arial, sans-serif; }
+      .vectormap-ogc-record-label { flex: 0 0 auto; color: #52756b; font-weight: 700; }
+      .vectormap-ogc-record-description { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid #e2eee9; color: #315c52; font: 12px/1.45 "Segoe UI", Arial, sans-serif; }
+      .vectormap-ogc-record-description p { display: inline; margin: 0; }
       .vectormap-ogc-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
       .vectormap-ogc-actions .vectormap-ogc-btn { height: 38px; padding: 0 12px; font: 600 13px/1.2 "Segoe UI", Arial, sans-serif; white-space: nowrap; width: fit-content; min-width: max-content; flex: 0 0 auto; }
       .vectormap-ogc-actions .vectormap-ogc-input { flex: 1 1 210px; min-width: 180px; }
       .vectormap-ogc-tag { display: inline-block; margin-top: 6px; padding: 2px 7px; border-radius: 999px; background: #ecf7f3; color: #24584b; font: 600 10px/1.2 "Segoe UI", Arial, sans-serif; }
       .vectormap-ogc-services { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
       .vectormap-ogc-service-badge { border-radius: 999px; padding: 2px 8px; font: 600 10px/1.2 "Segoe UI", Arial, sans-serif; border: 1px solid #b7d8cf; background: #f0faf6; color: #1f5b4d; }
-      .vectormap-ogc-active { flex: 0 0 auto; margin-top: 2px; border-top: 1px solid rgba(0,0,0,.08); padding-top: 8px; }
-      .vectormap-ogc-active-title { margin: 0 0 5px; font: 700 12px/1.2 "Segoe UI", Arial, sans-serif; color: #153e34; }
-      .vectormap-ogc-layer-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 6px; align-items: center; border: 1px solid #d7e8e1; border-radius: 8px; padding: 4px 6px; background: rgba(255,255,255,.92); cursor: grab; }
+      .vectormap-ogc-active { flex: 0 0 auto; max-height: 34%; overflow: auto; margin-top: 2px; border-top: 1px solid rgba(0,0,0,.08); padding-top: 12px; }
+      .vectormap-ogc-active-title { margin: 0 0 8px; font: 700 14px/1.2 "Segoe UI", Arial, sans-serif; color: #153e34; }
+      .vectormap-ogc-layer-row { border: 1px solid #d7e8e1; border-radius: 8px; padding: 6px; background: rgba(255,255,255,.92); cursor: grab; }
       .vectormap-ogc-layer-row.is-dragging { opacity: .6; }
       .vectormap-ogc-layer-row.is-drop-target { outline: 2px dashed #4ea48f; outline-offset: 1px; }
       .vectormap-ogc-layer-main { display: grid; grid-template-columns: minmax(0,1fr) 88px; gap: 6px; align-items: center; min-width: 0; }
       .vectormap-ogc-layer-main span { font: 12px/1.2 "Segoe UI", Arial, sans-serif; color: #173e35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .vectormap-ogc-layer-row button { width: 28px; height: 24px; border: 1px solid #bad8cf; border-radius: 6px; background: #fff; color: #1b584c; cursor: pointer; font: 600 10px/1 "Segoe UI", Arial, sans-serif; }
+      .vectormap-ogc-layer-actions { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
+      .vectormap-ogc-layer-order { display: flex; gap: 4px; margin-right: auto; }
+      .vectormap-ogc-layer-row button { width: 44px; height: 44px; border: 1px solid #bad8cf; border-radius: 6px; background: #fff; color: #1b584c; cursor: pointer; font: 600 12px/1 "Segoe UI", Arial, sans-serif; }
       .vectormap-ogc-layer-row button.is-active { border-color: #1f8f78; background: #e7f7f1; color: #0f4e4b; }
-      .vectormap-ogc-layer-row input[type='range'] { width: 88px; accent-color: #00a7b3; }
+      .vectormap-ogc-layer-toggle { min-width: 54px; width: auto !important; font-weight: 800 !important; letter-spacing: .03em; }
+      .vectormap-ogc-layer-toggle.is-visible { border-color: #167a5f !important; background: #167a5f !important; color: #fff !important; box-shadow: 0 1px 3px rgba(15,78,75,.26); }
+      .vectormap-ogc-layer-toggle:not(.is-visible) { border-color: #93a8a1 !important; background: #f4f7f5 !important; color: #466b60 !important; }
+      .vectormap-ogc-layer-row input[type='range'] { width: 100%; min-height: 44px; accent-color: #00a7b3; cursor: pointer; }
       .vectormap-ogc-layer-details { display: none; margin-top: 8px; border: 1px solid #c7dfd7; border-radius: 8px; background: rgba(255,255,255,.96); padding: 9px; color: #1e453b; box-shadow: inset 0 1px 0 rgba(255,255,255,.7); max-height: min(42vh, 360px); overflow: auto; overscroll-behavior: contain; }
       .vectormap-ogc-layer-details.is-open { display: block; }
       .vectormap-ogc-layer-details-title { margin: 0 0 5px; font: 700 13px/1.3 "Segoe UI", Arial, sans-serif; color: #103a31; overflow-wrap: anywhere; }
@@ -1241,16 +1317,61 @@
       .vectormap-ogc-feature-hover .maplibregl-canvas,
       .maplibregl-canvas-container.vectormap-ogc-feature-hover,
       .maplibregl-canvas-container.vectormap-ogc-feature-hover .maplibregl-canvas { cursor: ${featureCursor} !important; }
-      .vectormap-ogc-popup { width: fit-content; max-width: min(420px, calc(100vw - 48px)); color: #173e35; }
-      .vectormap-ogc-popup-section + .vectormap-ogc-popup-section { margin-top: 10px; padding-top: 10px; border-top: 1px solid #d7e8e1; }
-      .vectormap-ogc-popup-title { display: inline-block; margin-bottom: 6px; font: 700 13px/1.3 "Segoe UI", Arial, sans-serif; color: #0f4e4b; text-decoration: none; }
+      .vectormap-ogc-popup { width: min(390px, calc(100vw - 48px)); max-height: min(54vh, 420px); overflow: auto; color: #173e35; }
+      .vectormap-ogc-popup-summary { margin: 0 0 10px; color: #4d6e63; font: 700 11px/1.2 "Segoe UI", Arial, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+      .vectormap-ogc-popup-section { border: 1px solid #d7e8e1; border-radius: 10px; background: #fbfefd; padding: 10px; }
+      .vectormap-ogc-popup-section + .vectormap-ogc-popup-section { margin-top: 10px; }
+      .vectormap-ogc-popup-title { display: inline-block; margin-bottom: 8px; font: 700 14px/1.3 "Segoe UI", Arial, sans-serif; color: #0f4e4b; text-decoration: none; }
       .vectormap-ogc-popup-title:hover { text-decoration: underline; }
-      .vectormap-ogc-popup-grid { display: grid; grid-template-columns: max-content minmax(120px, 1fr); gap: 4px 10px; align-items: start; width: fit-content; max-width: 100%; }
-      .vectormap-ogc-popup-key { font: 600 12px/1.35 "Segoe UI", Arial, sans-serif; color: #24584b; white-space: nowrap; }
-      .vectormap-ogc-popup-value { font: 12px/1.35 "Segoe UI", Arial, sans-serif; color: #173e35; overflow-wrap: anywhere; min-width: 0; }
-      @media (max-width: 760px) {
-        .vectormap-ogc-panel { position: fixed; right: 10px; left: 10px; top: 66px; width: auto; max-height: 72vh; }
+      .vectormap-ogc-popup-grid { display: grid; grid-template-columns: minmax(92px, max-content) minmax(0, 1fr); gap: 6px 12px; align-items: start; margin: 0; max-width: 100%; }
+      .vectormap-ogc-popup-key { margin: 0; font: 600 12px/1.35 "Segoe UI", Arial, sans-serif; color: #24584b; overflow-wrap: anywhere; }
+      .vectormap-ogc-popup-value { margin: 0; font: 12px/1.4 "Segoe UI", Arial, sans-serif; color: #173e35; overflow-wrap: anywhere; min-width: 0; }
+      @media (min-width: 901px) {
+        .vectormap-ogc-body { gap: 9px; padding: 16px; }
+        .vectormap-ogc-close { flex-basis: 36px; width: 36px; height: 36px; border-radius: 8px; font-size: 19px; }
+        .vectormap-ogc-input, .vectormap-ogc-btn { min-height: 36px; border-radius: 8px; }
+        .vectormap-ogc-options { margin-top: 4px; }
+        .vectormap-ogc-list { gap: 8px; margin: 6px 0; }
+        .vectormap-ogc-item { border-radius: 10px; padding: 10px; }
+        .vectormap-ogc-title { font-size: 14px; }
+        .vectormap-ogc-meta { margin-top: 4px; font-size: 11px; }
+        .vectormap-ogc-record-catalog { margin-top: 6px; font-size: 11px; }
+        .vectormap-ogc-record-description { margin-top: 6px; padding-top: 6px; font-size: 11px; }
+        .vectormap-ogc-tag { margin-top: 4px; }
+        .vectormap-ogc-actions { gap: 4px; margin-top: 5px; }
+        .vectormap-ogc-actions .vectormap-ogc-btn { height: 30px; min-height: 30px; padding: 0 9px; font-size: 11px; }
+        .vectormap-ogc-active { max-height: 28%; padding-top: 8px; }
+        .vectormap-ogc-active-title { margin-bottom: 6px; }
+        .vectormap-ogc-layer-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; align-items: center; padding: 5px 7px; }
+        .vectormap-ogc-layer-main { grid-template-columns: minmax(110px,1fr) 100px; gap: 8px; }
+        .vectormap-ogc-layer-actions { gap: 4px; margin-top: 0; }
+        .vectormap-ogc-layer-order { gap: 2px; margin-right: 0; }
+        .vectormap-ogc-layer-row button { width: 30px; height: 30px; font-size: 11px; }
+        .vectormap-ogc-layer-row input[type='range'] { min-height: 30px; }
+      }
+      @media (max-width: 900px) {
+        .vectormap-ogc-shell { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+        .vectormap-ogc-catalog { grid-column: 1; grid-row: 1; border: 0; border-radius: 0; box-shadow: none; }
+        .vectormap-ogc-body { padding: 16px max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
         .vectormap-ogc-row { grid-template-columns: 1fr; }
+        .vectormap-ogc-search-top { position: sticky; top: 0; background: inherit; z-index: 1; }
+        .vectormap-ogc-service-results { min-height: 0; }
+        .vectormap-ogc-records, .vectormap-ogc-layers { grid-template-columns: 1fr; }
+        .vectormap-ogc-mobile-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 12px; }
+        .vectormap-ogc-mobile-tabs button { min-height: 42px; border: 1px solid #b8d4cb; border-radius: 9px; background: #fff; color: #24584b; font: 700 12px/1.2 "Segoe UI", Arial, sans-serif; }
+        .vectormap-ogc-mobile-tabs button[aria-selected="true"] { border-color: #1f8f78; background: #e7f7f1; color: #0f4e4b; }
+        .vectormap-ogc-mobile-intro { display: none; flex: 1 1 auto; padding: 20px 2px; color: #315c52; font: 14px/1.5 "Segoe UI", Arial, sans-serif; }
+        .vectormap-ogc-mobile-intro strong { display: block; margin-bottom: 8px; color: #103a31; font-size: 18px; }
+        .vectormap-ogc-panel[data-mobile-view="search"] .vectormap-ogc-mobile-intro { display: block; }
+        .vectormap-ogc-panel[data-mobile-view="search"] .vectormap-ogc-service-results,
+        .vectormap-ogc-panel[data-mobile-view="search"] .vectormap-ogc-active,
+        .vectormap-ogc-panel[data-mobile-view="results"] .vectormap-ogc-mobile-intro,
+        .vectormap-ogc-panel[data-mobile-view="results"] .vectormap-ogc-active,
+        .vectormap-ogc-panel[data-mobile-view="active"] .vectormap-ogc-mobile-intro,
+        .vectormap-ogc-panel[data-mobile-view="active"] .vectormap-ogc-service-results { display: none; }
+        .vectormap-ogc-panel[data-mobile-view="results"] .vectormap-ogc-service-results,
+        .vectormap-ogc-panel[data-mobile-view="active"] .vectormap-ogc-active { display: block; flex: 1 1 auto; max-height: none; }
+        .vectormap-ogc-layer-main { grid-template-columns: 1fr; }
         .vectormap-ogc-popup-grid { grid-template-columns: minmax(88px, max-content) minmax(0, 1fr); width: 100%; }
       }
     `;
@@ -1276,6 +1397,7 @@
     organization: safeText(metadata.organization || ""),
     groupOwner: safeText(metadata.groupOwner || ""),
     abstractHtml: String(metadata.abstractHtml || ""),
+    attribution: safeText(metadata.attribution || metadata.organization || ""),
     opacity: 1,
     visible: true
   });
@@ -1288,6 +1410,9 @@
     let maybeAutoRefresh = () => {};
     let renderActiveLayers = () => {};
     let clearHoverGeometry = () => {};
+    let closePanel = () => {};
+    let panel = null;
+    let positionPanel = () => {};
     return ({
     onAdd(map) {
       const root = document.createElement("div");
@@ -1298,14 +1423,22 @@
       toggle.title = settings.title;
       toggle.setAttribute("aria-label", settings.title);
 
-      const panel = document.createElement("div");
+      panel = document.createElement("div");
       panel.className = "vectormap-ogc-panel";
+      panel.setAttribute("role", "dialog");
+      panel.setAttribute("aria-modal", "true");
+      panel.setAttribute("aria-label", settings.panelTitle);
       panel.innerHTML = `
-        <div class="vectormap-ogc-body">
+        <div class="vectormap-ogc-shell">
+          <section class="vectormap-ogc-catalog">
+            <div class="vectormap-ogc-body">
           <div class="vectormap-ogc-search-top">
             <div class="vectormap-ogc-head">
-              <h4>${safeText(settings.panelTitle)}</h4>
-              <p style="margin:4px 0 0;font:12px/1.3 'Segoe UI',Arial,sans-serif;color:#36554b;">Suche in geocat.ch oder lade eine WMS/WMTS-URL direkt.</p>
+              <div class="vectormap-ogc-head-copy">
+                <h4>${safeText(settings.panelTitle)}</h4>
+                <p style="margin:4px 0 0;font:12px/1.3 'Segoe UI',Arial,sans-serif;color:#36554b;">Suche in geocat.ch oder lade eine WMS/WMTS-URL direkt.</p>
+              </div>
+              <button type="button" class="vectormap-ogc-close" aria-label="Geodaten-Suche schliessen" title="Schliessen">×</button>
             </div>
             <div class="vectormap-ogc-row">
               <input type="text" class="vectormap-ogc-input" placeholder="${safeText(settings.searchPlaceholder)}" />
@@ -1314,16 +1447,24 @@
             <div class="vectormap-ogc-options">
               <label><input type="checkbox" class="vectormap-ogc-use-bbox" /> Nur aktueller Kartenausschnitt</label>
             </div>
-            <div class="vectormap-ogc-status">Bereit.</div>
+            <div class="vectormap-ogc-status" role="status" aria-live="polite">Bereit.</div>
+            <div class="vectormap-ogc-mobile-tabs" role="tablist" aria-label="Geodatenbereiche">
+              <button type="button" role="tab" aria-selected="true" data-ogc-mobile-view="search">Suche</button>
+              <button type="button" role="tab" aria-selected="false" data-ogc-mobile-view="results">Treffer</button>
+              <button type="button" role="tab" aria-selected="false" data-ogc-mobile-view="active">Aktiv</button>
+            </div>
           </div>
+          <div class="vectormap-ogc-mobile-intro"><strong>Geodaten entdecken</strong>Suche nach einem Thema oder füge eine WMS- beziehungsweise WMTS-URL ein. Bei einem Treffer zeigt «Ausdehnung zeigen» die räumliche Abdeckung direkt auf der Karte.</div>
           <div class="vectormap-ogc-service-results">
             <div class="vectormap-ogc-list vectormap-ogc-records"></div>
             <div class="vectormap-ogc-list vectormap-ogc-layers"></div>
           </div>
-          <div class="vectormap-ogc-active">
-            <div class="vectormap-ogc-active-title">Aktive Layer</div>
-            <div class="vectormap-ogc-list vectormap-ogc-active-layers"></div>
-            <div class="vectormap-ogc-layer-details" aria-live="polite"></div>
+              <div class="vectormap-ogc-active">
+                <div class="vectormap-ogc-active-title">Aktive Layer</div>
+                <div class="vectormap-ogc-list vectormap-ogc-active-layers"></div>
+                <div class="vectormap-ogc-layer-details" aria-live="polite"></div>
+              </div>
+            </div>
           </div>
         </div>
       `;
@@ -1336,12 +1477,43 @@
       const layersEl = panel.querySelector(".vectormap-ogc-layers");
       const activeEl = panel.querySelector(".vectormap-ogc-active-layers");
       const layerDetailsEl = panel.querySelector(".vectormap-ogc-layer-details");
+      const closeBtn = panel.querySelector(".vectormap-ogc-close");
+      const mobileTabs = [...panel.querySelectorAll("[data-ogc-mobile-view]")];
       const hoverSourceId = `ogc-hover-src-${mapId(map) || "map"}`;
       const hoverFillLayerId = `ogc-hover-fill-${mapId(map) || "map"}`;
       const hoverLayerId = `ogc-hover-lyr-${mapId(map) || "map"}`;
-      const setStatus = (text) => {
-        statusEl.textContent = text;
+      const setStatus = (text, options = {}) => {
+        statusEl.replaceChildren(document.createTextNode(text));
+        statusEl.classList.toggle("is-error", options.error === true);
+        if (typeof options.retry === "function") {
+          const retry = document.createElement("button");
+          retry.type = "button";
+          retry.className = "vectormap-ogc-btn";
+          retry.textContent = "Erneut versuchen";
+          retry.addEventListener("click", options.retry);
+          statusEl.append(" ", retry);
+        }
       };
+      const setMobileView = (view) => {
+        const normalized = ["search", "results", "active"].includes(view)
+          ? view
+          : "search";
+        panel.dataset.mobileView = normalized;
+        mobileTabs.forEach((tab) => {
+          tab.setAttribute(
+            "aria-selected",
+            String(tab.dataset.ogcMobileView === normalized)
+          );
+        });
+      };
+      const setCatalogExpanded = (expanded) => {
+        panel.classList.toggle("has-results", Boolean(expanded));
+      };
+      mobileTabs.forEach((tab) => {
+        tab.addEventListener("click", () => setMobileView(tab.dataset.ogcMobileView));
+      });
+      setMobileView("search");
+      let pinnedHoverGeometry = false;
       const ensureHoverLayer = () => {
         if (!map.getSource(hoverSourceId)) {
           map.addSource(hoverSourceId, {
@@ -1373,17 +1545,22 @@
           });
         }
       };
-      clearHoverGeometry = () => {
+      clearHoverGeometry = ({ force = false } = {}) => {
+        if (pinnedHoverGeometry && !force) {
+          return;
+        }
+        pinnedHoverGeometry = false;
         const source = map.getSource(hoverSourceId);
         if (source) {
           source.setData({ type: "FeatureCollection", features: [] });
         }
       };
-      const showHoverGeometry = (geometry) => {
+      const showHoverGeometry = (geometry, { pin = false } = {}) => {
         if (!geometry) {
-          clearHoverGeometry();
+          clearHoverGeometry({ force: true });
           return;
         }
+        pinnedHoverGeometry = pin;
         ensureHoverLayer();
         const source = map.getSource(hoverSourceId);
         source?.setData({
@@ -1470,7 +1647,7 @@
           return;
         }
         let dragId = null;
-        overlays.forEach((overlay) => {
+        overlays.forEach((overlay, index) => {
           const row = document.createElement("div");
           row.className = "vectormap-ogc-layer-row";
           row.setAttribute("draggable", "true");
@@ -1486,20 +1663,44 @@
           opacity.step = "0.05";
           opacity.value = String(normalizeOpacity(overlay.opacity));
           opacity.title = "Transparenz";
-          opacity.addEventListener("pointerdown", (event) => event.stopPropagation());
-          opacity.addEventListener("touchstart", (event) => event.stopPropagation(), { passive: true });
-          opacity.addEventListener("input", () => ogcState.updateOverlayOpacity(overlay.id, opacity.value));
+          opacity.setAttribute("aria-label", `Transparenz für ${overlay.title || overlay.layerId}`);
+          const enableRowDrag = () => {
+            row.setAttribute("draggable", "true");
+          };
+          const disableRowDrag = () => {
+            row.setAttribute("draggable", "false");
+            window.addEventListener("pointerup", enableRowDrag, { once: true });
+            window.addEventListener("pointercancel", enableRowDrag, { once: true });
+          };
+          opacity.addEventListener("pointerdown", (event) => {
+            disableRowDrag();
+            event.stopPropagation();
+          });
+          opacity.addEventListener("blur", enableRowDrag);
+          opacity.addEventListener("touchstart", (event) => {
+            disableRowDrag();
+            event.stopPropagation();
+          }, { passive: true });
+          opacity.addEventListener("input", () =>
+            ogcState.updateOverlayOpacity(overlay.id, opacity.value, { emitChange: false })
+          );
+          opacity.addEventListener("change", () => ogcState.updateOverlayOpacity(overlay.id, opacity.value));
           main.append(label, opacity);
           const toggleBtn = document.createElement("button");
           toggleBtn.type = "button";
+          toggleBtn.className = "vectormap-ogc-layer-toggle";
           toggleBtn.title = overlay.visible ? "Layer ausblenden" : "Layer einblenden";
+          toggleBtn.setAttribute("aria-label", toggleBtn.title);
+          toggleBtn.setAttribute("aria-pressed", String(overlay.visible));
           toggleBtn.textContent = overlay.visible ? "AN" : "AUS";
+          toggleBtn.classList.toggle("is-visible", overlay.visible);
           toggleBtn.addEventListener("pointerdown", (event) => event.stopPropagation());
           toggleBtn.addEventListener("click", () => ogcState.updateOverlayVisibility(overlay.id, !overlay.visible));
           const infoBtn = document.createElement("button");
           infoBtn.type = "button";
           infoBtn.className = "vectormap-ogc-info-btn";
           infoBtn.title = "Information";
+          infoBtn.setAttribute("aria-label", `Informationen zu ${overlay.title || overlay.layerId}`);
           infoBtn.textContent = "i";
           infoBtn.disabled = !overlay.metadataUrl && !overlay.abstractHtml && !overlay.abstract;
           infoBtn.classList.toggle("is-active", selectedLayerInfoId === overlay.id);
@@ -1510,6 +1711,7 @@
           const removeBtn = document.createElement("button");
           removeBtn.type = "button";
           removeBtn.title = "Layer entfernen";
+          removeBtn.setAttribute("aria-label", `Layer ${overlay.title || overlay.layerId} entfernen`);
           removeBtn.textContent = "×";
           removeBtn.addEventListener("pointerdown", (event) => event.stopPropagation());
           removeBtn.addEventListener("click", () => {
@@ -1518,8 +1720,37 @@
             }
             ogcState.removeOverlay(overlay.id);
           });
+          const actions = document.createElement("div");
+          actions.className = "vectormap-ogc-layer-actions";
+          const order = document.createElement("div");
+          order.className = "vectormap-ogc-layer-order";
+          const moveOverlay = (direction) => {
+            const ids = overlays.map((item) => item.id);
+            const nextIndex = index + direction;
+            if (nextIndex < 0 || nextIndex >= ids.length) {
+              return;
+            }
+            [ids[index], ids[nextIndex]] = [ids[nextIndex], ids[index]];
+            ogcState.reorderOverlays(ids);
+          };
+          const upBtn = document.createElement("button");
+          upBtn.type = "button";
+          upBtn.textContent = "↑";
+          upBtn.title = "Layer nach oben verschieben";
+          upBtn.setAttribute("aria-label", `${overlay.title || overlay.layerId} nach oben verschieben`);
+          upBtn.disabled = index === 0;
+          upBtn.addEventListener("click", () => moveOverlay(-1));
+          const downBtn = document.createElement("button");
+          downBtn.type = "button";
+          downBtn.textContent = "↓";
+          downBtn.title = "Layer nach unten verschieben";
+          downBtn.setAttribute("aria-label", `${overlay.title || overlay.layerId} nach unten verschieben`);
+          downBtn.disabled = index === overlays.length - 1;
+          downBtn.addEventListener("click", () => moveOverlay(1));
+          order.append(upBtn, downBtn);
+          actions.append(order, toggleBtn, infoBtn, removeBtn);
           row.addEventListener("dragstart", (event) => {
-            if (["BUTTON", "INPUT"].includes(event.target?.tagName)) {
+            if (event.target?.closest?.("button,input")) {
               event.preventDefault();
               return;
             }
@@ -1552,7 +1783,7 @@
             ids.splice(to, 0, ids.splice(from, 1)[0]);
             ogcState.reorderOverlays(ids);
           });
-          row.append(main, toggleBtn, infoBtn, removeBtn);
+          row.append(main, actions);
           activeEl.appendChild(row);
         });
       };
@@ -1564,6 +1795,8 @@
       };
 
       const renderLayerList = (parsed, capabilitiesUrl, metadataUrl) => {
+        setMobileView("results");
+        setCatalogExpanded(parsed.layers.length > 0);
         layersEl.innerHTML = "";
         const summary = document.createElement("div");
         summary.className = "vectormap-ogc-meta";
@@ -1682,9 +1915,10 @@
           setStatus("Bitte gültige Service-URL eingeben.");
           return;
         }
-        clearHoverGeometry();
+        clearHoverGeometry({ force: true });
         recordsEl.innerHTML = "";
         layersEl.innerHTML = "";
+        setCatalogExpanded(false);
         setStatus("Lade GetCapabilities...");
         try {
           const parsed = await parseCapabilities(capUrl);
@@ -1696,12 +1930,17 @@
           setStatus(`${parsed.layers.length} Layer geladen.`);
         } catch (error) {
           console.error(error);
-          setStatus(`Dienstfehler: ${error.message}`);
+          setStatus(`Dienstfehler: ${error.message}`, {
+            error: true,
+            retry: () => void loadCapabilities(capUrl, metadataUrl)
+          });
         }
       };
 
       const renderRecords = (records, context = {}) => {
-        clearHoverGeometry();
+        setMobileView("results");
+        setCatalogExpanded(records.length > 0);
+        clearHoverGeometry({ force: true });
         recordsEl.innerHTML = "";
         layersEl.innerHTML = "";
         if (!records.length) {
@@ -1723,11 +1962,22 @@
           const title = document.createElement("div");
           title.className = "vectormap-ogc-title";
           title.textContent = record.title || "Ohne Titel";
-          const meta = document.createElement("div");
-          meta.className = "vectormap-ogc-meta";
-          meta.textContent = [record.organization ? `Herausgeber: ${record.organization}` : "", `Katalog: ${record.groupOwnerName || record.groupOwner || "unbekannt"}`, record.abstract]
-            .filter(Boolean)
-            .join(" | ");
+          const catalog = document.createElement("div");
+          catalog.className = "vectormap-ogc-record-catalog";
+          const catalogLabel = document.createElement("span");
+          catalogLabel.className = "vectormap-ogc-record-label";
+          catalogLabel.textContent = "Katalog";
+          const catalogValue = document.createElement("span");
+          catalogValue.textContent = record.groupOwnerName || record.groupOwner || "unbekannt";
+          catalog.append(catalogLabel, catalogValue);
+          const description = document.createElement("div");
+          description.className = "vectormap-ogc-record-description";
+          const descriptionLabel = document.createElement("span");
+          descriptionLabel.className = "vectormap-ogc-record-label";
+          descriptionLabel.textContent = "Beschreibung: ";
+          const descriptionText = document.createElement("p");
+          descriptionText.textContent = record.abstract || "Keine Beschreibung verfügbar.";
+          description.append(descriptionLabel, descriptionText);
           const tag = document.createElement("span");
           tag.className = "vectormap-ogc-tag";
           tag.textContent = `${candidates.length} Service-Link${candidates.length > 1 ? "s" : ""}`;
@@ -1741,6 +1991,19 @@
           });
           const actions = document.createElement("div");
           actions.className = "vectormap-ogc-actions";
+
+          const showExtent = document.createElement("button");
+          showExtent.type = "button";
+          showExtent.className = "vectormap-ogc-btn";
+          showExtent.textContent = "Ausdehnung zeigen";
+          showExtent.disabled = !record.extentGeometry;
+          showExtent.addEventListener("click", () => {
+            if (!record.extentGeometry) {
+              return;
+            }
+            showHoverGeometry(record.extentGeometry, { pin: true });
+            closePanel({ restoreFocus: false, clearHover: false });
+          });
 
           const list = document.createElement("button");
           list.type = "button";
@@ -1768,10 +2031,16 @@
               window.open(record.metadataUrl, "_blank", "noopener");
             }
           });
-          actions.append(list, metaBtn);
-          item.append(title, meta, tag, services, actions);
+          actions.append(showExtent, list, metaBtn);
+          item.append(title, catalog, description, tag, services, actions);
           item.addEventListener("mouseenter", () => showHoverGeometry(record.extentGeometry));
           item.addEventListener("mouseleave", clearHoverGeometry);
+          item.addEventListener("focusin", () => showHoverGeometry(record.extentGeometry));
+          item.addEventListener("focusout", () => {
+            if (!item.contains(document.activeElement)) {
+              clearHoverGeometry();
+            }
+          });
           recordsEl.appendChild(item);
         });
         setStatus(`${records.length} OGC-fähige Datensätze gefunden.`);
@@ -1788,6 +2057,7 @@
           return;
         }
         lastQuery = query;
+        setCatalogExpanded(false);
         const useMapBbox = Boolean(bboxEl?.checked);
         const isAuto = opts.trigger === "auto";
         if (!isAuto) {
@@ -1811,7 +2081,10 @@
             return;
           }
           console.error(error);
-          setStatus(`${error.message} Du kannst direkt eine WMS/WMTS-URL laden.`);
+          setStatus(`${error.message} Du kannst direkt eine WMS/WMTS-URL laden.`, {
+            error: true,
+            retry: () => void runPrimaryAction()
+          });
         } finally {
           activeSearchController = null;
         }
@@ -1826,7 +2099,7 @@
         );
       };
       maybeAutoRefresh = () => {
-        if (!isPanelOpen || !lastQuery) {
+        if (!isPanelOpen || !lastQuery || !bboxEl?.checked) {
           return;
         }
         scheduleSearch({ trigger: "auto" });
@@ -1845,23 +2118,76 @@
         await runSearch(opts);
       };
 
-      toggle.addEventListener("click", () => {
-        const open = !root.classList.contains("is-open");
-        root.classList.toggle("is-open", open);
-        isPanelOpen = open;
-        if (!open) {
-          clearHoverGeometry();
+      positionPanel = () => {
+        if (!isPanelOpen) {
+          return;
         }
-        if (open) {
-          inputEl.focus();
+        panel.style.top = "";
+        panel.style.right = "";
+        panel.style.bottom = "";
+        panel.style.left = "";
+      };
+      closePanel = ({ restoreFocus = true, clearHover = true } = {}) => {
+        root.classList.remove("is-open");
+        panel.classList.remove("is-open");
+        toggle.setAttribute("aria-expanded", "false");
+        isPanelOpen = false;
+        if (clearHover) {
+          clearHoverGeometry({ force: true });
+        }
+        if (restoreFocus) {
+          toggle.focus();
+        }
+      };
+      const openPanel = () => {
+        root.classList.add("is-open");
+        panel.classList.add("is-open");
+        toggle.setAttribute("aria-expanded", "true");
+        isPanelOpen = true;
+        positionPanel();
+        inputEl.focus();
+      };
+      toggle.setAttribute("aria-expanded", "false");
+      const panelId = `vectormap-ogc-panel-${mapId(map) || "map"}`;
+      toggle.setAttribute("aria-controls", panelId);
+      panel.id = panelId;
+      document.body.appendChild(panel);
+      toggle.addEventListener("click", () => {
+        if (isPanelOpen) {
+          closePanel({ restoreFocus: false });
+          return;
+        }
+        openPanel();
+      });
+      closeBtn.addEventListener("click", () => closePanel());
+      panel.addEventListener("click", (event) => event.stopPropagation());
+      panel.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closePanel();
+          return;
+        }
+        if (event.key !== "Tab") {
+          return;
+        }
+        const focusable = [...panel.querySelectorAll("button:not([disabled]), input:not([disabled]), [href], select:not([disabled]), textarea:not([disabled])")]
+          .filter((element) => element.offsetParent !== null);
+        if (!focusable.length) {
+          return;
+        }
+        const first = focusable[0];
+        const last = focusable.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
         }
       });
-      panel.addEventListener("click", (event) => event.stopPropagation());
       document.addEventListener("click", (event) => {
-        if (!root.contains(event.target)) {
-          root.classList.remove("is-open");
-          isPanelOpen = false;
-          clearHoverGeometry();
+        if (isPanelOpen && !root.contains(event.target) && !panel.contains(event.target)) {
+          closePanel({ restoreFocus: false });
         }
       });
       bboxEl?.addEventListener("change", () => {
@@ -1870,6 +2196,11 @@
         }
       });
       searchBtn.addEventListener("click", () => void runPrimaryAction());
+      inputEl.addEventListener("input", () => {
+        if (activeSearchController) {
+          activeSearchController.abort();
+        }
+      });
       inputEl.addEventListener("keydown", (event) => {
         if (event.key !== "Enter") {
           return;
@@ -1879,8 +2210,9 @@
       });
       map.on("moveend", maybeAutoRefresh);
       map.on("zoomend", maybeAutoRefresh);
+      window.addEventListener("resize", positionPanel);
 
-      root.append(toggle, panel);
+      root.append(toggle);
       return root;
     },
     onRemove(map) {
@@ -1891,9 +2223,11 @@
         activeSearchController.abort();
       }
       window.removeEventListener("vectormap:ogc-overlays-change", renderActiveLayers);
-      clearHoverGeometry();
+      clearHoverGeometry({ force: true });
       map?.off?.("moveend", maybeAutoRefresh);
       map?.off?.("zoomend", maybeAutoRefresh);
+      window.removeEventListener("resize", positionPanel);
+      panel?.remove?.();
     }
   });
   };
