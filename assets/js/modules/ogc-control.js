@@ -903,24 +903,58 @@
       })
       .filter((feature) => normalizeFeatureAttributes(feature.properties).length);
   };
+  const extractPlainTextFeatureInfo = (text) => {
+    const features = [];
+    let properties = {};
+    const commit = () => {
+      if (normalizeFeatureAttributes(properties).length) {
+        features.push({ properties, geometry: null });
+      }
+      properties = {};
+    };
+    String(text || "")
+      .replace(/\r/g, "")
+      .split("\n")
+      .forEach((line) => {
+        const trimmed = safeText(line);
+        if (!trimmed) {
+          commit();
+          return;
+        }
+        const match = trimmed.match(/^([^:=]{1,120}?)\s*[:=]\s*(.+)$/);
+        if (match) {
+          const key = safeText(match[1]);
+          const value = safeText(match[2]);
+          if (key && value) {
+            properties[key] = value;
+          }
+        }
+      });
+    commit();
+    return features;
+  };
   const parseFeatureInfoResponse = async (response) => {
     const contentType = safeText(response.headers.get("content-type")).toLowerCase();
-    if (contentType.includes("json")) {
-      return extractJsonFeatureInfo(await response.json());
-    }
     const text = await response.text();
-    if (/^\s*[{[]/.test(text)) {
+    if (contentType.includes("json") || /^\s*[{[]/.test(text)) {
       try {
         return extractJsonFeatureInfo(JSON.parse(text));
       } catch (error) {
-        // Fall through to XML/HTML parsing.
+        // Some WMS servers label XML or plain text responses as JSON.
       }
     }
     if (contentType.includes("html")) {
-      return extractHtmlFeatureInfo(text);
+      const htmlFeatures = extractHtmlFeatureInfo(text);
+      if (htmlFeatures.length) {
+        return htmlFeatures;
+      }
     }
     const xmlFeatures = extractXmlFeatureInfo(text);
-    return xmlFeatures.length ? xmlFeatures : extractHtmlFeatureInfo(text);
+    if (xmlFeatures.length) {
+      return xmlFeatures;
+    }
+    const htmlFeatures = extractHtmlFeatureInfo(text);
+    return htmlFeatures.length ? htmlFeatures : extractPlainTextFeatureInfo(text);
   };
   const queryFeatureInfoForOverlay = async (overlay, map, point, signal, options = {}) => {
     const response = await fetchWithTimeout(buildFeatureInfoUrl(overlay, map, point, options), {
@@ -943,6 +977,10 @@
   const createPopupContent = (hits) => {
     const root = document.createElement("div");
     root.className = "vectormap-ogc-popup";
+    const summary = document.createElement("div");
+    summary.className = "vectormap-ogc-popup-summary";
+    summary.textContent = hits.length === 1 ? "Objektinformation" : `${hits.length} Objekte gefunden`;
+    root.appendChild(summary);
     hits.forEach((hit) => {
       const section = document.createElement("section");
       section.className = "vectormap-ogc-popup-section";
@@ -957,10 +995,10 @@
       const grid = document.createElement("div");
       grid.className = "vectormap-ogc-popup-grid";
       normalizeFeatureAttributes(hit.properties).forEach(([key, value]) => {
-        const keyEl = document.createElement("div");
+        const keyEl = document.createElement("dt");
         keyEl.className = "vectormap-ogc-popup-key";
         keyEl.textContent = key;
-        const valueEl = document.createElement("div");
+        const valueEl = document.createElement("dd");
         valueEl.className = "vectormap-ogc-popup-value";
         valueEl.textContent = String(value);
         grid.append(keyEl, valueEl);
@@ -1199,10 +1237,9 @@
       }
       .vectormap-ogc-panel { position: fixed; inset: 0; display: none; z-index: 20; pointer-events: none; box-sizing: border-box; }
       .vectormap-ogc-panel.is-open { display: block; }
-      .vectormap-ogc-shell { display: grid; grid-template-columns: minmax(520px, 48vw) minmax(0, 1fr); height: 100%; }
+      .vectormap-ogc-shell { display: grid; grid-template-columns: minmax(360px, 420px) minmax(0, 1fr); height: 100%; transition: grid-template-columns .22s ease; }
+      .vectormap-ogc-panel.has-results .vectormap-ogc-shell { grid-template-columns: minmax(520px, 48vw) minmax(0, 1fr); }
       .vectormap-ogc-catalog { grid-column: 1; grid-row: 1; min-width: 0; overflow: hidden; pointer-events: auto; border-right: 1px solid rgba(0,0,0,.12); background: rgba(250,253,252,.98); box-shadow: 16px 0 32px rgba(0,0,0,.16); }
-      .vectormap-ogc-map-preview { grid-column: 2; grid-row: 1; display: flex; align-items: flex-start; justify-content: flex-end; padding: 18px; color: #fff; pointer-events: none; text-shadow: 0 1px 3px rgba(0,0,0,.5); font: 600 13px/1.3 "Segoe UI", Arial, sans-serif; }
-      .vectormap-ogc-map-preview span { padding: 7px 10px; border-radius: 999px; background: rgba(15,53,46,.74); backdrop-filter: blur(4px); }
       .vectormap-ogc-body { display: flex; flex-direction: column; gap: 12px; height: 100%; padding: 20px; box-sizing: border-box; }
       .vectormap-ogc-search-top { flex: 0 0 auto; }
       .vectormap-ogc-head { display: flex; align-items: flex-start; gap: 8px; }
@@ -1240,6 +1277,9 @@
       .vectormap-ogc-layer-order { display: flex; gap: 4px; margin-right: auto; }
       .vectormap-ogc-layer-row button { width: 44px; height: 44px; border: 1px solid #bad8cf; border-radius: 6px; background: #fff; color: #1b584c; cursor: pointer; font: 600 12px/1 "Segoe UI", Arial, sans-serif; }
       .vectormap-ogc-layer-row button.is-active { border-color: #1f8f78; background: #e7f7f1; color: #0f4e4b; }
+      .vectormap-ogc-layer-toggle { min-width: 54px; width: auto !important; font-weight: 800 !important; letter-spacing: .03em; }
+      .vectormap-ogc-layer-toggle.is-visible { border-color: #167a5f !important; background: #167a5f !important; color: #fff !important; box-shadow: 0 1px 3px rgba(15,78,75,.26); }
+      .vectormap-ogc-layer-toggle:not(.is-visible) { border-color: #93a8a1 !important; background: #f4f7f5 !important; color: #466b60 !important; }
       .vectormap-ogc-layer-row input[type='range'] { width: 100%; min-height: 44px; accent-color: #00a7b3; cursor: pointer; }
       .vectormap-ogc-layer-details { display: none; margin-top: 8px; border: 1px solid #c7dfd7; border-radius: 8px; background: rgba(255,255,255,.96); padding: 9px; color: #1e453b; box-shadow: inset 0 1px 0 rgba(255,255,255,.7); max-height: min(42vh, 360px); overflow: auto; overscroll-behavior: contain; }
       .vectormap-ogc-layer-details.is-open { display: block; }
@@ -1255,16 +1295,27 @@
       .vectormap-ogc-feature-hover .maplibregl-canvas,
       .maplibregl-canvas-container.vectormap-ogc-feature-hover,
       .maplibregl-canvas-container.vectormap-ogc-feature-hover .maplibregl-canvas { cursor: ${featureCursor} !important; }
-      .vectormap-ogc-popup { width: fit-content; max-width: min(420px, calc(100vw - 48px)); color: #173e35; }
-      .vectormap-ogc-popup-section + .vectormap-ogc-popup-section { margin-top: 10px; padding-top: 10px; border-top: 1px solid #d7e8e1; }
-      .vectormap-ogc-popup-title { display: inline-block; margin-bottom: 6px; font: 700 13px/1.3 "Segoe UI", Arial, sans-serif; color: #0f4e4b; text-decoration: none; }
+      .vectormap-ogc-popup { width: min(390px, calc(100vw - 48px)); max-height: min(54vh, 420px); overflow: auto; color: #173e35; }
+      .vectormap-ogc-popup-summary { margin: 0 0 10px; color: #4d6e63; font: 700 11px/1.2 "Segoe UI", Arial, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+      .vectormap-ogc-popup-section { border: 1px solid #d7e8e1; border-radius: 10px; background: #fbfefd; padding: 10px; }
+      .vectormap-ogc-popup-section + .vectormap-ogc-popup-section { margin-top: 10px; }
+      .vectormap-ogc-popup-title { display: inline-block; margin-bottom: 8px; font: 700 14px/1.3 "Segoe UI", Arial, sans-serif; color: #0f4e4b; text-decoration: none; }
       .vectormap-ogc-popup-title:hover { text-decoration: underline; }
-      .vectormap-ogc-popup-grid { display: grid; grid-template-columns: max-content minmax(120px, 1fr); gap: 4px 10px; align-items: start; width: fit-content; max-width: 100%; }
-      .vectormap-ogc-popup-key { font: 600 12px/1.35 "Segoe UI", Arial, sans-serif; color: #24584b; white-space: nowrap; }
-      .vectormap-ogc-popup-value { font: 12px/1.35 "Segoe UI", Arial, sans-serif; color: #173e35; overflow-wrap: anywhere; min-width: 0; }
+      .vectormap-ogc-popup-grid { display: grid; grid-template-columns: minmax(92px, max-content) minmax(0, 1fr); gap: 6px 12px; align-items: start; margin: 0; max-width: 100%; }
+      .vectormap-ogc-popup-key { margin: 0; font: 600 12px/1.35 "Segoe UI", Arial, sans-serif; color: #24584b; overflow-wrap: anywhere; }
+      .vectormap-ogc-popup-value { margin: 0; font: 12px/1.4 "Segoe UI", Arial, sans-serif; color: #173e35; overflow-wrap: anywhere; min-width: 0; }
+      @media (min-width: 901px) {
+        .vectormap-ogc-active { max-height: 28%; padding-top: 8px; }
+        .vectormap-ogc-active-title { margin-bottom: 6px; }
+        .vectormap-ogc-layer-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; align-items: center; padding: 5px 7px; }
+        .vectormap-ogc-layer-main { grid-template-columns: minmax(110px,1fr) 100px; gap: 8px; }
+        .vectormap-ogc-layer-actions { gap: 4px; margin-top: 0; }
+        .vectormap-ogc-layer-order { gap: 2px; margin-right: 0; }
+        .vectormap-ogc-layer-row button { width: 30px; height: 30px; font-size: 11px; }
+        .vectormap-ogc-layer-row input[type='range'] { min-height: 30px; }
+      }
       @media (max-width: 900px) {
         .vectormap-ogc-shell { grid-template-columns: 1fr; grid-template-rows: 1fr; }
-        .vectormap-ogc-map-preview { display: none; }
         .vectormap-ogc-catalog { grid-column: 1; grid-row: 1; border: 0; border-radius: 0; box-shadow: none; }
         .vectormap-ogc-body { padding: 16px max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
         .vectormap-ogc-row { grid-template-columns: 1fr; }
@@ -1344,7 +1395,6 @@
       panel.setAttribute("aria-label", settings.panelTitle);
       panel.innerHTML = `
         <div class="vectormap-ogc-shell">
-          <aside class="vectormap-ogc-map-preview" aria-hidden="true"><span>Karte: Ausdehnung beim Überfahren eines Dienstes anzeigen</span></aside>
           <section class="vectormap-ogc-catalog">
             <div class="vectormap-ogc-body">
           <div class="vectormap-ogc-search-top">
@@ -1420,6 +1470,9 @@
             String(tab.dataset.ogcMobileView === normalized)
           );
         });
+      };
+      const setCatalogExpanded = (expanded) => {
+        panel.classList.toggle("has-results", Boolean(expanded));
       };
       mobileTabs.forEach((tab) => {
         tab.addEventListener("click", () => setMobileView(tab.dataset.ogcMobileView));
@@ -1594,9 +1647,12 @@
           main.append(label, opacity);
           const toggleBtn = document.createElement("button");
           toggleBtn.type = "button";
+          toggleBtn.className = "vectormap-ogc-layer-toggle";
           toggleBtn.title = overlay.visible ? "Layer ausblenden" : "Layer einblenden";
           toggleBtn.setAttribute("aria-label", toggleBtn.title);
+          toggleBtn.setAttribute("aria-pressed", String(overlay.visible));
           toggleBtn.textContent = overlay.visible ? "AN" : "AUS";
+          toggleBtn.classList.toggle("is-visible", overlay.visible);
           toggleBtn.addEventListener("pointerdown", (event) => event.stopPropagation());
           toggleBtn.addEventListener("click", () => ogcState.updateOverlayVisibility(overlay.id, !overlay.visible));
           const infoBtn = document.createElement("button");
@@ -1699,6 +1755,7 @@
 
       const renderLayerList = (parsed, capabilitiesUrl, metadataUrl) => {
         setMobileView("results");
+        setCatalogExpanded(parsed.layers.length > 0);
         layersEl.innerHTML = "";
         const summary = document.createElement("div");
         summary.className = "vectormap-ogc-meta";
@@ -1820,6 +1877,7 @@
         clearHoverGeometry();
         recordsEl.innerHTML = "";
         layersEl.innerHTML = "";
+        setCatalogExpanded(false);
         setStatus("Lade GetCapabilities...");
         try {
           const parsed = await parseCapabilities(capUrl);
@@ -1840,6 +1898,7 @@
 
       const renderRecords = (records, context = {}) => {
         setMobileView("results");
+        setCatalogExpanded(records.length > 0);
         clearHoverGeometry();
         recordsEl.innerHTML = "";
         layersEl.innerHTML = "";
@@ -1946,6 +2005,7 @@
           return;
         }
         lastQuery = query;
+        setCatalogExpanded(false);
         const useMapBbox = Boolean(bboxEl?.checked);
         const isAuto = opts.trigger === "auto";
         if (!isAuto) {
