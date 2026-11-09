@@ -60,7 +60,6 @@ Examples:
 - Individual map directories in `maps/` should stay focused on one module or one clearly scoped function.
 - When adding a new Vectormap module, update the module-specific map and also integrate the function into `maps/map/index.html` when it belongs in the complete example.
 - Supplemental or survey-specific maps that are not core Vectormap examples must be kept visibly separate from the regular module examples.
-- The AV-WMS survey map is a supplemental product for the SOGI AV-WMS survey and should not be treated as a regular Vectormap module example.
 
 ## Content Rules (VERY IMPORTANT)
 

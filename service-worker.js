@@ -1,4 +1,4 @@
-const CACHE_VERSION = "vectormap-v7";
+const CACHE_VERSION = "vectormap-v8";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const MAX_RUNTIME_ENTRIES = 80;
@@ -22,8 +22,6 @@ const PRECACHE_URLS = [
   "./maps/search/index.html",
   "./maps/compare/",
   "./maps/compare/index.html",
-  "./maps/av-wms-survey/",
-  "./maps/av-wms-survey/index.html",
   "./about/",
   "./about/index.html",
   "./licenses/",
@@ -47,7 +45,6 @@ const PRECACHE_URLS = [
   "./assets/js/modules/compare-map.js",
   "./assets/js/modules/ogc-control.js",
   "./assets/js/modules/share-control.js",
-  "./assets/js/modules/av-wms-map.js",
   "./assets/images/logo_v.png"
 ];
 
