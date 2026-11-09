@@ -19,8 +19,8 @@
     bearing: 0,
     pitch: 0,
     attributionControl: true,
-    maplibreCss: "https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css",
-    maplibreJs: "https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js",
+    maplibreCss: "https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css",
+    maplibreJs: "https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs",
     pmtilesJs: "https://unpkg.com/pmtiles@4.4.1/dist/pmtiles.js"
   };
 
@@ -152,6 +152,15 @@
         document.head.appendChild(script);
       }));
 
+  const loadMapLibre =
+    baseMap.loadMapLibre ||
+    (async (src) => {
+      if (!window.maplibregl) {
+        window.maplibregl = { ...(await import(src)) };
+      }
+      return window.maplibregl;
+    });
+
   const hasDataExpression = (value) => {
     if (!Array.isArray(value)) {
       return false;
@@ -206,7 +215,7 @@
     loadCss(resolved.maplibreCss);
     const tasks = [];
     if (!window.maplibregl) {
-      tasks.push(loadScript(resolved.maplibreJs));
+      tasks.push(loadMapLibre(resolved.maplibreJs));
     }
     if (!window.pmtiles) {
       tasks.push(loadScript(resolved.pmtilesJs));
@@ -331,6 +340,7 @@
 
   baseMap.loadCss = loadCss;
   baseMap.loadScript = loadScript;
+  baseMap.loadMapLibre = loadMapLibre;
   baseMap.ensureLibraries = ensureLibraries;
   baseMap.ensureProtocol = ensureProtocol;
   baseMap.loadStyle = loadStyle;
