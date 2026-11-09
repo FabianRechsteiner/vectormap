@@ -1278,6 +1278,10 @@
       .vectormap-ogc-item:hover, .vectormap-ogc-item:focus-within { border-color: #4ea48f; box-shadow: 0 6px 18px rgba(31,91,77,.14); transform: translateY(-1px); }
       .vectormap-ogc-title { font: 700 15px/1.35 "Segoe UI", Arial, sans-serif; color: #103a31; }
       .vectormap-ogc-meta { margin-top: 6px; color: #4d6e63; font: 12px/1.45 "Segoe UI", Arial, sans-serif; }
+      .vectormap-ogc-record-catalog { display: flex; align-items: baseline; gap: 5px; margin-top: 8px; color: #315c52; font: 12px/1.35 "Segoe UI", Arial, sans-serif; }
+      .vectormap-ogc-record-label { flex: 0 0 auto; color: #52756b; font-weight: 700; }
+      .vectormap-ogc-record-description { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid #e2eee9; color: #315c52; font: 12px/1.45 "Segoe UI", Arial, sans-serif; }
+      .vectormap-ogc-record-description p { display: inline; margin: 0; }
       .vectormap-ogc-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
       .vectormap-ogc-actions .vectormap-ogc-btn { height: 38px; padding: 0 12px; font: 600 13px/1.2 "Segoe UI", Arial, sans-serif; white-space: nowrap; width: fit-content; min-width: max-content; flex: 0 0 auto; }
       .vectormap-ogc-actions .vectormap-ogc-input { flex: 1 1 210px; min-width: 180px; }
@@ -1331,6 +1335,8 @@
         .vectormap-ogc-item { border-radius: 10px; padding: 10px; }
         .vectormap-ogc-title { font-size: 14px; }
         .vectormap-ogc-meta { margin-top: 4px; font-size: 11px; }
+        .vectormap-ogc-record-catalog { margin-top: 6px; font-size: 11px; }
+        .vectormap-ogc-record-description { margin-top: 6px; padding-top: 6px; font-size: 11px; }
         .vectormap-ogc-tag { margin-top: 4px; }
         .vectormap-ogc-actions { gap: 4px; margin-top: 5px; }
         .vectormap-ogc-actions .vectormap-ogc-btn { height: 30px; min-height: 30px; padding: 0 9px; font-size: 11px; }
@@ -1956,11 +1962,22 @@
           const title = document.createElement("div");
           title.className = "vectormap-ogc-title";
           title.textContent = record.title || "Ohne Titel";
-          const meta = document.createElement("div");
-          meta.className = "vectormap-ogc-meta";
-          meta.textContent = [record.organization ? `Herausgeber: ${record.organization}` : "", `Katalog: ${record.groupOwnerName || record.groupOwner || "unbekannt"}`, record.abstract]
-            .filter(Boolean)
-            .join(" | ");
+          const catalog = document.createElement("div");
+          catalog.className = "vectormap-ogc-record-catalog";
+          const catalogLabel = document.createElement("span");
+          catalogLabel.className = "vectormap-ogc-record-label";
+          catalogLabel.textContent = "Katalog";
+          const catalogValue = document.createElement("span");
+          catalogValue.textContent = record.groupOwnerName || record.groupOwner || "unbekannt";
+          catalog.append(catalogLabel, catalogValue);
+          const description = document.createElement("div");
+          description.className = "vectormap-ogc-record-description";
+          const descriptionLabel = document.createElement("span");
+          descriptionLabel.className = "vectormap-ogc-record-label";
+          descriptionLabel.textContent = "Beschreibung: ";
+          const descriptionText = document.createElement("p");
+          descriptionText.textContent = record.abstract || "Keine Beschreibung verfügbar.";
+          description.append(descriptionLabel, descriptionText);
           const tag = document.createElement("span");
           tag.className = "vectormap-ogc-tag";
           tag.textContent = `${candidates.length} Service-Link${candidates.length > 1 ? "s" : ""}`;
@@ -2015,7 +2032,7 @@
             }
           });
           actions.append(showExtent, list, metaBtn);
-          item.append(title, meta, tag, services, actions);
+          item.append(title, catalog, description, tag, services, actions);
           item.addEventListener("mouseenter", () => showHoverGeometry(record.extentGeometry));
           item.addEventListener("mouseleave", clearHoverGeometry);
           item.addEventListener("focusin", () => showHoverGeometry(record.extentGeometry));
