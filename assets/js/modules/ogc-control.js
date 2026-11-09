@@ -1305,6 +1305,17 @@
       .vectormap-ogc-popup-key { margin: 0; font: 600 12px/1.35 "Segoe UI", Arial, sans-serif; color: #24584b; overflow-wrap: anywhere; }
       .vectormap-ogc-popup-value { margin: 0; font: 12px/1.4 "Segoe UI", Arial, sans-serif; color: #173e35; overflow-wrap: anywhere; min-width: 0; }
       @media (min-width: 901px) {
+        .vectormap-ogc-body { gap: 9px; padding: 16px; }
+        .vectormap-ogc-close { flex-basis: 36px; width: 36px; height: 36px; border-radius: 8px; font-size: 19px; }
+        .vectormap-ogc-input, .vectormap-ogc-btn { min-height: 36px; border-radius: 8px; }
+        .vectormap-ogc-options { margin-top: 4px; }
+        .vectormap-ogc-list { gap: 8px; margin: 6px 0; }
+        .vectormap-ogc-item { border-radius: 10px; padding: 10px; }
+        .vectormap-ogc-title { font-size: 14px; }
+        .vectormap-ogc-meta { margin-top: 4px; font-size: 11px; }
+        .vectormap-ogc-tag { margin-top: 4px; }
+        .vectormap-ogc-actions { gap: 4px; margin-top: 5px; }
+        .vectormap-ogc-actions .vectormap-ogc-btn { height: 30px; min-height: 30px; padding: 0 9px; font-size: 11px; }
         .vectormap-ogc-active { max-height: 28%; padding-top: 8px; }
         .vectormap-ogc-active-title { margin-bottom: 6px; }
         .vectormap-ogc-layer-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; align-items: center; padding: 5px 7px; }
@@ -1478,6 +1489,7 @@
         tab.addEventListener("click", () => setMobileView(tab.dataset.ogcMobileView));
       });
       setMobileView("search");
+      let pinnedHoverGeometry = false;
       const ensureHoverLayer = () => {
         if (!map.getSource(hoverSourceId)) {
           map.addSource(hoverSourceId, {
@@ -1509,17 +1521,22 @@
           });
         }
       };
-      clearHoverGeometry = () => {
+      clearHoverGeometry = ({ force = false } = {}) => {
+        if (pinnedHoverGeometry && !force) {
+          return;
+        }
+        pinnedHoverGeometry = false;
         const source = map.getSource(hoverSourceId);
         if (source) {
           source.setData({ type: "FeatureCollection", features: [] });
         }
       };
-      const showHoverGeometry = (geometry) => {
+      const showHoverGeometry = (geometry, { pin = false } = {}) => {
         if (!geometry) {
-          clearHoverGeometry();
+          clearHoverGeometry({ force: true });
           return;
         }
+        pinnedHoverGeometry = pin;
         ensureHoverLayer();
         const source = map.getSource(hoverSourceId);
         source?.setData({
@@ -1874,7 +1891,7 @@
           setStatus("Bitte gültige Service-URL eingeben.");
           return;
         }
-        clearHoverGeometry();
+        clearHoverGeometry({ force: true });
         recordsEl.innerHTML = "";
         layersEl.innerHTML = "";
         setCatalogExpanded(false);
@@ -1899,7 +1916,7 @@
       const renderRecords = (records, context = {}) => {
         setMobileView("results");
         setCatalogExpanded(records.length > 0);
-        clearHoverGeometry();
+        clearHoverGeometry({ force: true });
         recordsEl.innerHTML = "";
         layersEl.innerHTML = "";
         if (!records.length) {
@@ -1949,7 +1966,7 @@
             if (!record.extentGeometry) {
               return;
             }
-            showHoverGeometry(record.extentGeometry);
+            showHoverGeometry(record.extentGeometry, { pin: true });
             closePanel({ restoreFocus: false, clearHover: false });
           });
 
@@ -2081,7 +2098,7 @@
         toggle.setAttribute("aria-expanded", "false");
         isPanelOpen = false;
         if (clearHover) {
-          clearHoverGeometry();
+          clearHoverGeometry({ force: true });
         }
         if (restoreFocus) {
           toggle.focus();
@@ -2171,7 +2188,7 @@
         activeSearchController.abort();
       }
       window.removeEventListener("vectormap:ogc-overlays-change", renderActiveLayers);
-      clearHoverGeometry();
+      clearHoverGeometry({ force: true });
       map?.off?.("moveend", maybeAutoRefresh);
       map?.off?.("zoomend", maybeAutoRefresh);
       window.removeEventListener("resize", positionPanel);
