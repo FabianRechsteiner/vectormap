@@ -50,12 +50,12 @@
     "base_v1.0.0": {
       "url": "https://vectortiles.geo.admin.ch/tiles/ch.swisstopo.base.vt/v1.0.0/tiles.json",
       "type": "vector",
-      "attribution": "<a href=\"https://www.swisstopo.admin.ch/\" target=\"_blank\">&copy; swisstopo</a>"
+      "attribution": "© swisstopo, © vectormap"
     },
     "vectormap_av": {
       "type": "vector",
       "url": "pmtiles://https://vectormap.ch/pmtiles/av/av.pmtiles",
-      "attribution": "<a href='https://www.vectormap.ch' target='_blank'>&copy; vectormap</a>, <a href='https://geodienste.ch/terms-of-use' target='_blank'>geodienste.ch</a>"
+      "attribution": "© swisstopo, © vectormap"
     }
   },
   "sprite": "https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/sprite/sprite",
