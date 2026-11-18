@@ -142,6 +142,7 @@
     moduleState.urlState.replaceUrl({
       camera,
       basemapId,
+      style: moduleState.basemapState?.getActiveNormalBasemapId?.() === "vectormap.gta" ? "gta" : null,
       visibleControls: getVisibleControls(),
       mode: currentMode,
       searchQuery: moduleState.searchState?.query || null,

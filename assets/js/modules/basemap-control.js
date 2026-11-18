@@ -1,4 +1,5 @@
 (() => {
+  const moduleUrl = document.currentScript.src;
   const config = window.vectormapBasemapControlConfig || {};
   const compareConfig = window.vectormapCompareConfig || {};
   const moduleState = window.vectormapModules || {};
@@ -24,6 +25,7 @@
     rightMapContainerIds: ["after", "cmpMapRight"],
     basemapIds: [
       "vectormap.light",
+      "vectormap.gta",
       "swisstopo.light",
       "swisstopo.basemap",
       "swisstopo.imagery",
@@ -118,8 +120,10 @@
     console.error("Basemap konnte nicht geladen werden.", event.error);
   };
 
+  let registry;
   const buildApplyOptions = (previousBasemapId) => ({
     ...settings.applyOptions,
+    registry,
     previousBasemapId,
     onBasemapError: reportError
   });
@@ -164,6 +168,7 @@
         : activeDefaultBasemapId;
     const control = api.createBasemapControl({
       basemapIds,
+      registry,
       initialBasemapId,
       groupBy: settings.groupBy,
       label: settings.label,
@@ -208,6 +213,12 @@
       console.error("Basemap-Control konnte nicht geladen werden.", error);
       return;
     }
+
+    const gtaStyleUrl = new URL("../../../styles/ch.vectormap.gta.json", moduleUrl).href;
+    registry = api.createBasemapRegistry([
+      ...api.basemapRegistry.filter((entry) => entry.id !== "vectormap.gta"),
+      { ...api.getBasemap("vectormap.light"), id: "vectormap.gta", name: "GTA", style: gtaStyleUrl, styleUrl: gtaStyleUrl, previewUrl: new URL("../../images/gta-preview.jpg", moduleUrl).href }
+    ]);
 
     baseMap.registerControl({
       key: "basemap",
