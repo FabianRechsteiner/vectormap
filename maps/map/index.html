@@ -34,6 +34,11 @@
   ></div>
 
   <script>
+    if (new URLSearchParams(window.location.search).get("style") === "gta") {
+      const root = document.getElementById("compare-root");
+      root.dataset.styleLeft = "../../styles/ch.vectormap.gta.json";
+      root.dataset.leftBasemapId = "vectormap.gta";
+    }
     const homeHref =
       window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1"
@@ -54,8 +59,8 @@
 
     window.vectormapCompareConfig = { containerId: "compare-root" };
     window.vectormapBasemapControlConfig = {
-      initialBasemapId: "vectormap.light",
-      initialNormalBasemapId: "vectormap.light",
+      initialBasemapId: document.getElementById("compare-root").dataset.leftBasemapId,
+      initialNormalBasemapId: document.getElementById("compare-root").dataset.leftBasemapId,
       initialRightBasemapId: "swisstopo.light",
       position: "bottom-left"
     };

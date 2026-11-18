@@ -1,4 +1,4 @@
-const CACHE_VERSION = "vectormap-v8";
+const CACHE_VERSION = "vectormap-v9";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const MAX_RUNTIME_ENTRIES = 80;
@@ -31,6 +31,7 @@ const PRECACHE_URLS = [
   "./assets/css/style.css",
   "./assets/css/maplibre-gl-compare.css",
   "./styles/ch.vectormap.lightbasemap.json",
+  "./styles/ch.vectormap.gta.json",
   "./av.json",
   "./assets/data/kantonsgrenzen.geojson",
   "./assets/js/pwa-register.js",
@@ -45,7 +46,8 @@ const PRECACHE_URLS = [
   "./assets/js/modules/compare-map.js",
   "./assets/js/modules/ogc-control.js",
   "./assets/js/modules/share-control.js",
-  "./assets/images/logo_v.png"
+  "./assets/images/logo_v.png",
+  "./assets/images/gta-preview.jpg"
 ];
 
 const isAppShellRequest = (request) => {

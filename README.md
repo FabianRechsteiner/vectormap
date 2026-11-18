@@ -33,3 +33,7 @@ Optional kann pro Seite `window.vectormapMapPwa` gesetzt werden, um App-Name und
 
 - Nach Aenderungen am Service Worker Browser-Tab neu laden und ggf. den Service-Worker-Cache in den DevTools loeschen.
 - Fuer einen Offline-Test in DevTools den Netzwerkmodus auf `Offline` setzen und eine Seite neu laden.
+
+# Bildnachweis
+
+Das GTA-Vorschaubild zeigt Miami Beach. Foto: [Brice Cooper auf Unsplash](https://unsplash.com/photos/qRQGCraDmXU), verwendet unter der [Unsplash-Lizenz](https://unsplash.com/license).

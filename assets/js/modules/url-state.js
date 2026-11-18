@@ -108,6 +108,9 @@
     if (typeof state.basemapId === "string" && state.basemapId.trim()) {
       params.set("bm", state.basemapId.trim());
     }
+    if (state.style === "gta") {
+      params.set("style", "gta");
+    }
 
     const overlays = toArray(state.overlayIds);
     if (overlays.length) {

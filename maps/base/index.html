@@ -25,6 +25,11 @@
   <div id="map" aria-label="Kartenansicht"></div>
 
   <script>
+    const params = new URLSearchParams(window.location.search);
+    window.vectormapExampleConfig = {
+      ...(params.get("style") === "gta" ? { styleUrl: "../../styles/ch.vectormap.gta.json" } : {}),
+      ...(params.has("preview") ? { zoom: 14, controls: { fullscreen: false, navigation: false } } : {})
+    };
     window.vectormapMapPwa = {
       name: "Vectormap Basiskarte",
       shortName: "Base Map"
