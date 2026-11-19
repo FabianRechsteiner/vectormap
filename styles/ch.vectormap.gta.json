@@ -6,7 +6,7 @@
     "source_style": "https://vectormap.ch/styles/ch.vectormap.lightbasemap.json",
     "design_reference": "Offizielle Leonida-Druckkarte von Rockstar Games, veröffentlicht am 19.11.2026 (https://www.rockstargames.com/VI/media).",
     "style_author": "Eigenstaendige MapLibre-Stilvariante",
-    "style_version": "1.4.0",
+    "style_version": "1.4.1",
     "zoom_transition": "Swiss cadastral AV PMTiles fade in from zoom 15 to 15.7; swisstopo features fade out from 15.6 to 16",
     "palette": {
       "background": "#648F7F",
@@ -14,8 +14,9 @@
       "urban_light": "#B6BFC3",
       "building": "#8294A3",
       "building_edge": "#71828D",
-      "roads": "#E8EFEB",
+      "roads": "#F4F6F1",
       "motorway": "#F5F8EF",
+      "motorway_detail": "#FAEDC9",
       "road_edge": "#7B898C",
       "rail": "#676879",
       "pedestrian": "#BFC9CE",
@@ -83,6 +84,17 @@
         "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissalti3d-reliefschattierung/default/current/3857/{z}/{x}/{y}.png"
       ],
       "tileSize": 256,
+      "maxzoom": 16,
+      "bounds": [5.140242, 45.398181, 11.47757, 48.230651],
+      "attribution": "© swisstopo"
+    },
+    "swisstopo-lake-relief": {
+      "type": "raster",
+      "tiles": [
+        "https://wms.geo.admin.ch/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ch.swisstopo.swissbathy3d-reliefschattierung&STYLES=&CRS=EPSG:3857&BBOX={bbox-epsg-3857}&WIDTH=256&HEIGHT=256&FORMAT=image/png&TRANSPARENT=TRUE"
+      ],
+      "tileSize": 256,
+      "minzoom": 12,
       "maxzoom": 16,
       "bounds": [5.140242, 45.398181, 11.47757, 48.230651],
       "attribution": "© swisstopo"
@@ -951,6 +963,19 @@
       }
     },
     {
+      "id": "lake-bed-relief",
+      "type": "raster",
+      "source": "swisstopo-lake-relief",
+      "minzoom": 12,
+      "paint": {
+        "raster-opacity": ["interpolate", ["linear"], ["zoom"], 12, 0, 13.5, 0.32, 15, 0.44],
+        "raster-saturation": -1,
+        "raster-brightness-min": 0.18,
+        "raster-brightness-max": 0.94,
+        "raster-resampling": "linear"
+      }
+    },
+    {
       "id": "av-water-outline",
       "type": "line",
       "source": "vectormap_av",
@@ -1010,7 +1035,13 @@
         ]
       ],
       "paint": {
-        "line-color": "#237F99",
+        "line-color": [
+          "interpolate", ["linear"], ["abs", ["number", ["get", "lake_depth"], 0]],
+          0, "#B4ECED",
+          10, "#9ADCE6",
+          40, "#52ADC5",
+          100, "#2A829E"
+        ],
         "line-width": [
           "interpolate",
           [
@@ -1475,7 +1506,7 @@
         "line-join": "round"
       },
       "paint": {
-        "line-color": "#DCE7E0",
+        "line-color": ["interpolate", ["linear"], ["zoom"], 11.5, "#DCE7E0", 15, "#F1F4EE"],
         "line-width": [
           "interpolate",
           [
@@ -1732,19 +1763,9 @@
       },
       "paint": {
         "line-color": [
-          "match",
-          [
-            "get",
-            "class"
-          ],
-          [
-            "motorway",
-            "trunk"
-          ],
-          "#F5F8EF",
-          "primary",
-          "#E7EDE3",
-          "#D8E5DC"
+          "interpolate", ["linear"], ["zoom"],
+          11.5, ["match", ["get", "class"], ["motorway", "trunk"], "#F5F8EF", "primary", "#E7EDE3", "#D8E5DC"],
+          15, ["match", ["get", "class"], ["motorway", "trunk"], "#FAEDC9", "primary", "#F4EFDB", "#EBF0E9"]
         ],
         "line-width": [
           "interpolate",
@@ -2272,19 +2293,9 @@
       },
       "paint": {
         "line-color": [
-          "match",
-          [
-            "get",
-            "class"
-          ],
-          [
-            "motorway",
-            "trunk"
-          ],
-          "#F5F8EF",
-          "primary",
-          "#E7EDE3",
-          "#DCE7E0"
+          "interpolate", ["linear"], ["zoom"],
+          11.5, ["match", ["get", "class"], ["motorway", "trunk"], "#F5F8EF", "primary", "#E7EDE3", "#DCE7E0"],
+          15, ["match", ["get", "class"], ["motorway", "trunk"], "#FAEDC9", "primary", "#F4EFDB", "#F1F4EE"]
         ],
         "line-width": [
           "interpolate",
@@ -2414,7 +2425,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#E8EFEB",
+        "fill-color": "#F4F6F1",
         "fill-outline-color": "#7B898C",
         "fill-opacity": [
           "interpolate",
@@ -2428,6 +2439,33 @@
           0,
           15.7,
           1
+        ]
+      }
+    },
+    {
+      "id": "av-main-road-accent",
+      "type": "line",
+      "source": "base_v1.0.0",
+      "source-layer": "transportation",
+      "minzoom": 15.45,
+      "maxzoom": 19,
+      "filter": [
+        "all",
+        ["in", ["get", "class"], ["literal", ["motorway", "trunk", "primary"]]],
+        ["==", ["geometry-type"], "LineString"],
+        ["!=", ["coalesce", ["get", "brunnel"], ""], "tunnel"]
+      ],
+      "layout": {
+        "line-cap": "round",
+        "line-join": "round"
+      },
+      "paint": {
+        "line-color": ["match", ["get", "class"], "primary", "#F4EFDB", "#FAEDC9"],
+        "line-opacity": ["interpolate", ["linear"], ["zoom"], 15.45, 0, 16, 0.88, 17.5, 0.88, 19, 0],
+        "line-width": [
+          "interpolate", ["linear"], ["zoom"],
+          15.45, ["match", ["get", "class"], "primary", 2.2, 3.5],
+          17.5, ["match", ["get", "class"], "primary", 4.5, 7]
         ]
       }
     },
