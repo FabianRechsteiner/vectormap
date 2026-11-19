@@ -6,7 +6,7 @@
     "source_style": "https://vectormap.ch/styles/ch.vectormap.lightbasemap.json",
     "design_reference": "Helle Ansichten der Ingame-Karte von Vice City und Pelican Valley, veröffentlicht bei Keymap (https://keymap.io/games/gta-vi/map/#from-the-game).",
     "style_author": "Eigenstaendige MapLibre-Stilvariante",
-    "style_version": "1.2.0",
+    "style_version": "1.3.0",
     "zoom_transition": "swisstopo vector lines to Swiss cadastral AV PMTiles at zoom 15-16",
     "palette": {
       "background": "#E6E7DC",
@@ -414,6 +414,23 @@
       }
     },
     {
+      "id": "land-relief",
+      "type": "fill",
+      "source": "relief_v1.0.0",
+      "source-layer": "hillshade",
+      "minzoom": 7,
+      "filter": ["<", ["to-number", ["get", "luminosity"], 0], 0],
+      "paint": {
+        "fill-color": [
+          "interpolate", ["linear"], ["to-number", ["get", "luminosity"], 0],
+          -15, "rgba(41, 67, 83, 0.22)",
+          0, "rgba(41, 67, 83, 0)"
+        ],
+        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0, 11, 1],
+        "fill-antialias": false
+      }
+    },
+    {
       "id": "water-areas",
       "type": "fill",
       "source": "base_v1.0.0",
@@ -793,6 +810,23 @@
       }
     },
     {
+      "id": "av-land-relief",
+      "type": "fill",
+      "source": "relief_v1.0.0",
+      "source-layer": "hillshade",
+      "minzoom": 15,
+      "filter": ["<", ["to-number", ["get", "luminosity"], 0], 0],
+      "paint": {
+        "fill-color": [
+          "interpolate", ["linear"], ["to-number", ["get", "luminosity"], 0],
+          -15, "rgba(41, 67, 83, 0.22)",
+          0, "rgba(41, 67, 83, 0)"
+        ],
+        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.7, 1, 18, 0.75],
+        "fill-antialias": false
+      }
+    },
+    {
       "id": "av-water",
       "type": "fill",
       "source": "vectormap_av",
@@ -866,6 +900,19 @@
           0.8
         ],
         "line-opacity": 0.6
+      }
+    },
+    {
+      "id": "lake-depth-contours",
+      "type": "line",
+      "source": "base_v1.0.0",
+      "source-layer": "contour_line",
+      "minzoom": 12,
+      "filter": ["all", ["==", ["get", "class"], "water"], ["has", "lake_depth"]],
+      "paint": {
+        "line-color": "#267D9B",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.55, 16, 1.05],
+        "line-opacity": ["interpolate", ["linear"], ["zoom"], 12, 0, 14, 0.31, 17, 0.38]
       }
     },
     {
