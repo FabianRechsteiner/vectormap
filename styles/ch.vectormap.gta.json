@@ -6,8 +6,8 @@
     "source_style": "https://vectormap.ch/styles/ch.vectormap.lightbasemap.json",
     "design_reference": "Helle Ansichten der Ingame-Karte von Vice City und Pelican Valley, veröffentlicht bei Keymap (https://keymap.io/games/gta-vi/map/#from-the-game).",
     "style_author": "Eigenstaendige MapLibre-Stilvariante",
-    "style_version": "1.3.1",
-    "zoom_transition": "swisstopo vector lines to Swiss cadastral AV PMTiles at zoom 15-16",
+    "style_version": "1.3.2",
+    "zoom_transition": "Swiss cadastral AV PMTiles fade in from zoom 15 to 15.7; swisstopo features fade out from 15.6 to 16",
     "palette": {
       "background": "#E6E7DC",
       "urban": "#CED0DE",
@@ -111,9 +111,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -153,9 +153,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -210,9 +210,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -267,9 +267,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -321,9 +321,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -374,9 +374,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -412,150 +412,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
-          0
-        ]
-      }
-    },
-    {
-      "id": "land-relief",
-      "type": "raster",
-      "source": "swisstopo-relief",
-      "minzoom": 7,
-      "paint": {
-        "raster-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0, 11, 0.30],
-        "raster-brightness-max": 0.92,
-        "raster-resampling": "linear"
-      }
-    },
-    {
-      "id": "water-areas",
-      "type": "fill",
-      "source": "base_v1.0.0",
-      "source-layer": "water",
-      "paint": {
-        "fill-color": "#60B6D0",
-        "fill-outline-color": "#88CDE2",
-        "fill-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          15,
-          1,
-          15.7,
-          0
-        ]
-      }
-    },
-    {
-      "id": "waterway-small",
-      "type": "line",
-      "source": "base_v1.0.0",
-      "source-layer": "waterway",
-      "minzoom": 9,
-      "maxzoom": 16,
-      "filter": [
-        "==",
-        [
-          "geometry-type"
-        ],
-        "LineString"
-      ],
-      "layout": {
-        "line-join": "round",
-        "line-cap": "round"
-      },
-      "paint": {
-        "line-color": "#60B6D0",
-        "line-width": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          9,
-          0.8,
-          12,
-          1.5,
-          15,
-          3.2
-        ],
-        "line-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          15,
-          1,
-          15.7,
-          0
-        ]
-      }
-    },
-    {
-      "id": "waterway-major",
-      "type": "line",
-      "source": "base_v1.0.0",
-      "source-layer": "waterway",
-      "minzoom": 8,
-      "maxzoom": 16,
-      "filter": [
-        "in",
-        [
-          "get",
-          "class"
-        ],
-        [
-          "literal",
-          [
-            "river",
-            "canal"
-          ]
-        ]
-      ],
-      "layout": {
-        "line-join": "round",
-        "line-cap": "round"
-      },
-      "paint": {
-        "line-color": "#60B6D0",
-        "line-width": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          8,
-          1.2,
-          12,
-          2.7,
-          15,
-          5
-        ],
-        "line-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          15,
-          1,
-          15.7,
+          16,
           0
         ]
       }
@@ -566,6 +425,44 @@
       "source": "vectormap_av",
       "source-layer": "Bodenbedeckung",
       "minzoom": 15,
+      "filter": [
+        "!",
+        [
+          "in",
+          ["get", "Art"],
+          [
+            "literal",
+            [
+              "Abbau_Deponie",
+              "Acker_Wiese_Weide",
+              "Bahn",
+              "Fels",
+              "Flugplatz",
+              "Gartenanlage",
+              "Gebaeude",
+              "Geroell_Sand",
+              "Gewaesser_fliessendes",
+              "Gewaesser_stehendes",
+              "Gletscher_Firn",
+              "Hoch_Flachmoor",
+              "Reben",
+              "Schilfguertel",
+              "Strasse_Weg",
+              "Trottoir",
+              "Verkehrsinsel",
+              "Wasserbecken",
+              "Wytweide_dicht",
+              "Wytweide_offen",
+              "geschlossener_Wald",
+              "uebrige_Intensivkultur",
+              "uebrige_befestigte",
+              "uebrige_bestockte",
+              "uebrige_humusierte",
+              "uebrige_vegetationslose"
+            ]
+          ]
+        ]
+      ],
       "paint": {
         "fill-color": "#CED0DE",
         "fill-opacity": [
@@ -810,14 +707,144 @@
       }
     },
     {
-      "id": "av-land-relief",
+      "id": "land-relief",
       "type": "raster",
       "source": "swisstopo-relief",
-      "minzoom": 15,
+      "minzoom": 7,
       "paint": {
-        "raster-opacity": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.7, 0.30, 18, 0.23],
+        "raster-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0, 11, 0.30, 16, 0.30, 18, 0.23],
         "raster-brightness-max": 0.92,
         "raster-resampling": "linear"
+      }
+    },
+    {
+      "id": "water-areas",
+      "type": "fill",
+      "source": "base_v1.0.0",
+      "source-layer": "water",
+      "paint": {
+        "fill-color": "#60B6D0",
+        "fill-outline-color": "#88CDE2",
+        "fill-opacity": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          15.6,
+          1,
+          16,
+          0
+        ]
+      }
+    },
+    {
+      "id": "waterway-small",
+      "type": "line",
+      "source": "base_v1.0.0",
+      "source-layer": "waterway",
+      "minzoom": 9,
+      "maxzoom": 16,
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "LineString"
+      ],
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#60B6D0",
+        "line-width": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          9,
+          0.8,
+          12,
+          1.5,
+          15,
+          3.2
+        ],
+        "line-opacity": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          15.6,
+          1,
+          16,
+          0
+        ]
+      }
+    },
+    {
+      "id": "waterway-major",
+      "type": "line",
+      "source": "base_v1.0.0",
+      "source-layer": "waterway",
+      "minzoom": 8,
+      "maxzoom": 16,
+      "filter": [
+        "in",
+        [
+          "get",
+          "class"
+        ],
+        [
+          "literal",
+          [
+            "river",
+            "canal"
+          ]
+        ]
+      ],
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-color": "#60B6D0",
+        "line-width": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          8,
+          1.2,
+          12,
+          2.7,
+          15,
+          5
+        ],
+        "line-opacity": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          15.6,
+          1,
+          16,
+          0
+        ]
       }
     },
     {
@@ -863,7 +890,7 @@
       "type": "line",
       "source": "vectormap_av",
       "source-layer": "Bodenbedeckung",
-      "minzoom": 16,
+      "minzoom": 15.5,
       "filter": [
         "in",
         [
@@ -893,7 +920,7 @@
           19,
           0.8
         ],
-        "line-opacity": 0.6
+        "line-opacity": ["interpolate", ["linear"], ["zoom"], 15.5, 0, 16, 0.6]
       }
     },
     {
@@ -1041,9 +1068,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -1085,9 +1112,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -1098,7 +1125,7 @@
       "source": "base_v1.0.0",
       "source-layer": "building",
       "minzoom": 12,
-      "maxzoom": 15.8,
+      "maxzoom": 16,
       "paint": {
         "fill-color": "#A6B3CE",
         "fill-outline-color": "#8B9BBA",
@@ -1114,9 +1141,9 @@
           0,
           13,
           0.9,
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -1127,7 +1154,7 @@
       "source": "base_v1.0.0",
       "source-layer": "transportation",
       "minzoom": 10,
-      "maxzoom": 15.8,
+      "maxzoom": 16,
       "filter": [
         "all",
         [
@@ -1208,9 +1235,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -1221,7 +1248,7 @@
       "source": "base_v1.0.0",
       "source-layer": "transportation",
       "minzoom": 10,
-      "maxzoom": 15.8,
+      "maxzoom": 16,
       "filter": [
         "all",
         [
@@ -1302,9 +1329,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -1315,7 +1342,7 @@
       "source": "base_v1.0.0",
       "source-layer": "transportation",
       "minzoom": 6,
-      "maxzoom": 15.8,
+      "maxzoom": 16,
       "filter": [
         "all",
         [
@@ -1398,9 +1425,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -1411,7 +1438,7 @@
       "source": "base_v1.0.0",
       "source-layer": "transportation",
       "minzoom": 6,
-      "maxzoom": 15.8,
+      "maxzoom": 16,
       "filter": [
         "all",
         [
@@ -1506,9 +1533,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -1519,7 +1546,7 @@
       "source": "base_v1.0.0",
       "source-layer": "transportation",
       "minzoom": 12,
-      "maxzoom": 15.8,
+      "maxzoom": 16,
       "filter": [
         "in",
         [
@@ -1567,9 +1594,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -1614,9 +1641,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -1663,9 +1690,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -1676,7 +1703,7 @@
       "source": "base_v1.0.0",
       "source-layer": "transportation",
       "minzoom": 9,
-      "maxzoom": 15.8,
+      "maxzoom": 16,
       "filter": [
         "all",
         [
@@ -1750,9 +1777,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -1763,7 +1790,7 @@
       "source": "base_v1.0.0",
       "source-layer": "transportation",
       "minzoom": 8,
-      "maxzoom": 15.8,
+      "maxzoom": 16,
       "filter": [
         "all",
         [
@@ -1833,9 +1860,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
@@ -1846,7 +1873,7 @@
       "source": "base_v1.0.0",
       "source-layer": "transportation",
       "minzoom": 8,
-      "maxzoom": 15.8,
+      "maxzoom": 16,
       "filter": [
         "all",
         [
@@ -1916,9 +1943,9 @@
           [
             "zoom"
           ],
-          15,
+          15.6,
           1,
-          15.7,
+          16,
           0
         ]
       }
