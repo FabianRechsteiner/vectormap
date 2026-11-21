@@ -6,8 +6,8 @@
     "source_style": "https://vectormap.ch/styles/ch.vectormap.lightbasemap.json",
     "design_reference": "GTA VI: direkte Aufnahmen der 2D-Karte im Spiel. CHOWH1 via Keymap (https://keymap.io/games/gta-vi/map/), PowerPyx (https://www.powerpyx.com/gta-6-full-world-map-revealed/) und PS5-Aufnahmen von ViceManual (https://vicemanual.com/gta-6-screenshots).",
     "style_author": "Eigenstaendige MapLibre-Stilvariante",
-    "style_version": "1.6.1",
-    "zoom_transition": "AV gardens fade in from zoom 13 to 15.8 over persistent swisstopo land use and vegetation; most other AV details fade in from 15 to 15.7.",
+    "style_version": "1.6.2",
+    "zoom_transition": "AV gardens blend into the urban base from zoom 13 to 15.8. Designated parks, recreation grounds and forest retain separate green fills.",
     "palette": {
       "background": "#7B9D86",
       "urban": "#BDC3CD",
@@ -21,10 +21,10 @@
       "rail": "#7D8A99",
       "pedestrian": "#CDD3DF",
       "paving": "#C8CED9",
-      "forest": "#669276",
-      "grass": "#85A78C",
-      "park": "#739D82",
-      "fields": "#94A583",
+      "forest": "#719784",
+      "grass": "#819F8B",
+      "park": "#7C9D88",
+      "fields": "#8F9F84",
       "sand": "#D4C299",
       "wetland": "#78A89A",
       "water_overview": "#3C94B2",
@@ -158,26 +158,9 @@
       "source": "base_v1.0.0",
       "source-layer": "landcover",
       "minzoom": 6,
-      "filter": [
-        "in",
-        [
-          "get",
-          "class"
-        ],
-        [
-          "literal",
-          [
-            "farmland",
-            "meadow",
-            "grass",
-            "field",
-            "agriculture",
-            "cultivated"
-          ]
-        ]
-      ],
+      "filter": ["all", ["in", ["get", "class"], ["literal", ["farmland", "meadow", "grass", "field", "agriculture", "cultivated"]]], ["!", ["in", ["get", "subclass"], ["literal", ["park", "recreation_ground", "golf_course"]]]]],
       "paint": {
-        "fill-color": ["case", ["in", ["get", "subclass"], ["literal", ["park", "recreation_ground", "golf_course"]]], "#739D82", ["in", ["get", "class"], ["literal", ["grass", "meadow"]]], "#85A78C", "#94A583"],
+        "fill-color": ["match", ["get", "class"], ["grass", "meadow"], "#819F8B", "#8F9F84"],
         "fill-opacity": 1
       }
     },
@@ -187,41 +170,9 @@
       "source": "base_v1.0.0",
       "source-layer": "landcover",
       "minzoom": 6,
-      "filter": [
-        "in",
-        [
-          "get",
-          "subclass"
-        ],
-        [
-          "literal",
-          [
-            "grass",
-            "meadow",
-            "scrub",
-            "allotments",
-            "golf_course",
-            "recreation_ground",
-            "park",
-            "plant_nursery"
-          ]
-        ]
-      ],
+      "filter": ["in", ["get", "subclass"], ["literal", ["grass", "meadow", "scrub", "allotments", "plant_nursery"]]],
       "paint": {
-        "fill-color": [
-          "match",
-          [
-            "get",
-            "subclass"
-          ],
-          [
-            "park",
-            "recreation_ground",
-            "golf_course"
-          ],
-          "#739D82",
-          "#85A78C"
-        ],
+        "fill-color": ["match", ["get", "subclass"], ["allotments", "plant_nursery"], "#BDC3CD", "#819F8B"],
         "fill-opacity": 1
       }
     },
@@ -232,40 +183,15 @@
       "source-layer": "landcover",
       "minzoom": 6,
       "filter": [
-        "any",
-        [
-          "in",
-          [
-            "get",
-            "class"
-          ],
-          [
-            "literal",
-            [
-              "forest",
-              "wood"
-            ]
-          ]
-        ],
-        [
-          "in",
-          [
-            "get",
-            "subclass"
-          ],
-          [
-            "literal",
-            [
-              "forest",
-              "loose_forest",
-              "woody_plant",
-              "wood"
-            ]
-          ]
+        "all",
+        ["!=", ["coalesce", ["get", "subclass"], ""], "woody_plant"],
+        ["any",
+          ["in", ["get", "class"], ["literal", ["forest", "wood"]]],
+          ["in", ["get", "subclass"], ["literal", ["forest", "loose_forest", "wood"]]]
         ]
       ],
       "paint": {
-        "fill-color": "#669276",
+        "fill-color": "#719784",
         "fill-opacity": 1
       }
     },
@@ -323,46 +249,6 @@
           16,
           0
         ]
-      }
-    },
-    {
-      "id": "landuse-park-sport",
-      "type": "fill",
-      "source": "base_v1.0.0",
-      "source-layer": "landuse",
-      "minzoom": 9,
-      "filter": [
-        "in",
-        [
-          "get",
-          "class"
-        ],
-        [
-          "literal",
-          [
-            "park",
-            "grass",
-            "pitch",
-            "cemetery",
-            "zoo",
-            "golf_course"
-          ]
-        ]
-      ],
-      "paint": {
-        "fill-color": [
-          "match",
-          [
-            "get",
-            "class"
-          ],
-          "pitch",
-          "#81A58A",
-          "cemetery",
-          "#91AA91",
-          "#739D82"
-        ],
-        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0, 10, 1]
       }
     },
     {
@@ -488,45 +374,7 @@
         ]
       ],
       "paint": {
-        "fill-color": ["match", ["get", "Art"], "uebrige_humusierte", "#85A78C", "#94A583"],
-        "fill-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          15,
-          0,
-          15.7,
-          1
-        ]
-      }
-    },
-    {
-      "id": "av-wood",
-      "type": "fill",
-      "source": "vectormap_av",
-      "source-layer": "Bodenbedeckung",
-      "minzoom": 15,
-      "filter": [
-        "in",
-        [
-          "get",
-          "Art"
-        ],
-        [
-          "literal",
-          [
-            "geschlossener_Wald",
-            "uebrige_bestockte",
-            "Wytweide_dicht"
-          ]
-        ]
-      ],
-      "paint": {
-        "fill-color": "#669276",
+        "fill-color": ["match", ["get", "Art"], "uebrige_humusierte", "#BDC3CD", "#8F9F84"],
         "fill-opacity": [
           "interpolate",
           [
@@ -562,8 +410,66 @@
         ]
       ],
       "paint": {
-        "fill-color": "#739D82",
+        "fill-color": "#BDC3CD",
         "fill-opacity": ["interpolate", ["linear"], ["zoom"], 13, 0, 14, 0.22, 14.7, 0.49, 15.35, 0.79, 15.8, 1]
+      }
+    },
+    {
+      "id": "landcover-park",
+      "type": "fill",
+      "source": "base_v1.0.0",
+      "source-layer": "landcover",
+      "minzoom": 6,
+      "filter": ["in", ["get", "subclass"], ["literal", ["park", "recreation_ground", "golf_course"]]],
+      "paint": {
+        "fill-color": "#7C9D88"
+      }
+    },
+    {
+      "id": "landuse-park-sport",
+      "type": "fill",
+      "source": "base_v1.0.0",
+      "source-layer": "landuse",
+      "minzoom": 9,
+      "filter": ["in", ["get", "class"], ["literal", ["park", "pitch", "cemetery", "zoo", "golf_course"]]],
+      "paint": {
+        "fill-color": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          "pitch",
+          "#809F89",
+          "cemetery",
+          "#88A491",
+          "#7C9D88"
+        ],
+        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0, 10, 1]
+      }
+    },
+    {
+      "id": "av-wood",
+      "type": "fill",
+      "source": "vectormap_av",
+      "source-layer": "Bodenbedeckung",
+      "minzoom": 15,
+      "filter": ["in", ["get", "Art"], ["literal", ["geschlossener_Wald", "Wytweide_dicht"]]],
+      "paint": {
+        "fill-color": "#719784",
+        "fill-opacity": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          15,
+          0,
+          15.7,
+          1
+        ]
       }
     },
     {
