@@ -6,30 +6,30 @@
     "source_style": "https://vectormap.ch/styles/ch.vectormap.lightbasemap.json",
     "design_reference": "GTA VI: direkte Aufnahmen der 2D-Karte im Spiel. CHOWH1 via Keymap (https://keymap.io/games/gta-vi/map/), PowerPyx (https://www.powerpyx.com/gta-6-full-world-map-revealed/) und PS5-Aufnahmen von ViceManual (https://vicemanual.com/gta-6-screenshots).",
     "style_author": "Eigenstaendige MapLibre-Stilvariante",
-    "style_version": "1.6.2",
-    "zoom_transition": "AV gardens blend into the urban base from zoom 13 to 15.8. Designated parks, recreation grounds and forest retain separate green fills.",
+    "style_version": "1.6.3",
+    "zoom_transition": "AV gardens blend into the opaque urban base from zoom 13 to 15.8. Terrain relief sits underneath land use, and lakes have a separate bathymetric overlay.",
     "palette": {
       "background": "#7B9D86",
-      "urban": "#BDC3CD",
+      "urban": "#CED5DF",
       "urban_light": "#BCC4CD",
-      "building": "#A5B2C9",
+      "building": "#A3B2CA",
       "building_edge": "#94A1B8",
-      "roads": "#EBEDF3",
+      "roads": "#F1F4FA",
       "motorway": "#EAF0EF",
-      "motorway_detail": "#F6EACD",
+      "motorway_detail": "#F8EDCE",
       "road_edge": "#9CA8B0",
       "rail": "#7D8A99",
       "pedestrian": "#CDD3DF",
       "paving": "#C8CED9",
-      "forest": "#719784",
-      "grass": "#819F8B",
-      "park": "#7C9D88",
+      "forest": "#618F77",
+      "grass": "#759C82",
+      "park": "#6F9B81",
       "fields": "#8F9F84",
       "sand": "#D4C299",
       "wetland": "#78A89A",
       "water_overview": "#3C94B2",
-      "water": "#49A7C7",
-      "water_edge": "#74BED5",
+      "water": "#51B1D2",
+      "water_edge": "#7DC8E0",
       "text": "#F3F6F2",
       "text_emphasis": "#F6F8F5",
       "water_text": "#26596D",
@@ -122,6 +122,17 @@
       }
     },
     {
+      "id": "land-relief",
+      "type": "raster",
+      "source": "swisstopo-relief",
+      "minzoom": 4,
+      "paint": {
+        "raster-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0, 8, 0.22, 13, 0.36, 16, 0.36, 18, 0.29],
+        "raster-brightness-max": 0.96,
+        "raster-resampling": "linear"
+      }
+    },
+    {
       "id": "landuse-urban",
       "type": "fill",
       "metadata": {
@@ -148,7 +159,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#BDC3CD",
+        "fill-color": "#CED5DF",
         "fill-opacity": 1
       }
     },
@@ -160,8 +171,8 @@
       "minzoom": 6,
       "filter": ["all", ["in", ["get", "class"], ["literal", ["farmland", "meadow", "grass", "field", "agriculture", "cultivated"]]], ["!", ["in", ["get", "subclass"], ["literal", ["park", "recreation_ground", "golf_course"]]]]],
       "paint": {
-        "fill-color": ["match", ["get", "class"], ["grass", "meadow"], "#819F8B", "#8F9F84"],
-        "fill-opacity": 1
+        "fill-color": ["match", ["get", "class"], ["grass", "meadow"], "#759C82", "#8F9F84"],
+        "fill-opacity": 0.69
       }
     },
     {
@@ -172,8 +183,8 @@
       "minzoom": 6,
       "filter": ["in", ["get", "subclass"], ["literal", ["grass", "meadow", "scrub", "allotments", "plant_nursery"]]],
       "paint": {
-        "fill-color": ["match", ["get", "subclass"], ["allotments", "plant_nursery"], "#BDC3CD", "#819F8B"],
-        "fill-opacity": 1
+        "fill-color": ["match", ["get", "subclass"], ["allotments", "plant_nursery"], "#CED5DF", "#759C82"],
+        "fill-opacity": ["match", ["get", "subclass"], ["allotments", "plant_nursery"], 1, 0.71]
       }
     },
     {
@@ -191,8 +202,8 @@
         ]
       ],
       "paint": {
-        "fill-color": "#719784",
-        "fill-opacity": 1
+        "fill-color": "#618F77",
+        "fill-opacity": 0.63
       }
     },
     {
@@ -334,7 +345,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#BDC3CD",
+        "fill-color": "#CED5DF",
         "fill-opacity": [
           "interpolate",
           [
@@ -374,20 +385,8 @@
         ]
       ],
       "paint": {
-        "fill-color": ["match", ["get", "Art"], "uebrige_humusierte", "#BDC3CD", "#8F9F84"],
-        "fill-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          15,
-          0,
-          15.7,
-          1
-        ]
+        "fill-color": ["match", ["get", "Art"], "uebrige_humusierte", "#CED5DF", "#8F9F84"],
+        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.7, ["match", ["get", "Art"], "uebrige_humusierte", 1, 0.7]]
       }
     },
     {
@@ -410,7 +409,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#BDC3CD",
+        "fill-color": "#CED5DF",
         "fill-opacity": ["interpolate", ["linear"], ["zoom"], 13, 0, 14, 0.22, 14.7, 0.49, 15.35, 0.79, 15.8, 1]
       }
     },
@@ -422,7 +421,8 @@
       "minzoom": 6,
       "filter": ["in", ["get", "subclass"], ["literal", ["park", "recreation_ground", "golf_course"]]],
       "paint": {
-        "fill-color": "#7C9D88"
+        "fill-color": "#6F9B81",
+        "fill-opacity": 0.79
       }
     },
     {
@@ -440,12 +440,12 @@
             "class"
           ],
           "pitch",
-          "#809F89",
+          "#779D82",
           "cemetery",
-          "#88A491",
-          "#7C9D88"
+          "#82A68C",
+          "#6F9B81"
         ],
-        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0, 10, 1]
+        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0, 10, 0.81]
       }
     },
     {
@@ -456,20 +456,8 @@
       "minzoom": 15,
       "filter": ["in", ["get", "Art"], ["literal", ["geschlossener_Wald", "Wytweide_dicht"]]],
       "paint": {
-        "fill-color": "#719784",
-        "fill-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          15,
-          0,
-          15.7,
-          1
-        ]
+        "fill-color": "#618F77",
+        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.7, 0.53]
       }
     },
     {
@@ -494,19 +482,7 @@
       ],
       "paint": {
         "fill-color": "#78A89A",
-        "fill-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          15,
-          0,
-          15.7,
-          1
-        ]
+        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.7, 0.77]
       }
     },
     {
@@ -596,24 +572,13 @@
       }
     },
     {
-      "id": "land-relief",
-      "type": "raster",
-      "source": "swisstopo-relief",
-      "minzoom": 4,
-      "paint": {
-        "raster-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0, 7, 0.17, 12, 0.21, 16, 0.21, 18, 0.16],
-        "raster-brightness-max": 0.9,
-        "raster-resampling": "linear"
-      }
-    },
-    {
       "id": "water-areas",
       "type": "fill",
       "source": "base_v1.0.0",
       "source-layer": "water",
       "paint": {
-        "fill-color": ["interpolate", ["linear"], ["zoom"], 5, "#3C94B2", 10, "#419DBD", 14, "#49A7C7"],
-        "fill-outline-color": "#74BED5",
+        "fill-color": ["interpolate", ["linear"], ["zoom"], 5, "#3C94B2", 10, "#459FC1", 14, "#51B1D2"],
+        "fill-outline-color": "#7DC8E0",
         "fill-opacity": [
           "interpolate",
           [
@@ -705,7 +670,7 @@
         "line-cap": "round"
       },
       "paint": {
-        "line-color": ["interpolate", ["linear"], ["zoom"], 8, "#419DBD", 14, "#49A7C7"],
+        "line-color": ["interpolate", ["linear"], ["zoom"], 8, "#459FC1", 14, "#51B1D2"],
         "line-width": [
           "interpolate",
           [
@@ -758,7 +723,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#49A7C7",
+        "fill-color": "#51B1D2",
         "fill-opacity": [
           "interpolate",
           [
@@ -780,7 +745,7 @@
       "source": "swisstopo-lake-relief",
       "minzoom": 12,
       "paint": {
-        "raster-opacity": ["interpolate", ["linear"], ["zoom"], 12, 0, 13.5, 0.26, 15, 0.35],
+        "raster-opacity": ["interpolate", ["linear"], ["zoom"], 12, 0, 13.5, 0.18, 15, 0.25],
         "raster-saturation": -1,
         "raster-brightness-min": 0.18,
         "raster-brightness-max": 0.94,
@@ -808,7 +773,7 @@
         ]
       ],
       "paint": {
-        "line-color": "#74BED5",
+        "line-color": "#7DC8E0",
         "line-width": [
           "interpolate",
           [
@@ -1112,7 +1077,7 @@
       "minzoom": 12,
       "maxzoom": 16,
       "paint": {
-        "fill-color": "#A5B2C9",
+        "fill-color": "#A3B2CA",
         "fill-outline-color": "rgba(148,161,184,0.45)",
         "fill-opacity": ["interpolate", ["linear"], ["zoom"], 12, 0, 13, 0.54, 14.5, 1, 15.6, 1, 16, 0]
       }
@@ -1260,7 +1225,7 @@
         "line-join": "round"
       },
       "paint": {
-        "line-color": ["interpolate", ["linear"], ["zoom"], 11.5, "#D4DBDF", 15, "#EBEDF3"],
+        "line-color": ["interpolate", ["linear"], ["zoom"], 11.5, "#D4DBDF", 15, "#F1F4FA"],
         "line-width": [
           "interpolate",
           [
@@ -1506,8 +1471,8 @@
       "paint": {
         "line-color": [
           "interpolate", ["linear"], ["zoom"],
-          11.5, ["match", ["get", "class"], ["motorway", "trunk"], "#EAF0EF", "primary", "#E7EBF1", "#CCD6D8"],
-          15, ["match", ["get", "class"], ["motorway", "trunk"], "#F6EACD", "primary", "#EBE5D5", "#E4E8EF"]
+          11.5, ["match", ["get", "class"], ["motorway", "trunk"], "#EAF0EF", "primary", "#ECF0F7", "#CCD6D8"],
+          15, ["match", ["get", "class"], ["motorway", "trunk"], "#F8EDCE", "primary", "#EBE5D5", "#E9EDF5"]
         ],
         "line-width": [
           "interpolate",
@@ -2000,8 +1965,8 @@
       "paint": {
         "line-color": [
           "interpolate", ["linear"], ["zoom"],
-          11.5, ["match", ["get", "class"], ["motorway", "trunk"], "#EAF0EF", "primary", "#E7EBF1", "#D4DBDF"],
-          15, ["match", ["get", "class"], ["motorway", "trunk"], "#F6EACD", "primary", "#EBE5D5", "#EBEDF3"]
+          11.5, ["match", ["get", "class"], ["motorway", "trunk"], "#EAF0EF", "primary", "#ECF0F7", "#D4DBDF"],
+          15, ["match", ["get", "class"], ["motorway", "trunk"], "#F8EDCE", "primary", "#EBE5D5", "#F1F4FA"]
         ],
         "line-width": [
           "interpolate",
@@ -2131,7 +2096,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#EBEDF3",
+        "fill-color": "#F1F4FA",
         "fill-outline-color": "rgba(156,168,176,0.28)",
         "fill-opacity": [
           "interpolate",
@@ -2166,7 +2131,7 @@
         "line-join": "round"
       },
       "paint": {
-        "line-color": ["match", ["get", "class"], "primary", "#EBE5D5", "#F6EACD"],
+        "line-color": ["match", ["get", "class"], "primary", "#EBE5D5", "#F8EDCE"],
         "line-opacity": ["interpolate", ["linear"], ["zoom"], 15.45, 0, 16, 0.88, 17.5, 0.88, 19, 0],
         "line-width": [
           "interpolate", ["linear"], ["zoom"],
@@ -2231,7 +2196,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#A5B2C9",
+        "fill-color": "#A3B2CA",
         "fill-outline-color": "rgba(148,161,184,0.45)",
         "fill-opacity": [
           "interpolate",
