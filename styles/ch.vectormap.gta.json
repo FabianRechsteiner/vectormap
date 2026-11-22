@@ -5,32 +5,32 @@
     "description": "Eigenständiger Schweizer Kartenstil mit weichen Strassenrändern, kühlen Siedlungsfarben, blauen Gewässern und Relief, inspiriert von der hellen 2D-Karte in GTA VI.",
     "overview_landcover_source": "BFS / GEOSTAT, Arealstatistik NOLC04 (https://data.geo.admin.ch/api/stac/v0.9/collections/ch.bfs.arealstatistik/items/arealstatistik).",
     "source_style": "https://vectormap.ch/styles/ch.vectormap.lightbasemap.json",
-    "design_reference": "GTA VI: direkte Aufnahmen der 2D-Karte im Spiel. CHOWH1 via Keymap (https://keymap.io/games/gta-vi/map/), PowerPyx (https://www.powerpyx.com/gta-6-full-world-map-revealed/) und PS5-Aufnahmen von ViceManual (https://vicemanual.com/gta-6-screenshots).",
+    "design_reference": "GTA VI: eigene PS5-Aufnahmen des Vectormap-Projektinhabers aus der hellen 2D-Spielkarte, unter anderem Boone Speedway und Sunbelt Hwy.",
     "style_author": "Eigenstaendige MapLibre-Stilvariante",
-    "style_version": "1.6.5",
-    "zoom_transition": "AV gardens blend into the urban base from zoom 13 to 15.8. Classified swisstopo vegetation is drawn above generic AV garden and soil fills. Surveyed hard surfaces and water retain precedence.",
+    "style_version": "1.6.6",
+    "zoom_transition": "AV gardens blend into the urban base from zoom 13 to 15.8. Classified swisstopo vegetation is drawn above generic AV garden and soil fills. Surveyed hard surfaces and water retain precedence. Underlying swisstopo road, building and water layers supply detail where the AV source has no features.",
     "palette": {
       "background": "#EEF1F2",
-      "urban": "#CED5DF",
+      "urban": "#CBD4DC",
       "urban_light": "#BCC4CD",
-      "building": "#A3B2CA",
-      "building_edge": "#94A1B8",
-      "roads": "#F1F4FA",
+      "building": "#A2B8D7",
+      "building_edge": "#91A9C6",
+      "roads": "#E8EAF3",
       "motorway": "#EAF0EF",
-      "motorway_detail": "#F8EDCE",
+      "motorway_detail": "#F5EBCB",
       "road_edge": "#9CA8B0",
       "rail": "#7D8A99",
-      "pedestrian": "#CDD3DF",
-      "paving": "#C8CED9",
-      "forest": "#618F77",
-      "grass": "#759C82",
-      "park": "#6F9B81",
-      "fields": "#8F9F84",
+      "pedestrian": "#D5DDE5",
+      "paving": "#CED6DF",
+      "forest": "#6A9F85",
+      "grass": "#7BB097",
+      "park": "#78AC90",
+      "fields": "#92A98C",
       "sand": "#D4C299",
-      "wetland": "#78A89A",
+      "wetland": "#7CB4A2",
       "water_overview": "#3C94B2",
-      "water": "#51B1D2",
-      "water_edge": "#7DC8E0",
+      "water": "#47B0D0",
+      "water_edge": "#7CCDE2",
       "text": "#F3F6F2",
       "text_emphasis": "#F6F8F5",
       "water_text": "#26596D",
@@ -197,7 +197,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#CED5DF",
+        "fill-color": "#CBD4DC",
         "fill-opacity": 1
       }
     },
@@ -246,7 +246,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#CED5DF",
+        "fill-color": "#CBD4DC",
         "fill-opacity": [
           "interpolate",
           [
@@ -270,7 +270,7 @@
       "minzoom": 15,
       "filter": ["==", ["get", "Art"], "uebrige_humusierte"],
       "paint": {
-        "fill-color": "#CED5DF",
+        "fill-color": "#CBD4DC",
         "fill-opacity": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.7, 1]
       }
     },
@@ -294,7 +294,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#CED5DF",
+        "fill-color": "#CBD4DC",
         "fill-opacity": ["interpolate", ["linear"], ["zoom"], 13, 0, 14, 0.22, 14.7, 0.49, 15.35, 0.79, 15.8, 1]
       }
     },
@@ -306,7 +306,7 @@
       "minzoom": 6,
       "filter": ["all", ["in", ["get", "class"], ["literal", ["farmland", "meadow", "grass", "field", "agriculture", "cultivated"]]], ["!", ["in", ["get", "subclass"], ["literal", ["park", "recreation_ground", "golf_course"]]]]],
       "paint": {
-        "fill-color": ["match", ["get", "class"], ["grass", "meadow"], "#759C82", "#8F9F84"],
+        "fill-color": ["match", ["get", "class"], ["grass", "meadow"], "#7BB097", "#92A98C"],
         "fill-opacity": 0.69
       }
     },
@@ -318,7 +318,7 @@
       "minzoom": 6,
       "filter": ["in", ["get", "subclass"], ["literal", ["grass", "meadow", "scrub", "allotments", "plant_nursery"]]],
       "paint": {
-        "fill-color": ["match", ["get", "subclass"], ["allotments", "plant_nursery"], "#CED5DF", "#759C82"],
+        "fill-color": ["match", ["get", "subclass"], ["allotments", "plant_nursery"], "#CBD4DC", "#7BB097"],
         "fill-opacity": ["match", ["get", "subclass"], ["allotments", "plant_nursery"], 1, 0.71]
       }
     },
@@ -337,7 +337,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#618F77",
+        "fill-color": "#6A9F85",
         "fill-opacity": 0.63
       }
     },
@@ -443,7 +443,7 @@
       "minzoom": 15,
       "filter": ["in", ["get", "Art"], ["literal", ["Acker_Wiese_Weide", "Reben", "uebrige_Intensivkultur", "Wytweide_offen"]]],
       "paint": {
-        "fill-color": "#8F9F84",
+        "fill-color": "#92A98C",
         "fill-opacity": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.7, 0.7]
       }
     },
@@ -455,7 +455,7 @@
       "minzoom": 6,
       "filter": ["in", ["get", "subclass"], ["literal", ["park", "recreation_ground", "golf_course"]]],
       "paint": {
-        "fill-color": "#6F9B81",
+        "fill-color": "#78AC90",
         "fill-opacity": 0.79
       }
     },
@@ -474,10 +474,10 @@
             "class"
           ],
           "pitch",
-          "#779D82",
+          "#7DB098",
           "cemetery",
-          "#82A68C",
-          "#6F9B81"
+          "#87B29C",
+          "#78AC90"
         ],
         "fill-opacity": ["interpolate", ["linear"], ["zoom"], 9, 0, 10, 0.81]
       }
@@ -490,7 +490,7 @@
       "minzoom": 15,
       "filter": ["in", ["get", "Art"], ["literal", ["geschlossener_Wald", "Wytweide_dicht"]]],
       "paint": {
-        "fill-color": "#618F77",
+        "fill-color": "#6A9F85",
         "fill-opacity": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.7, 0.53]
       }
     },
@@ -515,7 +515,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#78A89A",
+        "fill-color": "#7CB4A2",
         "fill-opacity": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.7, 0.77]
       }
     },
@@ -611,21 +611,9 @@
       "source": "base_v1.0.0",
       "source-layer": "water",
       "paint": {
-        "fill-color": ["interpolate", ["linear"], ["zoom"], 5, "#3C94B2", 10, "#459FC1", 14, "#51B1D2"],
-        "fill-outline-color": "#7DC8E0",
-        "fill-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          15.6,
-          1,
-          16,
-          0
-        ]
+        "fill-color": ["interpolate", ["linear"], ["zoom"], 5, "#3C94B2", 10, "#459FC1", 14, "#47B0D0"],
+        "fill-outline-color": "#7CCDE2",
+        "fill-opacity": 1
       }
     },
     {
@@ -684,7 +672,6 @@
       "source": "base_v1.0.0",
       "source-layer": "waterway",
       "minzoom": 8,
-      "maxzoom": 16,
       "filter": [
         "in",
         [
@@ -704,35 +691,9 @@
         "line-cap": "round"
       },
       "paint": {
-        "line-color": ["interpolate", ["linear"], ["zoom"], 8, "#459FC1", 14, "#51B1D2"],
-        "line-width": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          8,
-          1.2,
-          12,
-          2.7,
-          15,
-          5
-        ],
-        "line-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          15.6,
-          1,
-          16,
-          0
-        ]
+        "line-color": ["interpolate", ["linear"], ["zoom"], 8, "#459FC1", 14, "#47B0D0"],
+        "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1.2, 12, 2.7, 15, 5, 16.3, 2.3, 19, 4],
+        "line-opacity": ["interpolate", ["linear"], ["zoom"], 15.6, 1, 16.3, 0.62]
       }
     },
     {
@@ -757,7 +718,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#51B1D2",
+        "fill-color": "#47B0D0",
         "fill-opacity": [
           "interpolate",
           [
@@ -807,7 +768,7 @@
         ]
       ],
       "paint": {
-        "line-color": "#7DC8E0",
+        "line-color": "#7CCDE2",
         "line-width": [
           "interpolate",
           [
@@ -1012,7 +973,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#C8CED9",
+        "fill-color": "#CED6DF",
         "fill-opacity": [
           "interpolate",
           [
@@ -1109,11 +1070,10 @@
       "source": "base_v1.0.0",
       "source-layer": "building",
       "minzoom": 12,
-      "maxzoom": 16,
       "paint": {
-        "fill-color": "#A3B2CA",
-        "fill-outline-color": "rgba(148,161,184,0.45)",
-        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 12, 0, 13, 0.54, 14.5, 1, 15.6, 1, 16, 0]
+        "fill-color": "#A2B8D7",
+        "fill-outline-color": "rgba(145,169,198,0.45)",
+        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 12, 0, 13, 0.54, 14.5, 1, 15.6, 1, 16.3, 0.7]
       }
     },
     {
@@ -1204,7 +1164,6 @@
       "source": "base_v1.0.0",
       "source-layer": "transportation",
       "minzoom": 10,
-      "maxzoom": 16,
       "filter": [
         "all",
         [
@@ -1259,37 +1218,9 @@
         "line-join": "round"
       },
       "paint": {
-        "line-color": ["interpolate", ["linear"], ["zoom"], 11.5, "#D4DBDF", 15, "#F1F4FA"],
-        "line-width": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          10,
-          0.37,
-          12,
-          1.0,
-          14,
-          2.4,
-          15.6,
-          5.5
-        ],
-        "line-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          15.6,
-          1,
-          16,
-          0
-        ]
+        "line-color": ["interpolate", ["linear"], ["zoom"], 11.5, "#D4DBDF", 15, "#E8EAF3"],
+        "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.37, 12, 1.0, 14, 2.4, 15.6, 5.5, 16.3, 1.8],
+        "line-opacity": ["interpolate", ["linear"], ["zoom"], 15.6, 1, 16.3, 0.78]
       }
     },
     {
@@ -1450,7 +1381,6 @@
       "source": "base_v1.0.0",
       "source-layer": "transportation",
       "minzoom": 6,
-      "maxzoom": 16,
       "filter": [
         "all",
         [
@@ -1505,111 +1435,19 @@
       "paint": {
         "line-color": [
           "interpolate", ["linear"], ["zoom"],
-          11.5, ["match", ["get", "class"], ["motorway", "trunk"], "#EAF0EF", "primary", "#ECF0F7", "#CCD6D8"],
-          15, ["match", ["get", "class"], ["motorway", "trunk"], "#F8EDCE", "primary", "#EBE5D5", "#E9EDF5"]
+          11.5, ["match", ["get", "class"], ["motorway", "trunk"], "#EAF0EF", "primary", "#E8ECF3", "#CCD6D8"],
+          15, ["match", ["get", "class"], ["motorway", "trunk"], "#F5EBCB", "primary", "#E8ECF3", "#E6E9F1"]
         ],
         "line-width": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          6,
-          [
-            "match",
-            [
-              "get",
-              "class"
-            ],
-            [
-              "motorway",
-              "trunk"
-            ],
-            0.85,
-            "primary",
-            0.35,
-            0.17
-          ],
-          9,
-          [
-            "match",
-            [
-              "get",
-              "class"
-            ],
-            [
-              "motorway",
-              "trunk"
-            ],
-            1.95,
-            "primary",
-            1.2,
-            0.8
-          ],
-          12,
-          [
-            "match",
-            [
-              "get",
-              "class"
-            ],
-            [
-              "motorway",
-              "trunk"
-            ],
-            3.85,
-            "primary",
-            2.65,
-            1.9
-          ],
-          14,
-          [
-            "match",
-            [
-              "get",
-              "class"
-            ],
-            [
-              "motorway",
-              "trunk"
-            ],
-            5.5,
-            "primary",
-            4.1,
-            3.1
-          ],
-          15.6,
-          [
-            "match",
-            [
-              "get",
-              "class"
-            ],
-            [
-              "motorway",
-              "trunk"
-            ],
-            8.6,
-            "primary",
-            6.3,
-            4.7
-          ]
+          "interpolate", ["linear"], ["zoom"],
+          6, ["match", ["get", "class"], ["motorway", "trunk"], 0.85, "primary", 0.35, 0.17],
+          9, ["match", ["get", "class"], ["motorway", "trunk"], 1.95, "primary", 1.2, 0.8],
+          12, ["match", ["get", "class"], ["motorway", "trunk"], 3.85, "primary", 2.65, 1.9],
+          14, ["match", ["get", "class"], ["motorway", "trunk"], 5.5, "primary", 4.1, 3.1],
+          15.6, ["match", ["get", "class"], ["motorway", "trunk"], 8.6, "primary", 6.3, 4.7],
+          16.3, ["match", ["get", "class"], ["motorway", "trunk"], 4.6, "primary", 2.8, 2.3]
         ],
-        "line-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          15.6,
-          1,
-          16,
-          0
-        ]
+        "line-opacity": ["interpolate", ["linear"], ["zoom"], 15.6, 1, 16.3, 0.78]
       }
     },
     {
@@ -1951,7 +1789,6 @@
       "source": "base_v1.0.0",
       "source-layer": "transportation",
       "minzoom": 8,
-      "maxzoom": 16,
       "filter": [
         "all",
         [
@@ -1999,79 +1836,17 @@
       "paint": {
         "line-color": [
           "interpolate", ["linear"], ["zoom"],
-          11.5, ["match", ["get", "class"], ["motorway", "trunk"], "#EAF0EF", "primary", "#ECF0F7", "#D4DBDF"],
-          15, ["match", ["get", "class"], ["motorway", "trunk"], "#F8EDCE", "primary", "#EBE5D5", "#F1F4FA"]
+          11.5, ["match", ["get", "class"], ["motorway", "trunk"], "#EAF0EF", "primary", "#E8ECF3", "#D4DBDF"],
+          15, ["match", ["get", "class"], ["motorway", "trunk"], "#F5EBCB", "primary", "#E8ECF3", "#E8EAF3"]
         ],
         "line-width": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          8,
-          [
-            "match",
-            [
-              "get",
-              "class"
-            ],
-            [
-              "motorway",
-              "trunk"
-            ],
-            1.65,
-            "primary",
-            1.1,
-            0.62
-          ],
-          12,
-          [
-            "match",
-            [
-              "get",
-              "class"
-            ],
-            [
-              "motorway",
-              "trunk"
-            ],
-            4.35,
-            "primary",
-            3.2,
-            2.3
-          ],
-          15,
-          [
-            "match",
-            [
-              "get",
-              "class"
-            ],
-            [
-              "motorway",
-              "trunk"
-            ],
-            8.8,
-            "primary",
-            6.45,
-            5
-          ]
+          "interpolate", ["linear"], ["zoom"],
+          8, ["match", ["get", "class"], ["motorway", "trunk"], 1.65, "primary", 1.1, 0.62],
+          12, ["match", ["get", "class"], ["motorway", "trunk"], 4.35, "primary", 3.2, 2.3],
+          15, ["match", ["get", "class"], ["motorway", "trunk"], 8.8, "primary", 6.45, 5],
+          16.3, ["match", ["get", "class"], ["motorway", "trunk"], 4.6, "primary", 2.8, 2.3]
         ],
-        "line-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          15.6,
-          1,
-          16,
-          0
-        ]
+        "line-opacity": ["interpolate", ["linear"], ["zoom"], 15.6, 1, 16.3, 0.78]
       }
     },
     {
@@ -2094,7 +1869,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#CDD3DF",
+        "fill-color": "#D5DDE5",
         "fill-opacity": [
           "interpolate",
           [
@@ -2130,7 +1905,7 @@
         ]
       ],
       "paint": {
-        "fill-color": "#F1F4FA",
+        "fill-color": "#E8EAF3",
         "fill-outline-color": "rgba(156,168,176,0.28)",
         "fill-opacity": [
           "interpolate",
@@ -2154,24 +1929,15 @@
       "source-layer": "transportation",
       "minzoom": 15.45,
       "maxzoom": 19,
-      "filter": [
-        "all",
-        ["in", ["get", "class"], ["literal", ["motorway", "trunk", "primary"]]],
-        ["==", ["geometry-type"], "LineString"],
-        ["!=", ["coalesce", ["get", "brunnel"], ""], "tunnel"]
-      ],
+      "filter": ["all", ["in", ["get", "class"], ["literal", ["motorway", "trunk"]]], ["==", ["geometry-type"], "LineString"], ["!=", ["coalesce", ["get", "brunnel"], ""], "tunnel"]],
       "layout": {
         "line-cap": "round",
         "line-join": "round"
       },
       "paint": {
-        "line-color": ["match", ["get", "class"], "primary", "#EBE5D5", "#F8EDCE"],
+        "line-color": "#F5EBCB",
         "line-opacity": ["interpolate", ["linear"], ["zoom"], 15.45, 0, 16, 0.88, 17.5, 0.88, 19, 0],
-        "line-width": [
-          "interpolate", ["linear"], ["zoom"],
-          15.45, ["match", ["get", "class"], "primary", 2.2, 3.5],
-          17.5, ["match", ["get", "class"], "primary", 4.5, 7]
-        ]
+        "line-width": ["interpolate", ["linear"], ["zoom"], 15.45, 3.5, 17.5, 7]
       }
     },
     {
@@ -2230,8 +1996,8 @@
         ]
       ],
       "paint": {
-        "fill-color": "#A3B2CA",
-        "fill-outline-color": "rgba(148,161,184,0.45)",
+        "fill-color": "#A2B8D7",
+        "fill-outline-color": "rgba(145,169,198,0.45)",
         "fill-opacity": [
           "interpolate",
           [
