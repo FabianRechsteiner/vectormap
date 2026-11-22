@@ -7,8 +7,8 @@
     "source_style": "https://vectormap.ch/styles/ch.vectormap.lightbasemap.json",
     "design_reference": "GTA VI: direkte Aufnahmen der 2D-Karte im Spiel. CHOWH1 via Keymap (https://keymap.io/games/gta-vi/map/), PowerPyx (https://www.powerpyx.com/gta-6-full-world-map-revealed/) und PS5-Aufnahmen von ViceManual (https://vicemanual.com/gta-6-screenshots).",
     "style_author": "Eigenstaendige MapLibre-Stilvariante",
-    "style_version": "1.6.4",
-    "zoom_transition": "AV gardens blend into the opaque urban base from zoom 13 to 15.8. Terrain relief sits underneath land use, and lakes have a separate bathymetric overlay.",
+    "style_version": "1.6.5",
+    "zoom_transition": "AV gardens blend into the urban base from zoom 13 to 15.8. Classified swisstopo vegetation is drawn above generic AV garden and soil fills. Surveyed hard surfaces and water retain precedence.",
     "palette": {
       "background": "#EEF1F2",
       "urban": "#CED5DF",
@@ -202,6 +202,103 @@
       }
     },
     {
+      "id": "av-surface-base",
+      "type": "fill",
+      "source": "vectormap_av",
+      "source-layer": "Bodenbedeckung",
+      "minzoom": 15,
+      "filter": [
+        "!",
+        [
+          "in",
+          ["get", "Art"],
+          [
+            "literal",
+            [
+              "Abbau_Deponie",
+              "Acker_Wiese_Weide",
+              "Bahn",
+              "Fels",
+              "Flugplatz",
+              "Gartenanlage",
+              "Gebaeude",
+              "Geroell_Sand",
+              "Gewaesser_fliessendes",
+              "Gewaesser_stehendes",
+              "Gletscher_Firn",
+              "Hoch_Flachmoor",
+              "Reben",
+              "Schilfguertel",
+              "Strasse_Weg",
+              "Trottoir",
+              "Verkehrsinsel",
+              "Wasserbecken",
+              "Wytweide_dicht",
+              "Wytweide_offen",
+              "geschlossener_Wald",
+              "uebrige_Intensivkultur",
+              "uebrige_befestigte",
+              "uebrige_bestockte",
+              "uebrige_humusierte",
+              "uebrige_vegetationslose"
+            ]
+          ]
+        ]
+      ],
+      "paint": {
+        "fill-color": "#CED5DF",
+        "fill-opacity": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          15,
+          0,
+          15.7,
+          1
+        ]
+      }
+    },
+    {
+      "id": "av-neutral-soil",
+      "type": "fill",
+      "source": "vectormap_av",
+      "source-layer": "Bodenbedeckung",
+      "minzoom": 15,
+      "filter": ["==", ["get", "Art"], "uebrige_humusierte"],
+      "paint": {
+        "fill-color": "#CED5DF",
+        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.7, 1]
+      }
+    },
+    {
+      "id": "av-gardens",
+      "type": "fill",
+      "source": "vectormap_av",
+      "source-layer": "Bodenbedeckung",
+      "minzoom": 13,
+      "filter": [
+        "in",
+        [
+          "get",
+          "Art"
+        ],
+        [
+          "literal",
+          [
+            "Gartenanlage"
+          ]
+        ]
+      ],
+      "paint": {
+        "fill-color": "#CED5DF",
+        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 13, 0, 14, 0.22, 14.7, 0.49, 15.35, 0.79, 15.8, 1]
+      }
+    },
+    {
       "id": "landcover-fields",
       "type": "fill",
       "source": "base_v1.0.0",
@@ -339,116 +436,15 @@
       }
     },
     {
-      "id": "av-surface-base",
-      "type": "fill",
-      "source": "vectormap_av",
-      "source-layer": "Bodenbedeckung",
-      "minzoom": 15,
-      "filter": [
-        "!",
-        [
-          "in",
-          ["get", "Art"],
-          [
-            "literal",
-            [
-              "Abbau_Deponie",
-              "Acker_Wiese_Weide",
-              "Bahn",
-              "Fels",
-              "Flugplatz",
-              "Gartenanlage",
-              "Gebaeude",
-              "Geroell_Sand",
-              "Gewaesser_fliessendes",
-              "Gewaesser_stehendes",
-              "Gletscher_Firn",
-              "Hoch_Flachmoor",
-              "Reben",
-              "Schilfguertel",
-              "Strasse_Weg",
-              "Trottoir",
-              "Verkehrsinsel",
-              "Wasserbecken",
-              "Wytweide_dicht",
-              "Wytweide_offen",
-              "geschlossener_Wald",
-              "uebrige_Intensivkultur",
-              "uebrige_befestigte",
-              "uebrige_bestockte",
-              "uebrige_humusierte",
-              "uebrige_vegetationslose"
-            ]
-          ]
-        ]
-      ],
-      "paint": {
-        "fill-color": "#CED5DF",
-        "fill-opacity": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          15,
-          0,
-          15.7,
-          1
-        ]
-      }
-    },
-    {
       "id": "av-fields",
       "type": "fill",
       "source": "vectormap_av",
       "source-layer": "Bodenbedeckung",
       "minzoom": 15,
-      "filter": [
-        "in",
-        [
-          "get",
-          "Art"
-        ],
-        [
-          "literal",
-          [
-            "Acker_Wiese_Weide",
-            "Reben",
-            "uebrige_humusierte",
-            "uebrige_Intensivkultur",
-            "Wytweide_offen"
-          ]
-        ]
-      ],
+      "filter": ["in", ["get", "Art"], ["literal", ["Acker_Wiese_Weide", "Reben", "uebrige_Intensivkultur", "Wytweide_offen"]]],
       "paint": {
-        "fill-color": ["match", ["get", "Art"], "uebrige_humusierte", "#CED5DF", "#8F9F84"],
-        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.7, ["match", ["get", "Art"], "uebrige_humusierte", 1, 0.7]]
-      }
-    },
-    {
-      "id": "av-gardens",
-      "type": "fill",
-      "source": "vectormap_av",
-      "source-layer": "Bodenbedeckung",
-      "minzoom": 13,
-      "filter": [
-        "in",
-        [
-          "get",
-          "Art"
-        ],
-        [
-          "literal",
-          [
-            "Gartenanlage"
-          ]
-        ]
-      ],
-      "paint": {
-        "fill-color": "#CED5DF",
-        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 13, 0, 14, 0.22, 14.7, 0.49, 15.35, 0.79, 15.8, 1]
+        "fill-color": "#8F9F84",
+        "fill-opacity": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.7, 0.7]
       }
     },
     {
