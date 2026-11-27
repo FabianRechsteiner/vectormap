@@ -1,4 +1,4 @@
-const CACHE_VERSION = "vectormap-v9";
+const CACHE_VERSION = "vectormap-v10";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const MAX_RUNTIME_ENTRIES = 80;
@@ -29,6 +29,12 @@ const PRECACHE_URLS = [
   "./offline.html",
   "./manifest.webmanifest",
   "./assets/css/style.css",
+  "./assets/css/tokens.css",
+  "./assets/css/home.css",
+  "./assets/js/theme.js",
+  "./assets/js/navigation.js",
+  "./assets/js/home-map.js",
+  "./assets/images/logo_vectormap_transparent.png",
   "./assets/css/maplibre-gl-compare.css",
   "./styles/ch.vectormap.lightbasemap.json",
   "./styles/ch.vectormap.gta.json",

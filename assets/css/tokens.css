@@ -1,0 +1,46 @@
+/* Shared Vectormap design tokens. */
+:root {
+  color-scheme: light;
+  --vm-bg: #f7f9f8;
+  --vm-surface: #ffffff;
+  --vm-ink: #152824;
+  --vm-muted: #526660;
+  --vm-accent: #14695e;
+  --vm-on-accent: #ffffff;
+  --vm-line: #dce5e1;
+  --vm-soft: #e7f2ee;
+  --vm-focus: #14695e;
+  --vm-radius: 8px;
+  --vm-radius-lg: 12px;
+  --vm-display: "Space Grotesk", system-ui, sans-serif;
+  --vm-body: "Source Sans 3", system-ui, sans-serif;
+  --vm-mono: "IBM Plex Mono", monospace;
+  --vm-width: 1280px;
+  --vm-gutter: clamp(1rem, 4vw, 3rem);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --vm-bg: #0d1719;
+  --vm-surface: #142326;
+  --vm-ink: #edf5f3;
+  --vm-muted: #9eb2ae;
+  --vm-accent: #58d8bd;
+  --vm-on-accent: #102c27;
+  --vm-line: #2d4142;
+  --vm-soft: #1c3332;
+  --vm-focus: #58d8bd;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --vm-bg: #0d1719;
+    --vm-surface: #142326;
+    --vm-ink: #edf5f3;
+    --vm-muted: #9eb2ae;
+    --vm-accent: #58d8bd;
+    --vm-on-accent: #102c27;
+    --vm-line: #2d4142;
+    --vm-soft: #1c3332;
+    --vm-focus: #58d8bd;
+  }
+}
